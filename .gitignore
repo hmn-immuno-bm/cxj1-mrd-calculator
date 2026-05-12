@@ -1,0 +1,27 @@
+# Patient data — NEVER commit
+*.xlsx
+*.xls
+*.csv
+input/
+Donnees_*
+*_clinical*
+*_patient*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# Build artifacts
+__pycache__/
+*.pyc
+node_modules/
+
+# Logs
+*.log
