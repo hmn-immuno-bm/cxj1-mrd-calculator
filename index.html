@@ -242,15 +242,16 @@ risque(t) = 1 - S₀(t)^exp(LP)</div>
         <tbody id="lpBreakdown"></tbody>
       </table>
 
-      <h3 style="margin-top:18px;">📍 Position du patient dans la cohorte (VPN observée à 12 mois)</h3>
+      <h3 style="margin-top:18px;">📍 Position du patient dans la cohorte (VPN et VPP observées à 12 mois)</h3>
       <p style="font-size:12px; color:#475569; margin-top:-6px;">
         On classe la cohorte de développement par r12 prédit et on découpe au score du patient.
-        VPN = fraction de patients sans rechute observée à 12 mois (Kaplan-Meier).
+        <strong>VPN</strong> = % de patients <em>sans rechute</em> à 12 mois parmi ceux à risque ≤ patient (Kaplan-Meier).
+        <strong>VPP</strong> = % de patients <em>ayant rechuté</em> à 12 mois parmi ceux à risque ≥ patient (1 − KM).
         Cible 12 mois car la dynamique précoce du ctDNA n'a pas été validée pour prédire les rechutes tardives.
       </p>
       <div class="summary-grid" style="grid-template-columns: 1fr 1fr; gap:14px;">
         <div class="summary-box" style="border-left-color:#22c55e;">
-          <div class="summary-box-label">Cohorte avec r12 ≤ patient</div>
+          <div class="summary-box-label">VPN — Cohorte avec r12 ≤ patient</div>
           <div style="display:grid; grid-template-columns: auto 1fr; gap:6px 14px; margin-top:8px; font-size:13px;">
             <span style="color:#64748b;">Effectif :</span>     <strong id="grp_le_n">--</strong>
             <span style="color:#64748b;">Événements PFS @12mo :</span> <strong id="grp_le_e">--</strong>
@@ -258,17 +259,19 @@ risque(t) = 1 - S₀(t)^exp(LP)</div>
           </div>
         </div>
         <div class="summary-box" style="border-left-color:#ef4444;">
-          <div class="summary-box-label">Cohorte avec r12 ≥ patient</div>
+          <div class="summary-box-label">VPP — Cohorte avec r12 ≥ patient</div>
           <div style="display:grid; grid-template-columns: auto 1fr; gap:6px 14px; margin-top:8px; font-size:13px;">
             <span style="color:#64748b;">Effectif :</span>     <strong id="grp_ge_n">--</strong>
             <span style="color:#64748b;">Événements PFS @12mo :</span> <strong id="grp_ge_e">--</strong>
-            <span style="color:#64748b;">VPN @ 12 mo :</span>   <strong id="grp_ge_v12" style="color:#991b1b; font-size:16px;">--</strong>
+            <span style="color:#64748b;">VPP @ 12 mo :</span>   <strong id="grp_ge_v12" style="color:#991b1b; font-size:16px;">--</strong>
           </div>
         </div>
       </div>
       <p style="font-size:11px; color:#64748b; font-style:italic; margin-top:6px;">
-        Interprétation : "Sur les <span id="grp_le_n_inline">--</span> patients à risque inférieur ou égal au vôtre,
-        <span id="grp_le_v12_inline">--</span> n'ont pas rechuté à 12 mois." Le patient appartient aux DEUX groupes (≤ et ≥) car sa valeur est son propre seuil.
+        Interprétation : "Parmi les <span id="grp_le_n_inline">--</span> patients à risque <strong>inférieur ou égal</strong> au vôtre,
+        <span id="grp_le_v12_inline">--</span> n'ont pas rechuté à 12 mois (VPN). Parmi les <span id="grp_ge_n_inline">--</span> patients à risque
+        <strong>supérieur ou égal</strong> au vôtre, <span id="grp_ge_v12_inline">--</span> ont rechuté à 12 mois (VPP)."
+        Le patient appartient aux DEUX groupes car sa valeur est son propre seuil.
       </p>
 
       <details style="margin-top:14px;">
@@ -444,14 +447,14 @@ function km(patients) {
   return { steps, S12: sAt(12), S24: sAt(24), n_events, N: patients.length };
 }
 
-// VPN par rang : pour le r12 du patient, calculer la VPN observée à 12mo (KM) dans
-//   - la sous-cohorte des patients avec r12 ≤ patient_r12
-//   - la sous-cohorte des patients avec r12 ≥ patient_r12
+// VPN et VPP observées à 12mo (KM) selon position du patient :
+//   - groupe r12 ≤ patient_r12  → VPN = S12 (proportion SANS événement)
+//   - groupe r12 ≥ patient_r12  → VPP = 1 − S12 (proportion AVEC événement)
 // On limite volontairement à 12 mois (dynamique ctDNA précoce non validée pour rechutes tardives)
 function updateRankBasedVPN(pipe, patient_r12) {
   if (isNaN(patient_r12) || patient_r12 == null) {
     ['grp_le_n','grp_le_e','grp_le_v12','grp_ge_n','grp_ge_e','grp_ge_v12',
-     'grp_le_n_inline','grp_le_v12_inline'].forEach(id => {
+     'grp_le_n_inline','grp_le_v12_inline','grp_ge_n_inline','grp_ge_v12_inline'].forEach(id => {
       const el = document.getElementById(id); if (el) el.textContent = '--';
     });
     return;
@@ -459,24 +462,29 @@ function updateRankBasedVPN(pipe, patient_r12) {
   const cohort = COHORT[pipe].cohort;  // [[LP, r12, T, E], ...]
   const fmt_p = v => isNaN(v) ? '--' : (v*100).toFixed(1) + '%';
 
-  // Sous-groupe inférieur ou égal (≤)
+  // Sous-groupe inférieur ou égal (≤) → VPN
   const le = cohort.filter(p => p[1] <= patient_r12).map(p => ({lp:p[0], r12:p[1], t:p[2], e:p[3]}));
-  // Sous-groupe supérieur ou égal (≥)
+  // Sous-groupe supérieur ou égal (≥) → VPP
   const ge = cohort.filter(p => p[1] >= patient_r12).map(p => ({lp:p[0], r12:p[1], t:p[2], e:p[3]}));
 
   const km_le = le.length ? km(le) : {N:0, n_events:0, S12:NaN};
   const km_ge = ge.length ? km(ge) : {N:0, n_events:0, S12:NaN};
 
-  // Affichage (VPN @ 12mo uniquement)
+  // VPN = S12 (≤ patient, low-risk group) ; VPP = 1 − S12 (≥ patient, high-risk group)
+  const vpn = km_le.S12;
+  const vpp = (isNaN(km_ge.S12) ? NaN : 1 - km_ge.S12);
+
   document.getElementById('grp_le_n').textContent   = km_le.N.toString();
   document.getElementById('grp_le_e').textContent   = km_le.n_events.toString();
-  document.getElementById('grp_le_v12').textContent = fmt_p(km_le.S12);
+  document.getElementById('grp_le_v12').textContent = fmt_p(vpn);
   document.getElementById('grp_ge_n').textContent   = km_ge.N.toString();
   document.getElementById('grp_ge_e').textContent   = km_ge.n_events.toString();
-  document.getElementById('grp_ge_v12').textContent = fmt_p(km_ge.S12);
+  document.getElementById('grp_ge_v12').textContent = fmt_p(vpp);
   // Inline text
   document.getElementById('grp_le_n_inline').textContent   = km_le.N.toString();
-  document.getElementById('grp_le_v12_inline').textContent = fmt_p(km_le.S12);
+  document.getElementById('grp_le_v12_inline').textContent = fmt_p(vpn);
+  document.getElementById('grp_ge_n_inline').textContent   = km_ge.N.toString();
+  document.getElementById('grp_ge_v12_inline').textContent = fmt_p(vpp);
 }
 
 // VPN technique liée à la profondeur de séquençage (V15.50 LIS + PCHIP smoothing V15.121)
