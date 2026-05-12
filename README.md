@@ -5,7 +5,7 @@ for prediction of progression-free survival (PFS) at 12 and 24 months
 after CXJ1 follow-up timepoint, based on circulating tumor DNA (ctDNA)
 minimal residual disease (MRD) markers.
 
-🔬 **Live calculator** : https://alessiocg.github.io/cxj1-mrd-calculator/
+🔬 **Live calculator** : https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/
 
 ## Pipelines supported
 
