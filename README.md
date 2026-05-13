@@ -57,6 +57,18 @@ surveillance even if PFS@12 looks reassuring.
 
 ---
 
+## Methodology notes
+
+The current models use **v56 polish** for IDES VAF (= 0 when IDES_quali=0) and
+**v75 polish** for PV VAF (= 0 when quali_33=0). This captures clinical signal
+("presumed good responder when test technically uninterpretable") that pure pooled
+VAF cannot reproduce.
+
+Pooled VAF method (`Σ NbrReadAlt / Σ Depth` with per-variant scaled imputation for
+non-detected positions) was extensively tested (V15.155-161) but **dégrades the
+C-index** by ~0.03 even after refitting the bi-exp trajectories — the polish step
+is methodologically valuable.
+
 ## Key finding : baseline scores don't add value
 
 Likelihood-ratio tests of adding **IPI** (DLBCL) or **Hasenclever IPS** (Hodgkin) to the M2 model:
