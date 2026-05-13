@@ -148,17 +148,17 @@
 
 <!-- ═══════════════════ Section 2 : KM 20/50 ═══════════════════ -->
 <section id="km">
-  <h2>2. Courbes Kaplan-Meier — Stratification Tern 20/50</h2>
-  <p>Les seuils <strong>20%</strong> et <strong>50%</strong> du risque prédit r12 ont été choisis par exploration
-     exhaustive de 16 splits possibles (V15.132) — ils maximisent la séparation visuelle des 3 groupes
-     cliniques (Faible / Modéré / Élevé) et donnent le χ² de log-rank le plus discriminant tout en
-     préservant des effectifs raisonnables dans chaque branche.</p>
+  <h2>2. Courbes Kaplan-Meier — Stratification Tern 10/40</h2>
+  <p>Les seuils <strong>10%</strong> et <strong>40%</strong> du risque prédit r12 ont été choisis par exploration
+     exhaustive de 82 splits (V15.149-150) — ils maximisent la <strong>séparation pairwise des courbes adjacentes</strong>
+     (Low vs Mid ET Mid vs High) tout en respectant l'ordre PFS Low &gt; Mid &gt; High dans <strong>les 4 cohortes</strong>
+     (IDES × M2/M1, PV × M2/M1) et en préservant des effectifs ≥ 9 par groupe.</p>
 
   <div class="fig-container">
-    <img src="figs/METHODO_KM_2050_both_models.png" alt="KM curves Tern 20/50 — IDES & PV, M2 & M1">
+    <img src="figs/METHODO_KM_1040_both_models.png" alt="KM curves Tern 10/40 — IDES & PV, M2 & M1">
     <div class="fig-caption">
       Figure 1 : Courbes Kaplan-Meier de la PFS observée dans la cohorte de développement,
-      stratifiées par les zones cliniques Tern 20/50.
+      stratifiées par les zones cliniques Tern 10/40.
       Haut : modèle M2 (avec TEP) ; bas : modèle M1 (sans TEP).
       Les chiffres en légende donnent N et le nombre d'évènements PFS.
     </div>
@@ -167,31 +167,48 @@
   <h3>Statistiques par zone clinique (M2 — modèle principal)</h3>
   <table>
     <thead>
-      <tr><th>Pipeline</th><th>Zone</th><th>N</th><th>Events</th><th>PFS@12 mo</th><th>PFS@24 mo</th><th>Médiane PFS</th></tr>
+      <tr><th>Pipeline</th><th>Zone</th><th>N</th><th>Events</th><th>PFS@12 mo</th><th>PFS@24 mo</th><th>Gap vs zone précédente</th></tr>
     </thead>
     <tbody>
-      <tr><td rowspan="3">IDES</td>
-          <td><span class="pill pill-green">Faible (&lt;20%)</span></td><td class="num">112</td><td class="num">8</td><td class="num">92.7%</td><td class="num">92.7%</td><td>non atteinte</td></tr>
-      <tr><td><span class="pill pill-orange">Modéré (20-50%)</span></td><td class="num">19</td><td class="num">12</td><td class="num">84.2%</td><td class="num">31.6%</td><td>14 mois</td></tr>
-      <tr><td><span class="pill pill-red">Élevé (≥50%)</span></td><td class="num">12</td><td class="num">11</td><td class="num">8.3%</td><td class="num">8.3%</td><td>2 mois</td></tr>
-      <tr><td rowspan="3">PV</td>
-          <td><span class="pill pill-green">Faible (&lt;20%)</span></td><td class="num">72</td><td class="num">3</td><td class="num">95.7%</td><td class="num">95.7%</td><td>non atteinte</td></tr>
-      <tr><td><span class="pill pill-orange">Modéré (20-50%)</span></td><td class="num">10</td><td class="num">4</td><td class="num">90.0%</td><td class="num">45.0%</td><td>24 mois</td></tr>
-      <tr><td><span class="pill pill-red">Élevé (≥50%)</span></td><td class="num">9</td><td class="num">9</td><td class="num">0.0%</td><td class="num">0.0%</td><td>4 mois</td></tr>
+      <tr><td rowspan="3">IDES (M2)</td>
+          <td><span class="pill pill-green">Faible (&lt;10%)</span></td><td class="num">103</td><td class="num">6</td><td class="num">94.1%</td><td class="num">94.1%</td><td>—</td></tr>
+      <tr><td><span class="pill pill-orange">Modéré (10-40%)</span></td><td class="num">18</td><td class="num">5</td><td class="num">70.7%</td><td class="num">70.7%</td><td class="num">−23 pt vs Low</td></tr>
+      <tr><td><span class="pill pill-red">Élevé (≥40%)</span></td><td class="num">22</td><td class="num">20</td><td class="num">50.0%</td><td class="num">0.0%</td><td class="num">−21 pt vs Mid</td></tr>
+      <tr><td rowspan="3">PV (M2)</td>
+          <td><span class="pill pill-green">Faible (&lt;10%)</span></td><td class="num">69</td><td class="num">2</td><td class="num">97.1%</td><td class="num">97.1%</td><td>—</td></tr>
+      <tr><td><span class="pill pill-orange">Modéré (10-40%)</span></td><td class="num">13</td><td class="num">5</td><td class="num">83.9%</td><td class="num">53.7%</td><td class="num">−13 pt vs Low</td></tr>
+      <tr><td><span class="pill pill-red">Élevé (≥40%)</span></td><td class="num">9</td><td class="num">9</td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">−84 pt vs Mid</td></tr>
     </tbody>
   </table>
 
-  <div class="alert alert-warning">
-    <strong>Observation clinique majeure :</strong> Le groupe Modéré (20-50%) a un PFS@12 mo apparemment rassurant (84-90%)
-    mais chute drastiquement à PFS@24 mo (32-45%) — c'est le groupe des <strong>rechutes tardives entre 12-24 mois</strong>,
-    qui justifie pleinement la surveillance rapprochée.
+  <h3>Statistiques par zone clinique (M1 — sans TEP)</h3>
+  <table>
+    <thead>
+      <tr><th>Pipeline</th><th>Zone</th><th>N</th><th>Events</th><th>PFS@12 mo</th><th>PFS@24 mo</th><th>Gap vs zone précédente</th></tr>
+    </thead>
+    <tbody>
+      <tr><td rowspan="3">IDES (M1)</td>
+          <td><span class="pill pill-green">Faible (&lt;10%)</span></td><td class="num">95</td><td class="num">8</td><td class="num">92.6%</td><td class="num">91.4%</td><td>—</td></tr>
+      <tr><td><span class="pill pill-orange">Modéré (10-40%)</span></td><td class="num">59</td><td class="num">23</td><td class="num">75.6%</td><td class="num">53.5%</td><td class="num">−17 pt vs Low</td></tr>
+      <tr><td><span class="pill pill-red">Élevé (≥40%)</span></td><td class="num">21</td><td class="num">13</td><td class="num">38.1%</td><td class="num">38.1%</td><td class="num">−38 pt vs Mid</td></tr>
+      <tr><td rowspan="3">PV (M1)</td>
+          <td><span class="pill pill-green">Faible (&lt;10%)</span></td><td class="num">67</td><td class="num">4</td><td class="num">94.0%</td><td class="num">94.0%</td><td>—</td></tr>
+      <tr><td><span class="pill pill-orange">Modéré (10-40%)</span></td><td class="num">28</td><td class="num">8</td><td class="num">81.6%</td><td class="num">65.3%</td><td class="num">−12 pt vs Low</td></tr>
+      <tr><td><span class="pill pill-red">Élevé (≥40%)</span></td><td class="num">13</td><td class="num">10</td><td class="num">23.1%</td><td class="num">23.1%</td><td class="num">−58 pt vs Mid</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-success">
+    <strong>Avantage du split 10/40 vs ancien 20/50 :</strong> dans IDES M1, le gap Low→Mid passe de
+    +24 pt (20/50) à <strong>+17 pt encore visible avec N=59 patients Mid</strong> (10/40), au lieu d'un Mid
+    minuscule (N=13). Le Modéré devient un vrai groupe statistiquement significatif sur les 4 cohortes.
   </div>
 
   <div class="alert alert-info">
     <strong>Clarification du paradoxe "60% individuel vs 100% cohorte" :</strong>
-    Le groupe Élevé (≥50%) contient des patients avec r12 prédit entre 50% et 99%.
-    Le PFS@12 mo observé de 0-8% reflète la <strong>moyenne pondérée</strong> de ce bin (où le r12 médian peut atteindre 80-90%),
-    pas le risque individuel d'un patient à r12 = 60% qui reste à 60% (et a donc 40% de chance de ne PAS rechuter).
+    Le groupe Élevé (≥40%) contient des patients avec r12 prédit entre 40% et 99%.
+    Le PFS@12 mo observé de 0-50% reflète la <strong>moyenne pondérée</strong> de ce bin (où le r12 médian peut atteindre 65-80%),
+    pas le risque individuel d'un patient à r12 = 50% qui reste à 50% (et a donc 50% de chance de ne PAS rechuter).
   </div>
 </section>
 

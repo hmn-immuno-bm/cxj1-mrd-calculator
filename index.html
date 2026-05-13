@@ -36,7 +36,7 @@ input[type="number"]:focus, select:focus { outline: none; border-color: #2E75B6;
 .risk-mid { background: #fef3c7; color: #92400e; border-left: 6px solid #f59e0b; }
 .risk-high { background: #fee2e2; color: #991b1b; border-left: 6px solid #ef4444; }
 .risk-gauge { margin-top: 14px; }
-.risk-gauge-track { height: 12px; background: linear-gradient(to right, #22c55e 0%, #22c55e 20%, #f59e0b 20%, #f59e0b 50%, #ef4444 50%, #ef4444 100%);
+.risk-gauge-track { height: 12px; background: linear-gradient(to right, #22c55e 0%, #22c55e 10%, #f59e0b 10%, #f59e0b 40%, #ef4444 40%, #ef4444 100%);
                      border-radius: 6px; position: relative; }
 .risk-gauge-marker { position: absolute; top: -4px; width: 4px; height: 20px; background: #0f172a; border-radius: 2px; }
 .risk-gauge-marker::after { content: attr(data-val); position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
@@ -392,24 +392,24 @@ const MODELS = {
     "coefs": { "score": 0.6816, "v5": 0.6042, "tep2": 1.0580 },
     "HR":    { "score": 1.977,  "v5": 1.830,  "tep2": 2.880 },
     "baseline_S0": { 3: 0.9811, 6: 0.9564, 12: 0.9204, 18: 0.8773, 24: 0.8611, 36: 0.8611 },
-    "risk_thresholds": [0.20, 0.50],
-    "split_name": "Tern 20/50 (V15.132)",
+    "risk_thresholds": [0.10, 0.40],
+    "split_name": "Tern 10/40 (V15.150 — meilleure séparation adjacente)",
     "KM": {
-      "low":  { "label": "Low (<20%)",   "N": 112, "events": 8,  "S12": 0.927, "S24": 0.927, "median_mo": null  },
-      "mid":  { "label": "Mid (20-50%)", "N": 19,  "events": 12, "S12": 0.842, "S24": 0.316, "median_mo": 14.0  },
-      "high": { "label": "High (≥50%)",  "N": 12,  "events": 11, "S12": 0.083, "S24": 0.083, "median_mo": 2.0   }
+      "low":  { "label": "Low (<10%)",   "N": 103, "events": 6,  "S12": 0.941, "S24": 0.941 },
+      "mid":  { "label": "Mid (10-40%)", "N": 18,  "events": 5,  "S12": 0.707, "S24": 0.707 },
+      "high": { "label": "High (≥40%)",  "N": 22,  "events": 20, "S12": 0.500, "S24": 0.000 }
     }
   },
   "PV": {
     "coefs": { "score": 0.5318, "v5": 1.2700, "tep2": 1.0099 },
     "HR":    { "score": 1.702,  "v5": 3.561,  "tep2": 2.745 },
     "baseline_S0": { 3: 0.9962, 6: 0.9793, 12: 0.9321, 18: 0.9054, 24: 0.8792, 36: 0.8792 },
-    "risk_thresholds": [0.20, 0.50],
-    "split_name": "Tern 20/50 (V15.132)",
+    "risk_thresholds": [0.10, 0.40],
+    "split_name": "Tern 10/40 (V15.150 — meilleure séparation adjacente)",
     "KM": {
-      "low":  { "label": "Low (<20%)",   "N": 72, "events": 3, "S12": 0.957, "S24": 0.957, "median_mo": null },
-      "mid":  { "label": "Mid (20-50%)", "N": 10, "events": 4, "S12": 0.900, "S24": 0.450, "median_mo": 24.0 },
-      "high": { "label": "High (≥50%)",  "N": 9,  "events": 9, "S12": 0.000, "S24": 0.000, "median_mo": 4.0  }
+      "low":  { "label": "Low (<10%)",   "N": 69, "events": 2, "S12": 0.971, "S24": 0.971 },
+      "mid":  { "label": "Mid (10-40%)", "N": 13, "events": 5, "S12": 0.839, "S24": 0.537 },
+      "high": { "label": "High (≥40%)",  "N": 9,  "events": 9, "S12": 0.000, "S24": 0.000 }
     }
   }
 };
@@ -692,22 +692,23 @@ function calculate() {
   }
   const r12 = risk(12), r24 = risk(24);
 
-  // Classification 3-zones CLINIQUES (split V15.132 Tern 20/50)
-  // Seuils 20% et 50% CALIBRÉS sur les courbes KM observées de la cohorte (séparation visuelle optimale)
+  // Classification 3-zones CLINIQUES (split V15.150 Tern 10/40)
+  // Seuils 10% et 40% CALIBRÉS pour MAXIMISER la séparation pairwise des 3 courbes KM
+  // (gain de visibilité Low/Mid vs ancien 20/50 — N_min=9, min χ²_pair=7.1)
   let zone, zoneLabel, zoneCSS, action;
-  if (r12 <= 0.20) {
+  if (r12 <= 0.10) {
     zone = 'low';  zoneLabel = 'FAIBLE'; zoneCSS = 'low';
-    action = 'Surveillance standard. Dans la cohorte de calibration (N=112 IDES / N=72 PV), PFS@12mo ≈ 93-96% et PFS@24mo ≈ 93-96% (courbe plate, peu d\'évènements tardifs).';
-  } else if (r12 <= 0.50) {
+    action = 'Surveillance standard. Dans la cohorte de calibration (N=103 IDES / N=69 PV), PFS@12mo ≈ 94-97% et PFS@24mo ≈ 94-97% (courbe plate, peu d\'évènements tardifs).';
+  } else if (r12 <= 0.40) {
     zone = 'mid';  zoneLabel = 'MODÉRÉ'; zoneCSS = 'mid';
-    action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière). Dans la cohorte (N=19 IDES / N=10 PV), PFS@12mo ≈ 84-90%, mais chute à PFS@24mo ≈ 32-45% (événements tardifs majeurs entre 12-24mo).';
+    action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière). Dans la cohorte (N=18 IDES / N=13 PV), PFS@12mo ≈ 71-84% — gap visible vs Low (~20pt). PFS@24mo descend à 54-71% (événements tardifs).';
   } else {
     zone = 'high'; zoneLabel = 'ÉLEVÉ'; zoneCSS = 'high';
-    action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai). Dans la cohorte (N=12 IDES / N=9 PV), PFS@12mo ≈ 0-8% et PFS@24mo ≈ 0-8% (médiane de PFS 2-4 mois, rechute quasi-systématique).';
+    action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai). Dans la cohorte (N=22 IDES / N=9 PV), PFS@12mo ≈ 0-50% (PV : 0%, IDES : 50%) et PFS@24mo ≈ 0% — rechute quasi-systématique.';
   }
 
   // (groupe binaire conservé pour référence, non utilisé dans drawKM nouvelle version)
-  const grpKey = (r12 > 0.50) ? 'high' : 'low';
+  const grpKey = (r12 > 0.40) ? 'high' : 'low';
 
   // ─── Calibration locale KNN (diagnostic, PAS de blending) ───
   const K_neighbors = 30;
@@ -744,15 +745,15 @@ function calculate() {
         `<div style="font-size:44px; font-weight:700; line-height:1;">${(r24*100).toFixed(1)}%</div>` +
       `</div>` +
     `</div>` +
-    `<div style="font-size:14px; margin-bottom:8px;">Zone : <strong>${zoneLabel}</strong> <span style="opacity:.7;">(seuils 20%/50% calibrés sur séparation KM optimale de la cohorte, V15.132)</span></div>` +
+    `<div style="font-size:14px; margin-bottom:8px;">Zone : <strong>${zoneLabel}</strong> <span style="opacity:.7;">(seuils 10%/40% — meilleure séparation adjacente, V15.150)</span></div>` +
     `<div style="font-size:13px; margin-bottom:10px;">${action}</div>` +
     `<div class="risk-gauge">` +
       `<div class="risk-gauge-track">` +
         `<div class="risk-gauge-marker" style="left:${gaugeLeft}%" data-val="${(r12*100).toFixed(1)}%"></div>` +
       `</div>` +
       `<div class="risk-gauge-labels">` +
-        `<span>0%</span><span style="position:absolute; left:20%; transform:translateX(-50%);">20%</span>` +
-        `<span style="position:absolute; left:50%; transform:translateX(-50%);">50%</span>` +
+        `<span>0%</span><span style="position:absolute; left:10%; transform:translateX(-50%);">10%</span>` +
+        `<span style="position:absolute; left:40%; transform:translateX(-50%);">40%</span>` +
         `<span>100%</span>` +
       `</div>` +
     `</div>` +
@@ -805,10 +806,10 @@ function drawKM(pipe, lp) {
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
 
   // Zone colorées HORIZONTALES (risque) : à 12mo
-  // Calcule les survies du patient qui correspondent aux seuils Risque 20% et 50% (V15.132 Tern 20/50)
+  // Calcule les survies du patient qui correspondent aux seuils Risque 10% et 40% (V15.150 Tern 10/40)
   // Y-axis is survival (S), high S = low risk → vert en haut
-  const sBoundLow = 0.80; // S=80% correspond à 20% risk (borne low/mid)
-  const sBoundHigh = 0.50; // S=50% correspond à 50% risk (borne mid/high)
+  const sBoundLow  = 0.90; // S=90% correspond à 10% risk (borne low/mid)
+  const sBoundHigh = 0.60; // S=60% correspond à 40% risk (borne mid/high)
   // Fond zones (très clair)
   svg += `<rect x="${mL}" y="${y(1)}"  width="${W-mL-mR}" height="${y(sBoundLow)-y(1)}" fill="#dcfce7" opacity="0.4"/>`;
   svg += `<rect x="${mL}" y="${y(sBoundLow)}" width="${W-mL-mR}" height="${y(sBoundHigh)-y(sBoundLow)}" fill="#fef3c7" opacity="0.4"/>`;
@@ -874,9 +875,9 @@ function drawKM(pipe, lp) {
 
   // Légende (4 lignes)
   svg += `<g transform="translate(${mL+10}, ${mT+6})">`;
-  svg += `<rect x="0" y="0" width="14" height="10" fill="#dcfce7" opacity="0.6"/><text x="20" y="9" font-size="10" fill="#334155">Zone Faible (&lt;20%)</text>`;
-  svg += `<rect x="0" y="14" width="14" height="10" fill="#fef3c7" opacity="0.6"/><text x="20" y="23" font-size="10" fill="#334155">Zone Modéré (20-50%)</text>`;
-  svg += `<rect x="0" y="28" width="14" height="10" fill="#fee2e2" opacity="0.6"/><text x="20" y="37" font-size="10" fill="#334155">Zone Élevé (&gt;50%)</text>`;
+  svg += `<rect x="0" y="0" width="14" height="10" fill="#dcfce7" opacity="0.6"/><text x="20" y="9" font-size="10" fill="#334155">Zone Faible (&lt;10%)</text>`;
+  svg += `<rect x="0" y="14" width="14" height="10" fill="#fef3c7" opacity="0.6"/><text x="20" y="23" font-size="10" fill="#334155">Zone Modéré (10-40%)</text>`;
+  svg += `<rect x="0" y="28" width="14" height="10" fill="#fee2e2" opacity="0.6"/><text x="20" y="37" font-size="10" fill="#334155">Zone Élevé (&gt;40%)</text>`;
   svg += `<line x1="0" y1="49" x2="14" y2="49" stroke="#0f172a" stroke-width="3"/><text x="20" y="53" font-size="10" fill="#334155" font-weight="600">Survie prédite (Cox V15.102)</text>`;
   svg += `<line x1="0" y1="64" x2="14" y2="64" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="5,3"/><text x="20" y="68" font-size="10" fill="#334155" font-weight="600">Patients SIMILAIRES en LP (KM observé)</text>`;
   svg += `</g>`;
