@@ -2,346 +2,1068 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>MRD Calculator v2 NEW (mono-exp + ctDNA)</title>
+<title>Calculateur MRD ctDNA — V15.102</title>
 <style>
 * { box-sizing: border-box; }
-body { font-family: 'Segoe UI', Roboto, sans-serif; line-height: 1.45; background: #f1f5f9; margin: 0; padding: 20px; color: #1e293b; }
-.container { max-width: 1100px; margin: 0 auto; }
-h1 { color: #1e3a8a; margin: 0 0 6px; }
-.subtitle { color: #64748b; font-size: 14px; margin-bottom: 18px; }
-.card { background: white; border-radius: 8px; padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-.card h2 { margin: 0 0 12px; color: #1e40af; font-size: 18px; }
-.card h3 { margin: 12px 0 8px; color: #334155; font-size: 15px; }
-label { display: block; margin: 6px 0 2px; font-size: 13px; color: #475569; }
-input[type=number], select { width: 100%; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 14px; }
-input[type=number]:focus { outline: none; border-color: #2E75B6; }
-.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-button { background: #1e40af; color: white; border: none; padding: 11px 22px; border-radius: 5px; cursor: pointer; font-size: 15px; }
-button:hover { background: #1e3a8a; }
-.result-box { padding: 14px; border-radius: 6px; margin-top: 10px; }
-.zone-Faible { background: #dcfce7; border-left: 4px solid #16a34a; }
-.zone-Modéré { background: #fef3c7; border-left: 4px solid #eab308; }
-.zone-Élevé { background: #fee2e2; border-left: 4px solid #dc2626; }
-.zone-NA { background: #f1f5f9; border-left: 4px solid #94a3b8; }
-.big { font-size: 26px; font-weight: 600; }
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 13px; text-align: left; }
-th { background: #f8fafc; color: #475569; font-weight: 600; }
-.warn { color: #b45309; font-size: 12px; margin-top: 4px; }
-.muted { color: #64748b; font-size: 13px; }
-.banner { background: #dbeafe; border-left: 4px solid #2563eb; padding: 10px 14px; margin-bottom: 16px; border-radius: 4px; font-size: 13px; color: #1e3a8a; }
-.flex { display: flex; gap: 16px; flex-wrap: wrap; }
-.flex > div { flex: 1; min-width: 180px; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+       margin: 0; padding: 0; background: #f4f6fa; color: #1f2937; }
+header { background: linear-gradient(135deg,#2E75B6 0%,#305496 100%); color: white;
+         padding: 20px 28px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+header h1 { margin: 0; font-size: 22px; }
+header .subtitle { font-size: 13px; opacity: .9; margin-top: 4px; }
+.container { display: grid; grid-template-columns: 420px 1fr; gap: 22px; padding: 22px 28px; }
+@media (max-width: 960px) { .container { grid-template-columns: 1fr; } }
+.card { background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.06);
+        padding: 20px; margin-bottom: 16px; }
+.card h2 { margin: 0 0 14px; font-size: 16px; color: #305496;
+           border-bottom: 2px solid #e0e6ed; padding-bottom: 8px; }
+.card h3 { font-size: 13px; color: #444; margin: 14px 0 6px; font-weight: 600; }
+label { display: block; font-size: 13px; color: #475569; margin: 10px 0 4px; font-weight: 500; }
+input[type="number"], select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1;
+   border-radius: 6px; font-size: 14px; background: white; }
+input[type="number"]:focus, select:focus { outline: none; border-color: #2E75B6;
+   box-shadow: 0 0 0 3px rgba(46,117,182,.15); }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.btn { display: inline-block; padding: 11px 20px; background: #2E75B6; color: white;
+       border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+       width: 100%; margin-top: 14px; }
+.btn:hover { background: #305496; }
+.btn-2 { background: #64748b; }
+.btn-2:hover { background: #475569; }
+.risk-banner { padding: 18px 20px; border-radius: 8px; margin-bottom: 14px; font-weight: 500; font-size: 14px; }
+.risk-low { background: #dcfce7; color: #15803d; border-left: 6px solid #22c55e; }
+.risk-mid { background: #fef3c7; color: #92400e; border-left: 6px solid #f59e0b; }
+.risk-high { background: #fee2e2; color: #991b1b; border-left: 6px solid #ef4444; }
+.risk-gauge { margin-top: 14px; }
+.risk-gauge-track { height: 12px; background: linear-gradient(to right, #22c55e 0%, #22c55e 10%, #f59e0b 10%, #f59e0b 40%, #ef4444 40%, #ef4444 100%);
+                     border-radius: 6px; position: relative; }
+.risk-gauge-marker { position: absolute; top: -4px; width: 4px; height: 20px; background: #0f172a; border-radius: 2px; }
+.risk-gauge-marker::after { content: attr(data-val); position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+                              font-size: 11px; font-weight: 700; color: #0f172a; white-space: nowrap; }
+.risk-gauge-labels { display: flex; justify-content: space-between; font-size: 10px; color: #64748b; margin-top: 4px; position: relative; height: 14px; }
+table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13px; }
+table th { background: #e0e6ed; padding: 6px 10px; text-align: left; font-weight: 600; }
+table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; }
+.tip { font-size: 11px; color: #64748b; margin-top: 4px; font-style: italic; }
+.info { background: #eff6ff; border-left: 4px solid #2E75B6; padding: 8px 12px;
+        border-radius: 4px; font-size: 12px; color: #1e40af; margin: 8px 0; }
+.warn { background: #fff7ed; border-left: 4px solid #f59e0b; padding: 8px 12px;
+        border-radius: 4px; font-size: 12px; color: #9a3412; margin: 8px 0; }
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 14px 0; }
+.summary-box { background: #f8fafc; border-radius: 6px; padding: 12px; border-left: 3px solid #2E75B6; }
+.summary-box-value { font-size: 22px; font-weight: 700; color: #305496; }
+.summary-box-label { font-size: 10px; color: #64748b; text-transform: uppercase;
+                     letter-spacing: .5px; }
+.formula { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px;
+           background: #f8fafc; padding: 8px 10px; border-radius: 4px; color: #334155;
+           border-left: 3px solid #cbd5e1; }
+.tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.tab { padding: 8px 16px; background: #e0e6ed; border-radius: 6px 6px 0 0; cursor: pointer;
+       font-size: 13px; font-weight: 500; color: #475569; }
+.tab.active { background: #2E75B6; color: white; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.hidden { display: none !important; }
+.pipeline-card { background: #fafbfc; border-left: 3px solid #94a3b8;
+                  padding: 12px 14px; border-radius: 0 6px 6px 0; margin: 10px 0; }
+.pipeline-card.ides { border-left-color: #16a34a; background: #f0fdf4; }
+.pipeline-card.pv { border-left-color: #2E75B6; background: #eff6ff; }
+.pipeline-header { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.pipeline-header.ides { color: #15803d; }
+.pipeline-header.pv { color: #305496; }
+svg { width: 100%; height: 100%; overflow: visible; }
+.chart-container { width: 100%; height: 280px; margin-top: 10px; }
+.footer { text-align: center; color: #64748b; padding: 16px; font-size: 12px; }
 </style>
 </head>
 <body>
+
+<header>
+  <h1>🧬 Calculateur MRD ctDNA — v2 NEW (V15.188)</h1>
+  <div class="subtitle">Modèle Cox v2 : Score mono-exp ctDNA + log(charge baseline) + v5A_gated drivers + TEP2 Deauville (ou variante 2-vars sans TEP via toggle)</div>
+  <div style="margin-top:10px;">
+    <a href="methodology.html" style="display:inline-block; padding:6px 14px; background:rgba(255,255,255,0.18); color:white; text-decoration:none; border-radius:6px; font-size:13px; font-weight:600; border:1px solid rgba(255,255,255,0.3);">📚 Voir la méthodologie & validation →</a>
+    <a href="index_v1.html" style="display:inline-block; padding:6px 14px; background:rgba(255,255,255,0.10); color:white; text-decoration:none; border-radius:6px; font-size:13px; font-weight:600; border:1px solid rgba(255,255,255,0.2); margin-left:8px;">v1 (legacy) →</a>
+  </div>
+</header>
+
 <div class="container">
 
-<h1>🧬 MRD ctDNA Calculator — v2 NEW (M2 v2)</h1>
-<div class="subtitle">Cox model V15.185 : mono-exp ctDNA + log-burden baseline + v5A_gated drivers + TEP2 Deauville</div>
+  <!-- ═════ INPUT PANEL ═════ -->
+  <div>
+    <div class="card">
+      <h2>📥 Entrées patient</h2>
 
-<div class="banner">
-  <strong>Version 2 (mai 2026)</strong> — NOUVEAU modèle :
-  trajectoires mono-exponentielles sur ctDNA absolu (hEq) avec délai réel, charge tumorale baseline intégrée au score (+log(1+ctDNA_diag)).
-  M2 v2 IDES C=0.859 (N=135) / PV C=0.928 (N=89). M1 v2 IDES C=0.811 / PV C=0.847.
-</div>
-
-<div class="card">
-  <h2>1. Pipeline & histologie</h2>
-  <div class="row">
-    <div>
-      <label>Pipeline</label>
-      <select id="pipe">
-        <option value="IDES">IDES (MOABI panel)</option>
+      <h3>1. Pipeline utilisé</h3>
+      <select id="pipeline" onchange="togglePipeline()">
+        <option value="IDES">IDES (panel MOABI)</option>
         <option value="PV">PV (variants phasés)</option>
       </select>
-    </div>
-    <div>
-      <label>Histologie</label>
-      <select id="histo">
-        <option value="HODGKIN">Hodgkin classique</option>
-        <option value="DLBCL" selected>DLBCL / autre lymphome B</option>
+
+      <h3>1b. Histologie (v2 — choix trajectoire mono-exp)</h3>
+      <select id="histo_label">
+        <option value="Hodgkin classique">Hodgkin classique</option>
+        <option value="DLBCL NOS" selected>DLBCL (NOS, EBV+, sites immunoprivilégiés, autres)</option>
+        <option value="HGBL">HGBL (High Grade B-cell)</option>
+        <option value="PMBL">PMBL</option>
+        <option value="Burkitt">Burkitt</option>
+        <option value="T/HRBCL">T/HRBCL</option>
+        <option value="LFt">LFt (LF transformé)</option>
+        <option value="LZMt">LZMt (LZM transformé)</option>
+        <option value="LLCt">LLCt</option>
+        <option value="Waldenstromt">Waldenstromt</option>
+        <option value="Poppemat">Poppemat</option>
+        <option value="LF">LF (folliculaire)</option>
+        <option value="LZM">LZM (zone marginale)</option>
+        <option value="MCL">MCL (cellules du manteau)</option>
+        <option value="Hodgkin nodulaire à prédominance lymphocytaire">Hodgkin NLP</option>
+        <option value="Lymphoprolifération B liée à l'EBV">Lymphoprolif. EBV</option>
+        <option value="Autre">Autre</option>
       </select>
+      <div class="tip">
+        Choix de la trajectoire bi-exp pour calculer le score :<br>
+        🟢 <strong>Hodgkin classique seul</strong> → trajectoire <code>histo_HODGKIN</code><br>
+        🔵 <strong>Tout le reste</strong> (DLBCL/HGBL/PMBL/Burkitt/transformés/indolents) → trajectoire <code>histo_DLBCL</code>
+      </div>
+
+      <h3>2. Délai CXJ1 (jours post C1J1)</h3>
+      <input type="number" id="delai_jours" min="1" max="120" value="21" placeholder="ex: 21 (C2J1) ou 42 (C3J1)">
+      <div class="tip">Médiane C2J1 = 21j ; C3J1 = 42j</div>
+
+      <h3>3. VAF (%) au diagnostic et CXJ1</h3>
+      <div class="row">
+        <div>
+          <label>VAF diag (%) <span style="color:#ef4444">*</span></label>
+          <input type="number" id="vaf_diag" min="0" step="0.001" placeholder="ex: 1.5">
+        </div>
+        <div>
+          <label>VAF CXJ1 (%) <span style="color:#ef4444">*</span></label>
+          <input type="number" id="vaf_cxj1" min="0" step="0.0001" placeholder="ex: 0.01">
+        </div>
+      </div>
+      <div class="tip" id="vaf_tip">VAF moyenne du patient (MOABI pour IDES, ou variants phasés pour PV).</div>
+
+      <h3>3b. cfDNA plasmatique <span style="color:#ef4444">(NEW v2)</span></h3>
+      <div class="row">
+        <div>
+          <label>cfDNA diag (hEq/mL) <span style="color:#ef4444">*</span></label>
+          <input type="number" id="cfdna_diag" min="0" step="1" placeholder="ex: 4640">
+        </div>
+        <div>
+          <label>cfDNA CXJ1 (hEq/mL) <span style="color:#ef4444">*</span></label>
+          <input type="number" id="cfdna_cxj1" min="0" step="1" placeholder="ex: 3728">
+        </div>
+      </div>
+      <div class="tip">Concentration de cellfree-DNA plasmatique au diagnostic et au CXJ1. ctDNA = VAF × cfDNA (hEq).</div>
+
+      <h3>4. Filtre qualité patient (gate)</h3>
+      <div id="quali_ides_block">
+        <label>p-value IDES (Monte-Carlo 10⁵ permutations)</label>
+        <input type="number" id="pvalue_ides" min="0" max="1" step="0.00001" value="0.00001">
+        <div class="tip">Seuil : p ≤ 1/100001 → quali = 1, sinon 0.</div>
+      </div>
+      <div id="quali_pv_block" class="hidden">
+        <div class="row">
+          <div>
+            <label>nbr doublets PV+ au CXJ1</label>
+            <input type="number" id="nbr_pv" min="0" value="0">
+          </div>
+          <div>
+            <label>Σ UMI PV+ au CXJ1</label>
+            <input type="number" id="sum_umi" min="0" value="0">
+          </div>
+        </div>
+        <div class="tip">Quali = 1 si (nbr ≥ 3) ET (Σ UMI ≥ 3), sinon 0.</div>
+      </div>
+
+      <h3>5. Signal drivers au CXJ1 (D11)</h3>
+      <div class="info">
+        <strong>D11 = {BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53}</strong>
+        — comptez seulement les variants/doublets <em>positifs au CXJ1</em>.
+      </div>
+      <div class="row3">
+        <div>
+          <label>n variants/doublets positifs sur drivers D11</label>
+          <input type="number" id="n_drv_pos" min="0" value="0">
+        </div>
+        <div>
+          <label>n variants/doublets positifs TOTAL (toutes genes)</label>
+          <input type="number" id="n_total_pos" min="0" value="0">
+        </div>
+        <div>
+          <label>Σ reads (ou UMI) sur drivers positifs</label>
+          <input type="number" id="sum_reads_drv" min="0" value="0">
+        </div>
+      </div>
+
+      <h3>6. Profondeur de séquençage (technique → VPN)</h3>
+      <label>Depth totale au CXJ1</label>
+      <input type="number" id="depth_input" min="0" step="1000" placeholder="ex: 100000">
+      <div class="tip" id="depth_tip">Σ DEPTH NGS sur Watch List (IDES) ou Σ Position_Common_UMI sur doublets quali (PV) au CXJ1.</div>
+
+      <h3>7. TEP2 interim (cycle 2)</h3>
+      <div style="margin-bottom: 10px; padding: 8px 12px; background:#f1f5f9; border-radius:6px; border-left:3px solid #64748b;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#334155; cursor:pointer;">
+          <input type="checkbox" id="tep_unavailable" onchange="onTepToggle()" style="width:auto;">
+          <span><strong>TEP2 non disponible</strong> — utiliser le modèle 2-variables (sans TEP)</span>
+        </label>
+        <div style="font-size:11px; color:#64748b; margin-top:4px; margin-left:24px;">
+          Le modèle sans TEP a un C-index de <strong>0.79 IDES / 0.83 PV</strong> (vs 0.86 / 0.93 avec TEP). Recommandé seulement si TEP indisponible.
+        </div>
+      </div>
+      <select id="tep2_deauville">
+        <option value="">-- Choisir --</option>
+        <option value="1">1 (pas de fixation)</option>
+        <option value="2">2 (fixation ≤ médiastin)</option>
+        <option value="3">3 (fixation > médiastin, ≤ foie)</option>
+        <option value="4">4 (modérément > foie)</option>
+        <option value="5">5 (nettement > foie)</option>
+      </select>
+      <div class="tip">TEP2_pos = 1 si Deauville ≥ 4 ; sinon 0.</div>
+
+      <button class="btn" onclick="calculate()">🔍 Calculer le pronostic</button>
+      <button class="btn btn-2" onclick="resetForm()">↺ Réinitialiser</button>
+    </div>
+
+    <div class="card">
+      <h3>📐 Formules V15.102</h3>
+      <div class="formula" style="white-space:pre-wrap">
+ctDNA_diag = VAF_diag(%) × cfDNA_diag (hEq)
+ctDNA_CXJ1 = VAF_CXJ1_polish × cfDNA_CXJ1
+ratio = ctDNA_CXJ1 / ctDNA_diag    (clamp 1e-7)
+mono_exp(t, λ) = exp(-λ · t)
+score_kin = log L_bad - log L_good (mono-exp)
+score_total = score_kin + log(1 + ctDNA_diag)
+
+v5A_gated = log(1 + Σ reads_drv) × (n_drv/n_tot) × quali
+LP = β_score·score + β_v5·v5A_gated + β_TEP2·TEP2_pos
+risque(t) = 1 - S₀(t)^exp(LP)</div>
     </div>
   </div>
+
+  <!-- ═════ RESULTS PANEL ═════ -->
+  <div>
+    <div class="card" id="resultsCard" style="display:none;">
+      <h2>📊 Résultats pronostiques</h2>
+      <div id="riskBanner" class="risk-banner"></div>
+
+      <div class="summary-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+        <div class="summary-box">
+          <div class="summary-box-label">Score (joint bi-exp)</div>
+          <div class="summary-box-value" id="r_score">--</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-box-label">v5A_gated (drivers)</div>
+          <div class="summary-box-value" id="r_v5">--</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-box-label">TEP2_pos</div>
+          <div class="summary-box-value" id="r_tep">--</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-box-label">LP (prédicteur linéaire)</div>
+          <div class="summary-box-value" id="r_lp">--</div>
+        </div>
+      </div>
+
+      <h3>Détail des contributions au LP</h3>
+      <table>
+        <thead><tr><th>Variable</th><th>Valeur</th><th>β</th><th>HR</th><th>Contribution LP</th></tr></thead>
+        <tbody id="lpBreakdown"></tbody>
+      </table>
+
+      <h3 style="margin-top:18px;">📍 Position du patient dans la cohorte (VPN et VPP observées à 12 mois)</h3>
+      <p style="font-size:12px; color:#475569; margin-top:-6px;">
+        On classe la cohorte de développement par r12 prédit et on découpe au score du patient.
+        <strong>VPN</strong> = % de patients <em>sans rechute</em> à 12 mois parmi ceux à risque ≤ patient (Kaplan-Meier).
+        <strong>VPP</strong> = % de patients <em>ayant rechuté</em> à 12 mois parmi ceux à risque ≥ patient (1 − KM).
+        Cible 12 mois car la dynamique précoce du ctDNA n'a pas été validée pour prédire les rechutes tardives.
+      </p>
+      <div class="summary-grid" style="grid-template-columns: 1fr 1fr; gap:14px;">
+        <div class="summary-box" style="border-left-color:#22c55e;">
+          <div class="summary-box-label">VPN — Cohorte avec r12 ≤ patient</div>
+          <div style="display:grid; grid-template-columns: auto 1fr; gap:6px 14px; margin-top:8px; font-size:13px;">
+            <span style="color:#64748b;">Effectif :</span>     <strong id="grp_le_n">--</strong>
+            <span style="color:#64748b;">Événements PFS @12mo :</span> <strong id="grp_le_e">--</strong>
+            <span style="color:#64748b;">VPN @ 12 mo :</span>   <strong id="grp_le_v12" style="color:#15803d; font-size:16px;">--</strong>
+          </div>
+        </div>
+        <div class="summary-box" style="border-left-color:#ef4444;">
+          <div class="summary-box-label">VPP — Cohorte avec r12 ≥ patient</div>
+          <div style="display:grid; grid-template-columns: auto 1fr; gap:6px 14px; margin-top:8px; font-size:13px;">
+            <span style="color:#64748b;">Effectif :</span>     <strong id="grp_ge_n">--</strong>
+            <span style="color:#64748b;">Événements PFS @12mo :</span> <strong id="grp_ge_e">--</strong>
+            <span style="color:#64748b;">VPP @ 12 mo :</span>   <strong id="grp_ge_v12" style="color:#991b1b; font-size:16px;">--</strong>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:11px; color:#64748b; font-style:italic; margin-top:6px;">
+        Interprétation : "Parmi les <span id="grp_le_n_inline">--</span> patients à risque <strong>inférieur ou égal</strong> au vôtre,
+        <span id="grp_le_v12_inline">--</span> n'ont pas rechuté à 12 mois (VPN). Parmi les <span id="grp_ge_n_inline">--</span> patients à risque
+        <strong>supérieur ou égal</strong> au vôtre, <span id="grp_ge_v12_inline">--</span> ont rechuté à 12 mois (VPP)."
+        Le patient appartient aux DEUX groupes car sa valeur est son propre seuil.
+      </p>
+
+      <details style="margin-top:14px;">
+        <summary style="cursor:pointer; font-weight:600; font-size:14px; color:#475569;">📊 Performance globale du modèle v2 NEW (référence méthodologique)</summary>
+        <table style="margin-top:8px;">
+          <thead><tr><th>Métrique</th><th colspan="2">M2 v2 — avec TEP</th><th colspan="2">M1 v2 — sans TEP</th></tr>
+                 <tr><th></th><th>IDES</th><th>PV</th><th>IDES</th><th>PV</th></tr></thead>
+          <tbody>
+            <tr><td>N cohorte de développement</td><td>134</td><td>88</td><td><strong>158</strong></td><td><strong>103</strong></td></tr>
+            <tr><td>Événements PFS</td><td>24</td><td>15</td><td>30</td><td>20</td></tr>
+            <tr><td>C-index (apparent)</td><td><strong>0.858</strong></td><td><strong>0.928</strong></td><td>0.809</td><td>0.845</td></tr>
+            <tr><td>AIC</td><td>183.4</td><td>87.4</td><td>256.8</td><td>143.8</td></tr>
+            <tr><td>Trajectoire mono-exp</td><td colspan="4">λ par (histologie × responder), Hodgkin classique vs reste→DLBCL — <strong>4 params</strong> (vs 12 en v1)</td></tr>
+            <tr><td>Δ M1 v2 vs M1 v1</td><td colspan="2"></td><td colspan="2"><strong>+0.06 IDES / +0.02 PV</strong> (gain net sans TEP)</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px; color:#64748b; margin-top:8px; font-style:italic;">
+          M2 v2 est recommandé. Utiliser M1 v2 (case "TEP non dispo") uniquement quand TEP indisponible.
+          Le modèle v2 intègre la charge tumorale baseline (ctDNA_diag) directement dans le score.
+          Ces métriques décrivent la performance GLOBALE et ne correspondent pas au risque individuel du patient.
+        </p>
+      </details>
+    </div>
+
+    <div class="card" id="vpnCard" style="display:none;">
+      <h2>🔬 VPN technique (V15.50 LIS + lissage PCHIP V15.121)</h2>
+      <p style="font-size:12px; color:#475569;">
+        <strong>Définition stricte (V15.50)</strong> : VPN technique = parmi les patients testés MRD-négatifs,
+        la fraction qui ne sont PAS faux négatifs au sens technique strict
+        (<code>FN_tech = R12+ ET (TEP2+ OU TEP2 NA)</code>).<br>
+        <strong>Méthode</strong> : courbe PCHIP (cubic Hermite monotone) passant par <strong>(0, 0)</strong>
+        + tous les points LIS strictement monotones empiriques + plateau 100% à depth_min_100.
+        La courbe est monotone croissante stricte et lisse (vs piecewise linéaire qui faisait un escalier).
+      </p>
+      <div id="vpnContent"></div>
+      <div class="chart-container" id="vpnChart" style="height:320px;"></div>
+      <div style="margin-top:10px; font-size:11px; color:#64748b; font-style:italic;">
+        Note : la courbe monte très rapidement à basse profondeur car les points LIS empiriques de la cohorte
+        sont déjà à VPN ≥ 95% (cohorte globalement à faible risque). L'asymptote 100% est atteinte
+        empiriquement à depth_min : 792k (IDES), 184k (PV). Le segment 0–1ᵉʳ point LIS est une extrapolation
+        plausible (pas de données empiriques à très basse depth dans la cohorte).
+      </div>
+    </div>
+
+    <div class="card" id="kmCard" style="display:none;">
+      <h2>📈 Survie prédite + Calibration locale</h2>
+      <p style="font-size: 12px; color: #475569;">
+        Deux courbes superposées :<br>
+        <strong>1️⃣ Noire pleine</strong> = survie prédite par Cox V15.102 pour <strong>ce patient</strong> (S(t)=S₀(t)^exp(LP))<br>
+        <strong>2️⃣ Violette pointillée</strong> = KM observé des <strong>K patients de la cohorte les plus similaires</strong> en LP (K adaptatif : 30 IDES / 20 PV)
+        (calibration <em>locale</em>).<br>
+        Si les 2 courbes coïncident → modèle bien calibré pour cette zone de risque.
+      </p>
+      <div class="chart-container" id="kmChart" style="height:340px;"></div>
+      <div id="localCalibStats" style="margin-top:10px; padding:10px 12px; background:#faf5ff; border-left:3px solid #7c3aed; border-radius:4px; font-size:12px; color:#334155;"></div>
+    </div>
+
+    <div class="card" id="readmeCard">
+      <h2>ℹ️ À propos du modèle v2 NEW (V15.188)</h2>
+      <p style="font-size: 13px;">
+      <strong>Modèle Cox à 3 variables</strong> entre les pipelines IDES (panel MOABI)
+      et PV (variants phasés), avec trajectoires <strong>mono-exponentielles</strong> sur ctDNA absolu
+      (= VAF × cfDNA, en hEq) par 2 groupes (Hodgkin classique vs reste→DLBCL) :
+      </p>
+      <ul style="font-size: 13px; color: #475569;">
+        <li><strong>Variable 1 — score mono-exp + charge baseline</strong> :
+        <code>score = log L_bad - log L_good</code> sur le ratio ctDNA_CXJ1/ctDNA_diag avec λ
+        spécifique à (histologie × responder), <em>plus</em> le terme <code>log(1 + ctDNA_diag)</code>
+        pour intégrer la charge tumorale baseline directement (sans coefficient de pondération empirique).</li>
+        <li><strong>Variable 2 — v5A_gated drivers</strong> : intensité (log Σ reads) × spécificité
+        (n_drv/n_total) × gate qualité patient. Capture le signal MRD résiduel sur les 11 gènes
+        oncogéniques driver, en ignorant le bruit IG/SHM.</li>
+        <li><strong>Variable 3 — TEP2_pos</strong> : Deauville ≥ 4 à la TEP interim cycle 2.</li>
+      </ul>
+      <p style="font-size: 13px; background: #eff6ff; padding: 8px 12px; border-left: 3px solid #2E75B6;">
+        <strong>v2 vs v1 (V15.130)</strong> :
+        <br>• <strong>Trajectoires mono-exponentielles</strong> (4 params) au lieu de bi-exp (12 params) → 3× plus parcimonieux
+        <br>• <strong>Quantité ctDNA absolue</strong> (VAF × cfDNA) au lieu de VAF % relative
+        <br>• <strong>Dates réelles</strong> Glims pour le délai CXJ1 (au lieu de J21/J42 théoriques)
+        <br>• <strong>Charge baseline intégrée</strong> : <code>+ log(1 + ctDNA_diag)</code> directement
+        <br>• <strong>M1 v2 sans TEP : C-index 0.811</strong> (vs 0.752 v1) — gain net +0.06
+      </p>
+      <p style="font-size: 13px;">
+        <strong>Gènes drivers D11</strong> : BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53.
+      </p>
+      <p style="font-size: 13px;">
+        <strong>Filtre qualité patient (polish)</strong> :
+        <br>• IDES : p-value Monte-Carlo ≤ 1/100001
+        <br>• PV : ≥3 doublets positifs au CXJ1 ET Σ ≥3 UMI partagés
+        <br>Si le patient ne passe pas le gate → v5A_gated = 0 ET VAF_CXJ1 = 0 dans le score (donc ctDNA_CXJ1 = 0).
+      </p>
+      <p style="font-size: 13px;">
+        Coefficients officiels : <code>output/_calculator_data_v2.json</code><br>
+        Documentation : <a href="methodology.html">methodology.html</a> · <a href="README_EN_v2.md">README EN v2</a>
+      </p>
+    </div>
+  </div>
+
 </div>
 
-<div class="card">
-  <h2>2. Mesures ctDNA (= VAF × cfDNA)</h2>
-  <div class="row3">
-    <div>
-      <label>VAF au diagnostic (%)</label>
-      <input type="number" id="vaf_diag" min="0" step="0.001" placeholder="ex: 18.22" value="">
-    </div>
-    <div>
-      <label>cfDNA au diag (hEq/mL)</label>
-      <input type="number" id="cfdna_diag" min="0" step="1" placeholder="ex: 12443" value="">
-    </div>
-    <div>
-      <label>Délai CXJ1 (jours depuis C1J1)</label>
-      <input type="number" id="delai" min="1" max="120" value="21" placeholder="21 (C2J1) ou 42 (C3J1)">
-    </div>
-  </div>
-  <div class="row3" style="margin-top:8px;">
-    <div>
-      <label>VAF au CXJ1 (%)</label>
-      <input type="number" id="vaf_cxj1" min="0" step="0.0001" placeholder="ex: 0.25" value="">
-    </div>
-    <div>
-      <label>cfDNA au CXJ1 (hEq/mL)</label>
-      <input type="number" id="cfdna_cxj1" min="0" step="1" placeholder="ex: 12671" value="">
-    </div>
-    <div>
-      <label>Quality gate (IDES_quali ou quali_33 PV)</label>
-      <select id="quali">
-        <option value="1" selected>1 (interprétable)</option>
-        <option value="0">0 (non interprétable → polish = 0)</option>
-      </select>
-    </div>
-  </div>
-</div>
-
-<div class="card">
-  <h2>3. v5A_gated (drivers oncogéniques)</h2>
-  <div class="row3">
-    <div>
-      <label>n_drv_pos (variants D11 positifs)</label>
-      <input type="number" id="n_drv" min="0" value="0">
-    </div>
-    <div>
-      <label>n_total_pos (tous variants positifs)</label>
-      <input type="number" id="n_tot" min="0" value="0">
-    </div>
-    <div>
-      <label>Σ Reads_alt sur drivers</label>
-      <input type="number" id="sum_reads_drv" min="0" value="0">
-    </div>
-  </div>
-  <div class="muted" style="margin-top:6px;">v5A = log(1 + Σreads) × (n_drv/max(1,n_tot)) — D11 = BCL2/6/7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53</div>
-</div>
-
-<div class="card">
-  <h2>4. TEP interim (Deauville)</h2>
-  <div class="row">
-    <div>
-      <label>TEP2 disponible ?</label>
-      <select id="tep_avail">
-        <option value="1" selected>Oui</option>
-        <option value="0">Non (fallback M1 sans TEP)</option>
-      </select>
-    </div>
-    <div>
-      <label>Deauville (1-5)</label>
-      <select id="deauv">
-        <option value="0">1 ou 2 (négatif)</option>
-        <option value="0">3 (négatif)</option>
-        <option value="1" selected>4 (positif)</option>
-        <option value="1">5 (positif)</option>
-      </select>
-    </div>
-  </div>
-</div>
-
-<button onclick="run()">Calculer le risque PFS @ 12 et 24 mois</button>
-
-<div id="results"></div>
-
-<div class="card" style="margin-top:18px;">
-  <h2>📐 Modèle utilisé</h2>
-  <div class="muted">
-    <strong>Score cinétique (mono-exp)</strong> :<br>
-    Pour chaque (histologie × responder), on fitte λ unique : <code>mono_exp(t, λ) = exp(−λ·t)</code><br>
-    Patient: ratio_obs = ctDNA_CXJ1/ctDNA_diag. Score = log L_bad − log L_good (likelihood Gaussienne sur log-ratio).<br><br>
-    <strong>Score total</strong> = score_cinétique + log(1 + ctDNA_diag) (coef 1, charge baseline incluse).<br><br>
-    <strong>Cox</strong> : h(t) = h₀(t) · exp(β₁·score + β₂·v5A_gated + β₃·TEP2_pos)<br>
-    <strong>Stratification Tern 10/40</strong> : Faible r12≤10%, Modéré 10–40%, Élevé >40%.
-  </div>
+<div class="footer">
+  CXJ1 — MRD ctDNA Cox v2 NEW V15.188 | 3-var + mono-exp ctDNA + log(charge baseline) | Drivers D11 | N=134 IDES / N=88 PV
 </div>
 
 <script>
-// ═══ DONNÉES MODÈLE v2 (= _calculator_data_v2.json) ═══
-const DATA_V2 = {"TRAJ": {"IDES": {"HODGKIN": {"lam_good": 0.6489439954704677, "lam_bad": 0.3706729387386885, "sigma2": 30.60128161797497}, "DLBCL": {"lam_good": 0.38809890637805383, "lam_bad": 0.2167191568852081, "sigma2": 33.55161976798686}}, "PV": {"HODGKIN": {"lam_good": 0.5577270660424515, "lam_bad": 0.24098865092073016, "sigma2": 29.786750160198864}, "DLBCL": {"lam_good": 0.37180126650530504, "lam_bad": 0.24098865092073016, "sigma2": 25.45737878409317}}}, "COX": {"IDES_M2": {"coefs": {"score_NEW": 0.3337942457179183, "v5A_gated": 0.5928491534447425, "TEP2_pos": 0.9480271458428394}, "S0": {"3": 0.97987566454305, "6": 0.951215925431427, "12": 0.9071955740239583, "18": 0.8992642199919565, "24": 0.8853037766425039, "36": 0.8853037766425039}, "N": 134, "evt": 24, "C": 0.8581153708348263}, "IDES_M1": {"coefs": {"score_NEW": 0.347152864969345, "v5A_gated": 0.49873339903204333}, "S0": {"3": 0.9669789968055094, "6": 0.9253984439957572, "12": 0.8834936690259896, "18": 0.8687648449443819, "24": 0.8561261867083308, "36": 0.8561261867083308}, "N": 158, "evt": 30, "C": 0.8086510263929618}, "PV_M2": {"coefs": {"score_NEW": 0.3177545327896906, "v5A_gated": 1.393174554034028, "TEP2_pos": 0.8625072382412465}, "S0": {"3": 0.9949318969176163, "6": 0.9753338998056055, "12": 0.9187120812751617, "18": 0.9016140000674199, "24": 0.8746661666084408, "36": 0.8746661666084408}, "N": 88, "evt": 15, "C": 0.9278717720391808}, "PV_M1": {"coefs": {"score_NEW": 0.24917052170573034, "v5A_gated": 1.1416486791831457}, "S0": {"3": 0.9785444995166336, "6": 0.9329174347358188, "12": 0.8747267576302936, "18": 0.8597745172844105, "24": 0.8348124963821184, "36": 0.8348124963821184}, "N": 103, "evt": 20, "C": 0.845014245014245}}, "COHORT": {"IDES_M2": [[0.9677, 0.2261, 35.0, 0], [-1.0537, 0.0334, 44.0, 0], [0.0175, 0.0944, 30.0, 0], [-1.5362, 0.0207, 9.0, 0], [-0.4676, 0.0592, 36.0, 0], [-1.1103, 0.0316, 30.0, 0], [-0.5227, 0.0561, 26.0, 0], [-0.3809, 0.0644, 17.0, 0], [0.4088, 0.1363, 21.0, 0], [1.3672, 0.3177, 6.0, 1], [-0.9962, 0.0353, 33.0, 0], [-0.9388, 0.0374, 28.0, 0], [0.622, 0.1659, 25.0, 0], [-0.5682, 0.0537, 7.0, 1], [-1.2878, 0.0265, 40.0, 0], [-0.321, 0.0682, 13.0, 0], [1.3921, 0.3242, 27.0, 0], [-1.2653, 0.0271, 17.0, 0], [1.9163, 0.4841, 5.0, 1], [-1.5357, 0.0208, 21.0, 0], [-1.3926, 0.0239, 5.0, 1], [2.7476, 0.7813, 11.0, 1], [-0.0699, 0.0868, 21.0, 0], [-1.3584, 0.0247, 57.0, 0], [-1.692, 0.0178, 30.0, 0], [-1.3472, 0.025, 27.0, 0], [-1.0734, 0.0327, 8.0, 0], [-0.2624, 0.0722, 35.0, 0], [-0.6158, 0.0513, 23.0, 0], [-1.4555, 0.0225, 40.0, 0], [1.0994, 0.2535, 44.0, 0], [-1.7503, 0.0168, 23.0, 0], [0.2706, 0.1198, 21.0, 0], [0.0283, 0.0953, 11.0, 0], [2.5407, 0.7094, 1.0, 1], [-0.7954, 0.043, 48.0, 0], [2.6239, 0.7389, 7.0, 1], [-0.1813, 0.078, 13.0, 0], [-0.9479, 0.037, 11.0, 0], [-1.5829, 0.0198, 37.0, 0], [3.3916, 0.9447, 4.0, 1], [-0.1793, 0.0782, 2.0, 1], [-0.5321, 0.0556, 60.0, 0], [-0.2156, 0.0755, 29.0, 0], [-1.3414, 0.0251, 21.0, 0], [0.5412, 0.1541, 9.0, 0], [-0.9773, 0.036, 19.0, 0], [-1.2395, 0.0278, 16.0, 0], [-0.3623, 0.0655, 9.0, 0], [-0.2569, 0.0726, 34.0, 0], [-1.5966, 0.0195, 39.0, 0], [1.1011, 0.2539, 14.0, 1], [-1.3003, 0.0262, 26.0, 0], [-0.6767, 0.0483, 31.0, 0], [-0.2414, 0.0737, 7.0, 1], [1.9412, 0.4927, 6.0, 1], [0.551, 0.1555, 23.0, 0], [1.1815, 0.272, 28.0, 0], [0.4093, 0.1364, 2.0, 0], [-0.8308, 0.0415, 32.0, 0], [0.4242, 0.1383, 10.0, 0], [0.9214, 0.2171, 7.0, 1], [-1.2002, 0.0289, 23.0, 0], [-1.3819, 0.0242, 28.0, 0], [1.6449, 0.3962, 11.0, 1], [-0.0204, 0.091, 19.0, 0], [-1.0305, 0.0342, 33.0, 0], [-0.4736, 0.0588, 45.0, 0], [0.2655, 0.1193, 36.0, 0], [0.506, 0.1492, 7.0, 1], [-1.2452, 0.0277, 22.0, 0], [-0.5545, 0.0544, 41.0, 0], [3.3316, 0.9345, 2.0, 1], [0.1181, 0.1038, 7.0, 0], [-0.9498, 0.037, 18.0, 0], [1.422, 0.3322, 9.0, 0], [0.3203, 0.1256, 16.0, 0], [3.8689, 0.9906, 2.0, 1], [-0.8314, 0.0415, 45.0, 0], [-1.4157, 0.0234, 18.0, 0], [1.503, 0.3546, 30.0, 0], [-0.6641, 0.0489, 45.0, 0], [0.8645, 0.2064, 28.0, 0], [-0.8129, 0.0423, 30.0, 0], [2.4092, 0.6616, 7.0, 1], [-0.5631, 0.054, 34.0, 0], [0.3581, 0.1301, 27.0, 0], [-1.6213, 0.0191, 40.0, 0], [-1.3731, 0.0244, 56.0, 0], [-0.3766, 0.0646, 52.0, 0], [0.4539, 0.1422, 9.0, 0], [-0.1826, 0.0779, 41.0, 0], [-1.8236, 0.0156, 27.0, 0], [-1.1641, 0.03, 30.0, 0], [-0.5086, 0.0569, 62.0, 0], [-1.4633, 0.0223, 26.0, 0], [0.1955, 0.1117, 20.0, 0], [-1.6313, 0.0189, 32.0, 0], [1.9863, 0.5083, 20.0, 0], [-0.0225, 0.0908, 15.0, 0], [-0.4034, 0.063, 39.0, 0], [-0.607, 0.0517, 42.0, 0], [-0.5082, 0.0569, 56.0, 0], [-1.1304, 0.031, 27.0, 0], [4.2407, 0.9988, 2.0, 1], [-1.0741, 0.0327, 17.0, 0], [0.8289, 0.2, 58.0, 0], [2.1852, 0.5794, 3.0, 1], [-0.7125, 0.0466, 13.0, 0], [0.1596, 0.108, 6.0, 1], [-1.216, 0.0285, 24.0, 0], [0.7186, 0.1811, 28.0, 0], [1.2993, 0.3003, 40.0, 0], [-0.8797, 0.0396, 61.0, 0], [-1.1555, 0.0302, 62.0, 0], [2.2555, 0.6051, 2.0, 1], [-1.1246, 0.0311, 29.0, 0], [0.3775, 0.1324, 15.0, 0], [-1.1153, 0.0314, 25.0, 0], [-0.5127, 0.0567, 41.0, 0], [0.1194, 0.1039, 20.0, 0], [0.13, 0.105, 38.0, 0], [0.9079, 0.2145, 17.0, 0], [-1.4202, 0.0233, 20.0, 0], [0.7867, 0.1926, 18.0, 0], [0.8921, 0.2115, 58.0, 0], [-1.1427, 0.0306, 43.0, 0], [-1.3823, 0.0241, 18.0, 0], [0.8891, 0.211, 8.0, 0], [2.6258, 0.7396, 18.0, 0], [0.9682, 0.2262, 15.0, 0], [1.8033, 0.4463, 24.0, 1], [5.0037, 1.0, 1.0, 1], [0.0504, 0.0974, 22.0, 0]], "IDES_M1": [[1.098, 0.3102, 35.0, 0], [-0.8068, 0.0538, 44.0, 0], [-1.019, 0.0437, 6.0, 1], [0.2318, 0.1446, 30.0, 0], [-1.3086, 0.0329, 9.0, 0], [-0.1972, 0.0967, 36.0, 0], [-0.8656, 0.0508, 30.0, 0], [-0.3507, 0.0835, 41.0, 0], [-0.2545, 0.0916, 26.0, 0], [-1.093, 0.0407, 17.0, 0], [-0.2717, 0.0901, 21.0, 0], [0.676, 0.2161, 6.0, 1], [-0.3273, 0.0854, 36.0, 0], [-1.2079, 0.0363, 16.0, 0], [-0.747, 0.057, 33.0, 0], [-0.6873, 0.0604, 28.0, 0], [0.936, 0.2708, 25.0, 0], [-0.3018, 0.0875, 7.0, 1], [-1.0503, 0.0424, 40.0, 0], [-0.0447, 0.1117, 13.0, 0], [0.6085, 0.2036, 24.0, 0], [0.7509, 0.2309, 27.0, 0], [0.79, 0.2389, 21.0, 0], [-1.0269, 0.0434, 17.0, 0], [-0.4314, 0.0773, 40.0, 0], [1.9851, 0.5941, 5.0, 1], [-1.3081, 0.0329, 21.0, 0], [-1.1592, 0.0381, 5.0, 1], [1.8291, 0.5377, 11.0, 1], [0.2163, 0.1425, 21.0, 0], [-1.1237, 0.0395, 57.0, 0], [-1.4706, 0.0281, 30.0, 0], [-1.1121, 0.0399, 27.0, 0], [-0.7389, 0.0574, 14.0, 0], [-0.8273, 0.0527, 8.0, 0], [0.0161, 0.1183, 35.0, 0], [-0.3513, 0.0835, 23.0, 0], [-1.2246, 0.0357, 40.0, 0], [0.4465, 0.176, 44.0, 0], [-1.5313, 0.0264, 23.0, 0], [1.1385, 0.3207, 16.0, 0], [-0.4155, 0.0785, 21.0, 0], [0.3185, 0.1566, 11.0, 0], [1.8368, 0.5404, 1.0, 1], [-0.5382, 0.0698, 48.0, 0], [2.5203, 0.7856, 7.0, 1], [-0.9027, 0.049, 13.0, 0], [-0.6968, 0.0598, 11.0, 0], [-1.3572, 0.0314, 37.0, 0], [2.4414, 0.759, 4.0, 1], [-0.1117, 0.1049, 27.0, 0], [-0.8834, 0.0499, 2.0, 1], [-0.2644, 0.0907, 60.0, 0], [-0.9211, 0.0481, 29.0, 0], [-1.106, 0.0402, 21.0, 0], [-0.134, 0.1027, 9.0, 0], [-0.7274, 0.0581, 19.0, 0], [-1.0, 0.0445, 16.0, 0], [-0.0878, 0.1073, 9.0, 0], [0.0219, 0.1189, 34.0, 0], [-1.3714, 0.0309, 39.0, 0], [1.6164, 0.464, 3.0, 1], [0.3039, 0.1545, 14.0, 1], [-1.0632, 0.0419, 26.0, 0], [-0.4147, 0.0786, 31.0, 0], [0.038, 0.1207, 7.0, 1], [2.0904, 0.6328, 6.0, 1], [0.6003, 0.2021, 23.0, 0], [0.5319, 0.1901, 28.0, 0], [0.7148, 0.2237, 2.0, 0], [-0.5949, 0.066, 32.0, 0], [-0.2557, 0.0915, 10.0, 0], [0.6827, 0.2174, 12.0, 0], [1.2202, 0.3427, 7.0, 1], [-1.0827, 0.0411, 23.0, 0], [-1.1481, 0.0385, 28.0, 0], [1.8689, 0.5519, 11.0, 1], [-0.0695, 0.1091, 2.0, 1], [0.7182, 0.2243, 21.0, 0], [0.2175, 0.1427, 19.0, 0], [-0.7827, 0.0551, 33.0, 0], [-0.2035, 0.0961, 45.0, 0], [-0.4812, 0.0737, 36.0, 0], [-0.1707, 0.0992, 7.0, 1], [-1.0059, 0.0443, 22.0, 0], [-0.2876, 0.0887, 41.0, 0], [2.3146, 0.7146, 2.0, 1], [0.3828, 0.1661, 7.0, 0], [1.2193, 0.3425, 4.0, 1], [0.3974, 0.1683, 23.0, 0], [-0.6987, 0.0597, 18.0, 0], [-1.8196, 0.0199, 22.0, 0], [1.5736, 0.4498, 9.0, 0], [-0.3638, 0.0825, 16.0, 0], [2.6306, 0.8209, 2.0, 1], [-0.5756, 0.0673, 45.0, 0], [-1.1833, 0.0372, 18.0, 0], [1.6557, 0.4773, 30.0, 0], [-0.4016, 0.0796, 45.0, 0], [0.2022, 0.1407, 28.0, 0], [-0.5563, 0.0686, 30.0, 0], [1.6254, 0.467, 7.0, 1], [-0.2966, 0.088, 34.0, 0], [0.6615, 0.2134, 27.0, 0], [-1.3971, 0.0302, 40.0, 0], [-1.139, 0.0389, 56.0, 0], [-0.1026, 0.1058, 52.0, 0], [0.747, 0.2301, 9.0, 0], [2.0191, 0.6066, 18.0, 0], [0.0991, 0.1278, 41.0, 0], [-1.6075, 0.0245, 27.0, 0], [-0.9216, 0.0481, 30.0, 0], [-0.2399, 0.0929, 62.0, 0], [1.5075, 0.4284, 41.0, 0], [-1.2328, 0.0355, 26.0, 0], [0.3614, 0.1629, 20.0, 0], [-1.4075, 0.0299, 32.0, 0], [1.9484, 0.5808, 20.0, 0], [0.6371, 0.2088, 13.0, 0], [-0.7203, 0.0585, 15.0, 0], [-0.1305, 0.103, 39.0, 0], [-0.3422, 0.0842, 42.0, 0], [-0.2394, 0.0929, 56.0, 0], [-0.8866, 0.0498, 27.0, 0], [3.9008, 0.9978, 2.0, 1], [-0.828, 0.0527, 17.0, 0], [0.1651, 0.1359, 58.0, 0], [1.5055, 0.4278, 3.0, 1], [-0.4519, 0.0758, 13.0, 0], [0.4464, 0.176, 6.0, 1], [0.3756, 0.165, 18.0, 1], [0.9582, 0.276, 4.0, 1], [-0.9756, 0.0456, 24.0, 0], [0.867, 0.2553, 28.0, 0], [0.6544, 0.212, 40.0, 0], [-0.6258, 0.0641, 61.0, 0], [-0.9127, 0.0485, 62.0, 0], [0.8037, 0.2417, 19.0, 0], [1.3739, 0.387, 2.0, 1], [-0.8805, 0.0501, 29.0, 0], [0.6346, 0.2084, 15.0, 0], [-0.8708, 0.0505, 25.0, 0], [-1.2301, 0.0356, 41.0, 0], [-0.5727, 0.0675, 20.0, 0], [-0.5616, 0.0682, 38.0, 0], [1.1675, 0.3284, 17.0, 0], [-1.188, 0.0371, 20.0, 0], [-0.0379, 0.1124, 18.0, 0], [1.0514, 0.2985, 58.0, 0], [-0.8994, 0.0491, 43.0, 0], [-1.1486, 0.0385, 18.0, 0], [0.1655, 0.136, 8.0, 0], [-1.098, 0.0405, 34.0, 0], [1.735, 0.5045, 18.0, 0], [0.1633, 0.1357, 15.0, 0], [0.9618, 0.2768, 24.0, 1], [3.7421, 0.9946, 1.0, 1], [0.3415, 0.16, 22.0, 0]], "PV_M2": [[0.6284, 0.147, 35.0, 0], [-0.3973, 0.0554, 30.0, 0], [-0.6506, 0.0433, 36.0, 0], [-1.2117, 0.0249, 30.0, 0], [-0.9104, 0.0335, 26.0, 0], [0.0246, 0.0832, 21.0, 0], [-0.3792, 0.0564, 33.0, 0], [-1.3921, 0.0209, 28.0, 0], [0.3615, 0.1146, 25.0, 0], [-0.8051, 0.0372, 7.0, 1], [-0.8689, 0.0349, 40.0, 0], [1.2027, 0.2459, 27.0, 0], [-1.2853, 0.0232, 17.0, 0], [3.0915, 0.8453, 5.0, 1], [-1.6077, 0.0168, 21.0, 0], [2.5342, 0.6566, 11.0, 1], [-0.521, 0.0491, 21.0, 0], [-1.9628, 0.0118, 30.0, 0], [-1.4937, 0.0189, 27.0, 0], [-1.1693, 0.026, 8.0, 0], [-0.4156, 0.0544, 35.0, 0], [-0.7364, 0.0398, 23.0, 0], [-1.6547, 0.0161, 40.0, 0], [-1.7592, 0.0145, 23.0, 0], [0.0438, 0.0848, 21.0, 0], [-0.1987, 0.0671, 11.0, 0], [-0.9307, 0.0329, 48.0, 0], [3.3311, 0.9066, 7.0, 1], [-0.4583, 0.0522, 13.0, 0], [-1.3362, 0.022, 11.0, 0], [2.9332, 0.7967, 4.0, 1], [-0.5209, 0.0491, 29.0, 0], [-1.5756, 0.0174, 21.0, 0], [0.3514, 0.1135, 9.0, 0], [-0.7708, 0.0385, 9.0, 0], [-0.542, 0.0481, 34.0, 0], [0.407, 0.1196, 14.0, 1], [-1.0785, 0.0284, 26.0, 0], [-1.1226, 0.0272, 31.0, 0], [1.6846, 0.3668, 6.0, 1], [-0.9775, 0.0314, 23.0, 0], [0.713, 0.1588, 28.0, 0], [0.298, 0.1079, 2.0, 0], [0.5237, 0.1334, 7.0, 1], [1.108, 0.2264, 11.0, 1], [-0.5736, 0.0467, 19.0, 0], [-1.3236, 0.0223, 33.0, 0], [-0.0193, 0.0798, 7.0, 0], [0.0598, 0.0861, 16.0, 0], [4.7721, 1.0, 2.0, 1], [-1.7675, 0.0144, 18.0, 0], [0.9579, 0.1982, 30.0, 0], [0.649, 0.1498, 28.0, 0], [-1.0175, 0.0302, 30.0, 0], [2.7993, 0.7517, 7.0, 1], [-0.3941, 0.0556, 34.0, 0], [-0.3298, 0.0591, 27.0, 0], [-1.6963, 0.0154, 56.0, 0], [0.5219, 0.1331, 9.0, 0], [-2.0504, 0.0109, 27.0, 0], [-1.0484, 0.0293, 62.0, 0], [-1.8623, 0.0131, 26.0, 0], [-0.6459, 0.0435, 20.0, 0], [-0.5182, 0.0492, 32.0, 0], [0.8472, 0.1795, 20.0, 0], [-0.356, 0.0577, 15.0, 0], [-1.6398, 0.0163, 27.0, 0], [5.7047, 1.0, 2.0, 1], [-0.7814, 0.0381, 17.0, 0], [0.1624, 0.0949, 58.0, 0], [-0.7165, 0.0406, 13.0, 0], [0.7845, 0.1695, 28.0, 0], [1.0768, 0.2203, 40.0, 0], [-1.2392, 0.0243, 61.0, 0], [3.3138, 0.9028, 2.0, 1], [-1.4851, 0.019, 29.0, 0], [-0.0766, 0.0755, 15.0, 0], [0.2206, 0.1003, 17.0, 0], [-1.6951, 0.0154, 20.0, 0], [1.0616, 0.2174, 18.0, 0], [-0.8169, 0.0368, 58.0, 0], [-1.7719, 0.0143, 18.0, 0], [1.3494, 0.2788, 8.0, 0], [0.1057, 0.0899, 18.0, 0], [0.2545, 0.1036, 15.0, 0], [0.7743, 0.168, 24.0, 1], [8.1705, 1.0, 1.0, 1], [-0.2644, 0.063, 22.0, 0]], "PV_M1": [[0.6887, 0.2339, 35.0, 0], [-0.9648, 0.0497, 6.0, 1], [-0.1466, 0.1092, 30.0, 0], [-0.3501, 0.09, 36.0, 0], [-0.7901, 0.0589, 30.0, 0], [-0.5538, 0.074, 26.0, 0], [-0.497, 0.0782, 21.0, 0], [-0.454, 0.0815, 36.0, 0], [-1.026, 0.0468, 16.0, 0], [-0.1283, 0.1111, 33.0, 0], [-0.9316, 0.0514, 28.0, 0], [0.4435, 0.1882, 25.0, 0], [-0.4712, 0.0802, 7.0, 1], [-0.5213, 0.0764, 40.0, 0], [0.4825, 0.1949, 24.0, 0], [0.4268, 0.1854, 27.0, 0], [0.3155, 0.1676, 21.0, 0], [-0.8478, 0.0557, 17.0, 0], [2.6936, 0.8618, 5.0, 1], [-1.1006, 0.0435, 21.0, 0], [1.5323, 0.4618, 11.0, 1], [-0.2485, 0.0991, 21.0, 0], [-1.3791, 0.0331, 30.0, 0], [-1.0112, 0.0475, 27.0, 0], [-0.7568, 0.0609, 8.0, 0], [-0.1658, 0.1072, 35.0, 0], [-0.4174, 0.0844, 23.0, 0], [-1.1375, 0.042, 40.0, 0], [-1.2194, 0.0388, 23.0, 0], [0.6775, 0.2317, 16.0, 0], [-0.482, 0.0793, 21.0, 0], [0.0042, 0.1258, 11.0, 0], [-0.5697, 0.0729, 48.0, 0], [2.8976, 0.9117, 7.0, 1], [-0.8757, 0.0542, 13.0, 0], [-0.8877, 0.0536, 11.0, 0], [1.8496, 0.573, 4.0, 1], [-0.4062, 0.0853, 27.0, 0], [-0.9248, 0.0517, 29.0, 0], [-1.0755, 0.0446, 21.0, 0], [-0.2407, 0.0999, 9.0, 0], [-0.4444, 0.0822, 9.0, 0], [-0.265, 0.0976, 34.0, 0], [0.3673, 0.1757, 3.0, 1], [-0.1829, 0.1055, 14.0, 1], [-0.6856, 0.0652, 26.0, 0], [-0.7202, 0.0631, 31.0, 0], [1.5267, 0.4599, 6.0, 1], [-0.604, 0.0705, 23.0, 0], [0.0429, 0.1304, 28.0, 0], [0.3937, 0.18, 2.0, 0], [0.5708, 0.2109, 7.0, 1], [1.0458, 0.3167, 11.0, 1], [-0.3566, 0.0894, 2.0, 1], [0.2604, 0.1594, 21.0, 0], [-0.2897, 0.0953, 19.0, 0], [-0.8778, 0.0541, 33.0, 0], [0.1449, 0.1433, 7.0, 0], [0.5852, 0.2136, 4.0, 1], [-0.0612, 0.1183, 23.0, 0], [-0.4694, 0.0803, 16.0, 0], [3.3891, 0.9811, 2.0, 1], [-1.226, 0.0385, 18.0, 0], [0.9376, 0.2895, 30.0, 0], [-0.0074, 0.1244, 28.0, 0], [-0.6378, 0.0683, 30.0, 0], [1.7465, 0.5359, 7.0, 1], [-0.149, 0.1089, 34.0, 0], [-0.0985, 0.1142, 27.0, 0], [-1.1701, 0.0407, 56.0, 0], [0.5693, 0.2106, 9.0, 0], [-1.4478, 0.031, 27.0, 0], [-0.662, 0.0667, 62.0, 0], [-1.3003, 0.0358, 26.0, 0], [-0.3464, 0.0903, 20.0, 0], [-0.2463, 0.0993, 32.0, 0], [0.8671, 0.2728, 20.0, 0], [1.8132, 0.5598, 13.0, 0], [-0.7955, 0.0586, 15.0, 0], [-1.1258, 0.0425, 27.0, 0], [4.8347, 1.0, 2.0, 1], [-0.4527, 0.0816, 17.0, 0], [-0.389, 0.0867, 58.0, 0], [-0.4018, 0.0857, 13.0, 0], [0.5077, 0.1994, 4.0, 1], [0.818, 0.2616, 28.0, 0], [0.3281, 0.1696, 40.0, 0], [-0.8117, 0.0577, 61.0, 0], [2.1818, 0.6946, 2.0, 1], [-1.0045, 0.0478, 29.0, 0], [0.1, 0.1375, 15.0, 0], [0.3351, 0.1707, 17.0, 0], [-1.1692, 0.0407, 20.0, 0], [0.3322, 0.1702, 18.0, 0], [-0.4805, 0.0794, 58.0, 0], [-1.2294, 0.0384, 18.0, 0], [0.5418, 0.2055, 8.0, 0], [-1.0203, 0.0471, 34.0, 0], [-0.4334, 0.0831, 18.0, 0], [-0.3057, 0.0939, 15.0, 0], [0.1017, 0.1377, 24.0, 1], [6.1427, 1.0, 1.0, 1], [-0.0472, 0.1199, 22.0, 0]]}};
+// ═══════════════════════════════════════════════════════════════════
+// DONNÉES — Coefficients V15.102 + trajectoires bi-exp
+// ═══════════════════════════════════════════════════════════════════
+// MODÈLES V15.130 — Trajectoire 2-groupes : Hodgkin classique vs reste→DLBCL
+const MODELS = {"IDES":{"coefs":{"score":0.3337942457179183,"v5":0.5928491534447425,"tep2":0.9480271458428394},"HR":{"score":1.3962558284017803,"v5":1.8091355842608918,"tep2":2.580613459947242},"baseline_S0":{"3":0.97987566454305,"6":0.951215925431427,"12":0.9071955740239583,"18":0.8992642199919565,"24":0.8853037766425039,"36":0.8853037766425039},"C_index":0.8581153708348263,"AIC":183.3714434666772,"N":134,"events":24},"PV":{"coefs":{"score":0.3177545327896906,"v5":1.393174554034028,"tep2":0.8625072382412465},"HR":{"score":1.3740389383233522,"v5":4.02761566326498,"tep2":2.369093134480722},"baseline_S0":{"3":0.9949318969176163,"6":0.9753338998056055,"12":0.9187120812751617,"18":0.9016140000674199,"24":0.8746661666084408,"36":0.8746661666084408},"C_index":0.9278717720391808,"AIC":87.44461470748533,"N":88,"events":15}};
 
-// ═══ HELPERS ═══
-function fmt_p(x){ return isNaN(x) ? '--' : (x*100).toFixed(1) + '%'; }
-function logSafe(x){ return Math.log(Math.max(x, 1e-9)); }
+// Cohorte de développement (V15.112) pour calibration locale
+// Format : [[LP, r12, delai_pfs, PFS_event], ...]
+const COHORT = {"IDES":{"baseline_S0":{"3":0.97987566454305,"6":0.951215925431427,"12":0.9071955740239583,"18":0.8992642199919565,"24":0.8853037766425039,"36":0.8853037766425039},"cohort":[[0.9677,0.2261,35.0,0],[-1.0537,0.0334,44.0,0],[0.0175,0.0944,30.0,0],[-1.5362,0.0207,9.0,0],[-0.4676,0.0592,36.0,0],[-1.1103,0.0316,30.0,0],[-0.5227,0.0561,26.0,0],[-0.3809,0.0644,17.0,0],[0.4088,0.1363,21.0,0],[1.3672,0.3177,6.0,1],[-0.9962,0.0353,33.0,0],[-0.9388,0.0374,28.0,0],[0.622,0.1659,25.0,0],[-0.5682,0.0537,7.0,1],[-1.2878,0.0265,40.0,0],[-0.321,0.0682,13.0,0],[1.3921,0.3242,27.0,0],[-1.2653,0.0271,17.0,0],[1.9163,0.4841,5.0,1],[-1.5357,0.0208,21.0,0],[-1.3926,0.0239,5.0,1],[2.7476,0.7813,11.0,1],[-0.0699,0.0868,21.0,0],[-1.3584,0.0247,57.0,0],[-1.692,0.0178,30.0,0],[-1.3472,0.025,27.0,0],[-1.0734,0.0327,8.0,0],[-0.2624,0.0722,35.0,0],[-0.6158,0.0513,23.0,0],[-1.4555,0.0225,40.0,0],[1.0994,0.2535,44.0,0],[-1.7503,0.0168,23.0,0],[0.2706,0.1198,21.0,0],[0.0283,0.0953,11.0,0],[2.5407,0.7094,1.0,1],[-0.7954,0.043,48.0,0],[2.6239,0.7389,7.0,1],[-0.1813,0.078,13.0,0],[-0.9479,0.037,11.0,0],[-1.5829,0.0198,37.0,0],[3.3916,0.9447,4.0,1],[-0.1793,0.0782,2.0,1],[-0.5321,0.0556,60.0,0],[-0.2156,0.0755,29.0,0],[-1.3414,0.0251,21.0,0],[0.5412,0.1541,9.0,0],[-0.9773,0.036,19.0,0],[-1.2395,0.0278,16.0,0],[-0.3623,0.0655,9.0,0],[-0.2569,0.0726,34.0,0],[-1.5966,0.0195,39.0,0],[1.1011,0.2539,14.0,1],[-1.3003,0.0262,26.0,0],[-0.6767,0.0483,31.0,0],[-0.2414,0.0737,7.0,1],[1.9412,0.4927,6.0,1],[0.551,0.1555,23.0,0],[1.1815,0.272,28.0,0],[0.4093,0.1364,2.0,0],[-0.8308,0.0415,32.0,0],[0.4242,0.1383,10.0,0],[0.9214,0.2171,7.0,1],[-1.2002,0.0289,23.0,0],[-1.3819,0.0242,28.0,0],[1.6449,0.3962,11.0,1],[-0.0204,0.091,19.0,0],[-1.0305,0.0342,33.0,0],[-0.4736,0.0588,45.0,0],[0.2655,0.1193,36.0,0],[0.506,0.1492,7.0,1],[-1.2452,0.0277,22.0,0],[-0.5545,0.0544,41.0,0],[3.3316,0.9345,2.0,1],[0.1181,0.1038,7.0,0],[-0.9498,0.037,18.0,0],[1.422,0.3322,9.0,0],[0.3203,0.1256,16.0,0],[3.8689,0.9906,2.0,1],[-0.8314,0.0415,45.0,0],[-1.4157,0.0234,18.0,0],[1.503,0.3546,30.0,0],[-0.6641,0.0489,45.0,0],[0.8645,0.2064,28.0,0],[-0.8129,0.0423,30.0,0],[2.4092,0.6616,7.0,1],[-0.5631,0.054,34.0,0],[0.3581,0.1301,27.0,0],[-1.6213,0.0191,40.0,0],[-1.3731,0.0244,56.0,0],[-0.3766,0.0646,52.0,0],[0.4539,0.1422,9.0,0],[-0.1826,0.0779,41.0,0],[-1.8236,0.0156,27.0,0],[-1.1641,0.03,30.0,0],[-0.5086,0.0569,62.0,0],[-1.4633,0.0223,26.0,0],[0.1955,0.1117,20.0,0],[-1.6313,0.0189,32.0,0],[1.9863,0.5083,20.0,0],[-0.0225,0.0908,15.0,0],[-0.4034,0.063,39.0,0],[-0.607,0.0517,42.0,0],[-0.5082,0.0569,56.0,0],[-1.1304,0.031,27.0,0],[4.2407,0.9988,2.0,1],[-1.0741,0.0327,17.0,0],[0.8289,0.2,58.0,0],[2.1852,0.5794,3.0,1],[-0.7125,0.0466,13.0,0],[0.1596,0.108,6.0,1],[-1.216,0.0285,24.0,0],[0.7186,0.1811,28.0,0],[1.2993,0.3003,40.0,0],[-0.8797,0.0396,61.0,0],[-1.1555,0.0302,62.0,0],[2.2555,0.6051,2.0,1],[-1.1246,0.0311,29.0,0],[0.3775,0.1324,15.0,0],[-1.1153,0.0314,25.0,0],[-0.5127,0.0567,41.0,0],[0.1194,0.1039,20.0,0],[0.13,0.105,38.0,0],[0.9079,0.2145,17.0,0],[-1.4202,0.0233,20.0,0],[0.7867,0.1926,18.0,0],[0.8921,0.2115,58.0,0],[-1.1427,0.0306,43.0,0],[-1.3823,0.0241,18.0,0],[0.8891,0.211,8.0,0],[2.6258,0.7396,18.0,0],[0.9682,0.2262,15.0,0],[1.8033,0.4463,24.0,1],[5.0037,1.0,1.0,1],[0.0504,0.0974,22.0,0]]},"PV":{"baseline_S0":{"3":0.9949318969176163,"6":0.9753338998056055,"12":0.9187120812751617,"18":0.9016140000674199,"24":0.8746661666084408,"36":0.8746661666084408},"cohort":[[0.6284,0.147,35.0,0],[-0.3973,0.0554,30.0,0],[-0.6506,0.0433,36.0,0],[-1.2117,0.0249,30.0,0],[-0.9104,0.0335,26.0,0],[0.0246,0.0832,21.0,0],[-0.3792,0.0564,33.0,0],[-1.3921,0.0209,28.0,0],[0.3615,0.1146,25.0,0],[-0.8051,0.0372,7.0,1],[-0.8689,0.0349,40.0,0],[1.2027,0.2459,27.0,0],[-1.2853,0.0232,17.0,0],[3.0915,0.8453,5.0,1],[-1.6077,0.0168,21.0,0],[2.5342,0.6566,11.0,1],[-0.521,0.0491,21.0,0],[-1.9628,0.0118,30.0,0],[-1.4937,0.0189,27.0,0],[-1.1693,0.026,8.0,0],[-0.4156,0.0544,35.0,0],[-0.7364,0.0398,23.0,0],[-1.6547,0.0161,40.0,0],[-1.7592,0.0145,23.0,0],[0.0438,0.0848,21.0,0],[-0.1987,0.0671,11.0,0],[-0.9307,0.0329,48.0,0],[3.3311,0.9066,7.0,1],[-0.4583,0.0522,13.0,0],[-1.3362,0.022,11.0,0],[2.9332,0.7967,4.0,1],[-0.5209,0.0491,29.0,0],[-1.5756,0.0174,21.0,0],[0.3514,0.1135,9.0,0],[-0.7708,0.0385,9.0,0],[-0.542,0.0481,34.0,0],[0.407,0.1196,14.0,1],[-1.0785,0.0284,26.0,0],[-1.1226,0.0272,31.0,0],[1.6846,0.3668,6.0,1],[-0.9775,0.0314,23.0,0],[0.713,0.1588,28.0,0],[0.298,0.1079,2.0,0],[0.5237,0.1334,7.0,1],[1.108,0.2264,11.0,1],[-0.5736,0.0467,19.0,0],[-1.3236,0.0223,33.0,0],[-0.0193,0.0798,7.0,0],[0.0598,0.0861,16.0,0],[4.7721,1.0,2.0,1],[-1.7675,0.0144,18.0,0],[0.9579,0.1982,30.0,0],[0.649,0.1498,28.0,0],[-1.0175,0.0302,30.0,0],[2.7993,0.7517,7.0,1],[-0.3941,0.0556,34.0,0],[-0.3298,0.0591,27.0,0],[-1.6963,0.0154,56.0,0],[0.5219,0.1331,9.0,0],[-2.0504,0.0109,27.0,0],[-1.0484,0.0293,62.0,0],[-1.8623,0.0131,26.0,0],[-0.6459,0.0435,20.0,0],[-0.5182,0.0492,32.0,0],[0.8472,0.1795,20.0,0],[-0.356,0.0577,15.0,0],[-1.6398,0.0163,27.0,0],[5.7047,1.0,2.0,1],[-0.7814,0.0381,17.0,0],[0.1624,0.0949,58.0,0],[-0.7165,0.0406,13.0,0],[0.7845,0.1695,28.0,0],[1.0768,0.2203,40.0,0],[-1.2392,0.0243,61.0,0],[3.3138,0.9028,2.0,1],[-1.4851,0.019,29.0,0],[-0.0766,0.0755,15.0,0],[0.2206,0.1003,17.0,0],[-1.6951,0.0154,20.0,0],[1.0616,0.2174,18.0,0],[-0.8169,0.0368,58.0,0],[-1.7719,0.0143,18.0,0],[1.3494,0.2788,8.0,0],[0.1057,0.0899,18.0,0],[0.2545,0.1036,15.0,0],[0.7743,0.168,24.0,1],[8.1705,1.0,1.0,1],[-0.2644,0.063,22.0,0]]}};
 
-// Wilson 95% CI on proportion (= IC95% pour VPN/VPP)
-function wilson_ci(k, n){
+// ═══════════════════════════════════════════════════════════════════
+// MODÈLE M1 (sans TEP) — fallback si TEP indisponible (V15.143)
+//   IDES : N=175, evt=44, C-index=0.786, AIC=388.93
+//   PV   : N=108, evt=22, C-index=0.826, AIC=161.19
+// Coefs et baseline_S0 issus du Cox 2-vars (score_v130 + v5A_gated)
+// ═══════════════════════════════════════════════════════════════════
+const MODELS_NO_TEP = {"IDES":{"coefs":{"score":0.347152864969345,"v5":0.49873339903204333},"HR":{"score":1.415033017817129,"v5":1.6466343206882252},"baseline_S0":{"3":0.9669789968055094,"6":0.9253984439957572,"12":0.8834936690259896,"18":0.8687648449443819,"24":0.8561261867083308,"36":0.8561261867083308},"C_index":0.8086510263929618,"AIC":256.7735466396116,"N":158,"events":30},"PV":{"coefs":{"score":0.24917052170573034,"v5":1.1416486791831457},"HR":{"score":1.2829607870799258,"v5":3.1319276549385235},"baseline_S0":{"3":0.9785444995166336,"6":0.9329174347358188,"12":0.8747267576302936,"18":0.8597745172844105,"24":0.8348124963821184,"36":0.8348124963821184},"C_index":0.845014245014245,"AIC":143.82924219404543,"N":103,"events":20}};
+
+// Cohorte M1 (sans TEP) pour KNN/rank-based VPN — V15.144
+const COHORT_NO_TEP = {"IDES":{"baseline_S0":{"3":0.9669789968055094,"6":0.9253984439957572,"12":0.8834936690259896,"18":0.8687648449443819,"24":0.8561261867083308,"36":0.8561261867083308},"cohort":[[1.098,0.3102,35.0,0],[-0.8068,0.0538,44.0,0],[-1.019,0.0437,6.0,1],[0.2318,0.1446,30.0,0],[-1.3086,0.0329,9.0,0],[-0.1972,0.0967,36.0,0],[-0.8656,0.0508,30.0,0],[-0.3507,0.0835,41.0,0],[-0.2545,0.0916,26.0,0],[-1.093,0.0407,17.0,0],[-0.2717,0.0901,21.0,0],[0.676,0.2161,6.0,1],[-0.3273,0.0854,36.0,0],[-1.2079,0.0363,16.0,0],[-0.747,0.057,33.0,0],[-0.6873,0.0604,28.0,0],[0.936,0.2708,25.0,0],[-0.3018,0.0875,7.0,1],[-1.0503,0.0424,40.0,0],[-0.0447,0.1117,13.0,0],[0.6085,0.2036,24.0,0],[0.7509,0.2309,27.0,0],[0.79,0.2389,21.0,0],[-1.0269,0.0434,17.0,0],[-0.4314,0.0773,40.0,0],[1.9851,0.5941,5.0,1],[-1.3081,0.0329,21.0,0],[-1.1592,0.0381,5.0,1],[1.8291,0.5377,11.0,1],[0.2163,0.1425,21.0,0],[-1.1237,0.0395,57.0,0],[-1.4706,0.0281,30.0,0],[-1.1121,0.0399,27.0,0],[-0.7389,0.0574,14.0,0],[-0.8273,0.0527,8.0,0],[0.0161,0.1183,35.0,0],[-0.3513,0.0835,23.0,0],[-1.2246,0.0357,40.0,0],[0.4465,0.176,44.0,0],[-1.5313,0.0264,23.0,0],[1.1385,0.3207,16.0,0],[-0.4155,0.0785,21.0,0],[0.3185,0.1566,11.0,0],[1.8368,0.5404,1.0,1],[-0.5382,0.0698,48.0,0],[2.5203,0.7856,7.0,1],[-0.9027,0.049,13.0,0],[-0.6968,0.0598,11.0,0],[-1.3572,0.0314,37.0,0],[2.4414,0.759,4.0,1],[-0.1117,0.1049,27.0,0],[-0.8834,0.0499,2.0,1],[-0.2644,0.0907,60.0,0],[-0.9211,0.0481,29.0,0],[-1.106,0.0402,21.0,0],[-0.134,0.1027,9.0,0],[-0.7274,0.0581,19.0,0],[-1.0,0.0445,16.0,0],[-0.0878,0.1073,9.0,0],[0.0219,0.1189,34.0,0],[-1.3714,0.0309,39.0,0],[1.6164,0.464,3.0,1],[0.3039,0.1545,14.0,1],[-1.0632,0.0419,26.0,0],[-0.4147,0.0786,31.0,0],[0.038,0.1207,7.0,1],[2.0904,0.6328,6.0,1],[0.6003,0.2021,23.0,0],[0.5319,0.1901,28.0,0],[0.7148,0.2237,2.0,0],[-0.5949,0.066,32.0,0],[-0.2557,0.0915,10.0,0],[0.6827,0.2174,12.0,0],[1.2202,0.3427,7.0,1],[-1.0827,0.0411,23.0,0],[-1.1481,0.0385,28.0,0],[1.8689,0.5519,11.0,1],[-0.0695,0.1091,2.0,1],[0.7182,0.2243,21.0,0],[0.2175,0.1427,19.0,0],[-0.7827,0.0551,33.0,0],[-0.2035,0.0961,45.0,0],[-0.4812,0.0737,36.0,0],[-0.1707,0.0992,7.0,1],[-1.0059,0.0443,22.0,0],[-0.2876,0.0887,41.0,0],[2.3146,0.7146,2.0,1],[0.3828,0.1661,7.0,0],[1.2193,0.3425,4.0,1],[0.3974,0.1683,23.0,0],[-0.6987,0.0597,18.0,0],[-1.8196,0.0199,22.0,0],[1.5736,0.4498,9.0,0],[-0.3638,0.0825,16.0,0],[2.6306,0.8209,2.0,1],[-0.5756,0.0673,45.0,0],[-1.1833,0.0372,18.0,0],[1.6557,0.4773,30.0,0],[-0.4016,0.0796,45.0,0],[0.2022,0.1407,28.0,0],[-0.5563,0.0686,30.0,0],[1.6254,0.467,7.0,1],[-0.2966,0.088,34.0,0],[0.6615,0.2134,27.0,0],[-1.3971,0.0302,40.0,0],[-1.139,0.0389,56.0,0],[-0.1026,0.1058,52.0,0],[0.747,0.2301,9.0,0],[2.0191,0.6066,18.0,0],[0.0991,0.1278,41.0,0],[-1.6075,0.0245,27.0,0],[-0.9216,0.0481,30.0,0],[-0.2399,0.0929,62.0,0],[1.5075,0.4284,41.0,0],[-1.2328,0.0355,26.0,0],[0.3614,0.1629,20.0,0],[-1.4075,0.0299,32.0,0],[1.9484,0.5808,20.0,0],[0.6371,0.2088,13.0,0],[-0.7203,0.0585,15.0,0],[-0.1305,0.103,39.0,0],[-0.3422,0.0842,42.0,0],[-0.2394,0.0929,56.0,0],[-0.8866,0.0498,27.0,0],[3.9008,0.9978,2.0,1],[-0.828,0.0527,17.0,0],[0.1651,0.1359,58.0,0],[1.5055,0.4278,3.0,1],[-0.4519,0.0758,13.0,0],[0.4464,0.176,6.0,1],[0.3756,0.165,18.0,1],[0.9582,0.276,4.0,1],[-0.9756,0.0456,24.0,0],[0.867,0.2553,28.0,0],[0.6544,0.212,40.0,0],[-0.6258,0.0641,61.0,0],[-0.9127,0.0485,62.0,0],[0.8037,0.2417,19.0,0],[1.3739,0.387,2.0,1],[-0.8805,0.0501,29.0,0],[0.6346,0.2084,15.0,0],[-0.8708,0.0505,25.0,0],[-1.2301,0.0356,41.0,0],[-0.5727,0.0675,20.0,0],[-0.5616,0.0682,38.0,0],[1.1675,0.3284,17.0,0],[-1.188,0.0371,20.0,0],[-0.0379,0.1124,18.0,0],[1.0514,0.2985,58.0,0],[-0.8994,0.0491,43.0,0],[-1.1486,0.0385,18.0,0],[0.1655,0.136,8.0,0],[-1.098,0.0405,34.0,0],[1.735,0.5045,18.0,0],[0.1633,0.1357,15.0,0],[0.9618,0.2768,24.0,1],[3.7421,0.9946,1.0,1],[0.3415,0.16,22.0,0]]},"PV":{"baseline_S0":{"3":0.9785444995166336,"6":0.9329174347358188,"12":0.8747267576302936,"18":0.8597745172844105,"24":0.8348124963821184,"36":0.8348124963821184},"cohort":[[0.6887,0.2339,35.0,0],[-0.9648,0.0497,6.0,1],[-0.1466,0.1092,30.0,0],[-0.3501,0.09,36.0,0],[-0.7901,0.0589,30.0,0],[-0.5538,0.074,26.0,0],[-0.497,0.0782,21.0,0],[-0.454,0.0815,36.0,0],[-1.026,0.0468,16.0,0],[-0.1283,0.1111,33.0,0],[-0.9316,0.0514,28.0,0],[0.4435,0.1882,25.0,0],[-0.4712,0.0802,7.0,1],[-0.5213,0.0764,40.0,0],[0.4825,0.1949,24.0,0],[0.4268,0.1854,27.0,0],[0.3155,0.1676,21.0,0],[-0.8478,0.0557,17.0,0],[2.6936,0.8618,5.0,1],[-1.1006,0.0435,21.0,0],[1.5323,0.4618,11.0,1],[-0.2485,0.0991,21.0,0],[-1.3791,0.0331,30.0,0],[-1.0112,0.0475,27.0,0],[-0.7568,0.0609,8.0,0],[-0.1658,0.1072,35.0,0],[-0.4174,0.0844,23.0,0],[-1.1375,0.042,40.0,0],[-1.2194,0.0388,23.0,0],[0.6775,0.2317,16.0,0],[-0.482,0.0793,21.0,0],[0.0042,0.1258,11.0,0],[-0.5697,0.0729,48.0,0],[2.8976,0.9117,7.0,1],[-0.8757,0.0542,13.0,0],[-0.8877,0.0536,11.0,0],[1.8496,0.573,4.0,1],[-0.4062,0.0853,27.0,0],[-0.9248,0.0517,29.0,0],[-1.0755,0.0446,21.0,0],[-0.2407,0.0999,9.0,0],[-0.4444,0.0822,9.0,0],[-0.265,0.0976,34.0,0],[0.3673,0.1757,3.0,1],[-0.1829,0.1055,14.0,1],[-0.6856,0.0652,26.0,0],[-0.7202,0.0631,31.0,0],[1.5267,0.4599,6.0,1],[-0.604,0.0705,23.0,0],[0.0429,0.1304,28.0,0],[0.3937,0.18,2.0,0],[0.5708,0.2109,7.0,1],[1.0458,0.3167,11.0,1],[-0.3566,0.0894,2.0,1],[0.2604,0.1594,21.0,0],[-0.2897,0.0953,19.0,0],[-0.8778,0.0541,33.0,0],[0.1449,0.1433,7.0,0],[0.5852,0.2136,4.0,1],[-0.0612,0.1183,23.0,0],[-0.4694,0.0803,16.0,0],[3.3891,0.9811,2.0,1],[-1.226,0.0385,18.0,0],[0.9376,0.2895,30.0,0],[-0.0074,0.1244,28.0,0],[-0.6378,0.0683,30.0,0],[1.7465,0.5359,7.0,1],[-0.149,0.1089,34.0,0],[-0.0985,0.1142,27.0,0],[-1.1701,0.0407,56.0,0],[0.5693,0.2106,9.0,0],[-1.4478,0.031,27.0,0],[-0.662,0.0667,62.0,0],[-1.3003,0.0358,26.0,0],[-0.3464,0.0903,20.0,0],[-0.2463,0.0993,32.0,0],[0.8671,0.2728,20.0,0],[1.8132,0.5598,13.0,0],[-0.7955,0.0586,15.0,0],[-1.1258,0.0425,27.0,0],[4.8347,1.0,2.0,1],[-0.4527,0.0816,17.0,0],[-0.389,0.0867,58.0,0],[-0.4018,0.0857,13.0,0],[0.5077,0.1994,4.0,1],[0.818,0.2616,28.0,0],[0.3281,0.1696,40.0,0],[-0.8117,0.0577,61.0,0],[2.1818,0.6946,2.0,1],[-1.0045,0.0478,29.0,0],[0.1,0.1375,15.0,0],[0.3351,0.1707,17.0,0],[-1.1692,0.0407,20.0,0],[0.3322,0.1702,18.0,0],[-0.4805,0.0794,58.0,0],[-1.2294,0.0384,18.0,0],[0.5418,0.2055,8.0,0],[-1.0203,0.0471,34.0,0],[-0.4334,0.0831,18.0,0],[-0.3057,0.0939,15.0,0],[0.1017,0.1377,24.0,1],[6.1427,1.0,1.0,1],[-0.0472,0.1199,22.0,0]]}};
+
+// Toggle global : true si "TEP non disponible"
+let CALC_NO_TEP = false;
+function onTepToggle() {
+  CALC_NO_TEP = document.getElementById('tep_unavailable').checked;
+  document.getElementById('tep2_deauville').disabled = CALC_NO_TEP;
+  document.getElementById('tep2_deauville').style.opacity = CALC_NO_TEP ? 0.4 : 1.0;
+}
+
+// KNN local : trouve les K patients les plus proches par LP
+function knn(pipe, LP_target, K) {
+  const cohort = (CALC_NO_TEP ? COHORT_NO_TEP : COHORT)[pipe].cohort;
+  // calcul des distances
+  const arr = cohort.map(p => ({ lp:p[0], r12:p[1], t:p[2], e:p[3], d:Math.abs(p[0]-LP_target) }));
+  arr.sort((a,b) => a.d - b.d);
+  return arr.slice(0, K);
+}
+
+// Kaplan-Meier sur tableau de patients
+// renvoie {steps:[{t, S}], S12, S24, n_events}
+function km(patients) {
+  // Trie par temps
+  const sorted = patients.slice().sort((a,b) => a.t - b.t);
+  let S = 1.0, atRisk = sorted.length;
+  const steps = [{t:0, S:1.0}];
+  let n_events = 0;
+  // Group by unique times
+  const unique_t = [...new Set(sorted.map(p => p.t))].sort((a,b) => a-b);
+  for (const t of unique_t) {
+    const dies = sorted.filter(p => p.t === t && p.e === 1).length;
+    const censored = sorted.filter(p => p.t === t && p.e === 0).length;
+    if (dies > 0) {
+      S = S * (1 - dies/atRisk);
+      n_events += dies;
+    }
+    steps.push({t, S});
+    atRisk -= (dies + censored);
+    if (atRisk <= 0) break;
+  }
+  // S à 12 et 24 mois (dernière valeur ≤ t)
+  const sAt = (target) => {
+    let s = 1.0;
+    for (const step of steps) {
+      if (step.t > target) break;
+      s = step.S;
+    }
+    return s;
+  };
+  return { steps, S12: sAt(12), S24: sAt(24), n_events, N: patients.length };
+}
+
+// VPN et VPP observées à 12mo (KM) selon position du patient :
+//   - groupe r12 ≤ patient_r12  → VPN = S12 (proportion SANS événement)
+//   - groupe r12 ≥ patient_r12  → VPP = 1 − S12 (proportion AVEC événement)
+// On limite volontairement à 12 mois (dynamique ctDNA précoce non validée pour rechutes tardives)
+function updateRankBasedVPN(pipe, patient_r12) {
+  if (isNaN(patient_r12) || patient_r12 == null) {
+    ['grp_le_n','grp_le_e','grp_le_v12','grp_ge_n','grp_ge_e','grp_ge_v12',
+     'grp_le_n_inline','grp_le_v12_inline','grp_ge_n_inline','grp_ge_v12_inline'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = '--';
+    });
+    return;
+  }
+  const cohort = (CALC_NO_TEP ? COHORT_NO_TEP : COHORT)[pipe].cohort;  // [[LP, r12, T, E], ...]
+  const fmt_p = v => isNaN(v) ? '--' : (v*100).toFixed(1) + '%';
+
+  // Sous-groupe inférieur ou égal (≤) → VPN
+  const le = cohort.filter(p => p[1] <= patient_r12).map(p => ({lp:p[0], r12:p[1], t:p[2], e:p[3]}));
+  // Sous-groupe supérieur ou égal (≥) → VPP
+  const ge = cohort.filter(p => p[1] >= patient_r12).map(p => ({lp:p[0], r12:p[1], t:p[2], e:p[3]}));
+
+  const km_le = le.length ? km(le) : {N:0, n_events:0, S12:NaN};
+  const km_ge = ge.length ? km(ge) : {N:0, n_events:0, S12:NaN};
+
+  // VPN = S12 (≤ patient, low-risk group) ; VPP = 1 − S12 (≥ patient, high-risk group)
+  const vpn = km_le.S12;
+  const vpp = (isNaN(km_ge.S12) ? NaN : 1 - km_ge.S12);
+
+  document.getElementById('grp_le_n').textContent   = km_le.N.toString();
+  document.getElementById('grp_le_e').textContent   = km_le.n_events.toString();
+  document.getElementById('grp_le_v12').textContent = fmt_p(vpn);
+  // Wilson CI sur VPN (= proportion sans rechute)
+  const [vpn_lo, vpn_hi] = wilsonCI(km_le.N - km_le.n_events, km_le.N);
+  const ci_str_vpn = ' [' + (vpn_lo*100).toFixed(1) + '%; ' + (vpn_hi*100).toFixed(1) + '%]';
+  document.getElementById('grp_le_v12').textContent = fmt_p(vpn) + ci_str_vpn;
+  document.getElementById('grp_ge_n').textContent   = km_ge.N.toString();
+  document.getElementById('grp_ge_e').textContent   = km_ge.n_events.toString();
+  document.getElementById('grp_ge_v12').textContent = fmt_p(vpp);
+  // Wilson CI sur VPP (= proportion rechute)
+  const [vpp_lo, vpp_hi] = wilsonCI(km_ge.n_events, km_ge.N);
+  const ci_str_vpp = ' [' + (vpp_lo*100).toFixed(1) + '%; ' + (vpp_hi*100).toFixed(1) + '%]';
+  document.getElementById('grp_ge_v12').textContent = fmt_p(vpp) + ci_str_vpp;
+  // Inline text
+  document.getElementById('grp_le_n_inline').textContent   = km_le.N.toString();
+  document.getElementById('grp_le_v12_inline').textContent = fmt_p(vpn);
+  document.getElementById('grp_ge_n_inline').textContent   = km_ge.N.toString();
+  document.getElementById('grp_ge_v12_inline').textContent = fmt_p(vpp);
+}
+
+// VPN technique liée à la profondeur de séquençage (V15.50 LIS + PCHIP smoothing V15.121)
+// FN_tech_worst = R12+ ET (TEP2+ OU TEP2 NA) → courbe PCHIP lisse passant par (0,0) + points LIS
+const VPN_DEPTH = {"IDES":{"lis_points":[[0,0],[1829,95.1],[38613,95.6],[75155,96.3],[391833,96.4],[791779,100.0]],"depths":[0.0,1.0,1.2,1.5,1.9,2.3,2.9,3.6,4.4,5.5,6.8,8.3,10.3,12.8,15.8,19.5,24.1,29.8,36.9,45.6,56.4,69.7,86.2,106.6,131.8,162.9,201.4,249.1,307.9,380.7,470.8,582.1,719.7,889.8,1100.2,1360.3,1681.9,2079.5,2571.2,3179.0,3930.6,4859.9,6008.9,7429.5,9186.0,11357.7,14042.9,17362.9,21467.8,26543.2,32818.5,40577.4,50170.7,62032.0,76697.5,94830.3,117250.0,144970.1,179243.8,221620.5,274015.8,338798.3,418896.7,517931.8,640380.8,791779.0,1018001.6,1244224.1,1470446.7,1696669.3,1922891.9,2149114.4,2375337.0,2601559.6,2827782.1,3054004.7,3280227.3,3506449.9,3732672.4,3958895.0],"vpns":[0.0,0.054,0.067,0.083,0.103,0.127,0.158,0.195,0.241,0.298,0.369,0.456,0.565,0.699,0.866,1.072,1.329,1.647,2.043,2.535,3.15,3.916,4.876,6.078,7.588,9.491,11.892,14.93,18.777,23.646,29.792,37.492,46.996,58.394,71.337,84.42,93.941,95.11,95.128,95.15,95.176,95.205,95.239,95.276,95.317,95.358,95.398,95.434,95.464,95.491,95.531,95.634,95.85,96.138,96.301,96.315,96.328,96.341,96.351,96.358,96.364,96.377,96.437,96.906,98.054,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"depth_unit":"Σ DEPTH NGS sur Watch List au CXJ1","depth_typical_low":50000,"depth_typical_high":500000,"depth_min_100":791779,"vpn_plateau_haut":100},"PV":{"lis_points":[[0,0],[30262,95.9],[131718,96.0],[184084,100.0]],"depths":[0.0,1.0,1.2,1.5,1.8,2.1,2.6,3.1,3.8,4.6,5.5,6.6,8.0,9.7,11.7,14.2,17.1,20.7,25.0,30.3,36.6,44.2,53.4,64.5,78.0,94.3,113.9,137.7,166.4,201.1,243.1,293.7,355.0,429.1,518.5,626.7,757.4,915.3,1106.2,1336.9,1615.7,1952.7,2359.9,2852.1,3446.9,4165.8,5034.6,6084.6,7353.5,8887.1,10740.6,12980.6,15687.7,18959.4,22913.5,27692.2,33467.5,40447.3,48882.7,59077.3,71398.1,86288.4,104284.2,126033.0,152317.6,184084.0,236679.4,289274.9,341870.3,394465.7,447061.1,499656.6,552252.0,604847.4,657442.9,710038.3,762633.7,815229.1,867824.6,920420.0],"vpns":[0.0,0.004,0.005,0.006,0.007,0.008,0.01,0.012,0.015,0.018,0.021,0.026,0.031,0.038,0.046,0.055,0.067,0.081,0.098,0.118,0.143,0.172,0.208,0.252,0.304,0.368,0.445,0.538,0.65,0.786,0.95,1.15,1.39,1.682,2.035,2.464,2.983,3.612,4.376,5.304,6.433,7.805,9.476,11.512,13.995,17.022,20.712,25.204,30.654,37.228,45.077,54.285,64.765,76.056,86.937,94.716,95.907,95.921,95.933,95.942,95.949,95.955,95.963,95.989,96.885,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"depth_unit":"Σ Position_Common_UMI sur doublets quali au CXJ1","depth_typical_low":5000,"depth_typical_high":100000,"depth_min_100":184084,"vpn_plateau_haut":100}};
+
+// Interpolation linéaire sur courbe pré-calculée PCHIP (smooth de 0,0 à 100%)
+function vpnAtDepth(pipe, depth) {
+  const v = VPN_DEPTH[pipe];
+  const ds = v.depths, vs = v.vpns;
+  if (depth <= 0) return 0;
+  if (depth >= ds[ds.length-1]) return v.vpn_plateau_haut;
+  // Interpolation linéaire entre points denses (≈ PCHIP smooth visuellement)
+  for (let i = 0; i < ds.length-1; i++) {
+    if (depth >= ds[i] && depth <= ds[i+1]) {
+      const t = (depth - ds[i]) / (ds[i+1] - ds[i]);
+      return vs[i] + t * (vs[i+1] - vs[i]);
+    }
+  }
+  return v.vpn_plateau_haut;
+}
+
+// TRAJECTOIRES V15.130 — Hodgkin classique vs DLBCL (et autres)
+const TRAJ = {"IDES":{"HODGKIN":{"lam_good":0.6489439954704677,"lam_bad":0.3706729387386885,"sigma2":30.60128161797497},"DLBCL":{"lam_good":0.38809890637805383,"lam_bad":0.2167191568852081,"sigma2":33.55161976798686}},"PV":{"HODGKIN":{"lam_good":0.5577270660424515,"lam_bad":0.24098865092073016,"sigma2":29.786750160198864},"DLBCL":{"lam_good":0.37180126650530504,"lam_bad":0.24098865092073016,"sigma2":25.45737878409317}}};
+
+// Mapping histologie → trajectoire (V15.130 : 2 groupes)
+function mapHisto(histo_label) {
+  const s = String(histo_label || '').trim().toUpperCase();
+  // Hodgkin classique seul → HODGKIN
+  if (s.includes('HODGKIN') && !s.includes('NODULAIRE') && !s.includes('PRÉDOMINANCE')) {
+    return 'HODGKIN';
+  }
+  // TOUT LE RESTE → DLBCL (incluant DLBCL variants, HGBL, PMBL, Burkitt, T-HRBCL, transformés, indolents)
+  return 'DLBCL';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LOGIQUE
+// ═══════════════════════════════════════════════════════════════════
+function togglePipeline() {
+  const p = document.getElementById('pipeline').value;
+  document.getElementById('quali_ides_block').classList.toggle('hidden', p !== 'IDES');
+  document.getElementById('quali_pv_block').classList.toggle('hidden', p !== 'PV');
+  document.getElementById('vaf_tip').textContent =
+    p === 'IDES'
+      ? 'VAF MOABI moyenne (Watch List) au diagnostic et au CXJ1.'
+      : 'VAF totale calculée à partir des variants phasés.';
+  document.getElementById('depth_tip').innerHTML = `${VPN_DEPTH[p].depth_unit}<br>` +
+    `Plage typique : ${VPN_DEPTH[p].depth_typical_low.toLocaleString()} – ${VPN_DEPTH[p].depth_typical_high.toLocaleString()}.`;
+}
+
+function monoExp(t, lam) { return Math.exp(-lam * t); }
+
+// v2 NEW : score = score_kinetic (mono-exp on ctDNA ratio) + log(1 + ctDNA_diag)
+function computeScore(vd_frac, vc_frac, dt_days, pipe, histo_label, cfdna_diag, cfdna_cxj1) {
+  // vd_frac, vc_frac : VAF en fraction (déjà /100). cfdna_diag/cxj1 en hEq/mL.
+  if (vd_frac <= 0 || dt_days <= 0) return { score: NaN, score_kin: NaN, log_burden: NaN, ctDNA_diag: NaN, ctDNA_cxj1: NaN, rc: NaN };
+  // ctDNA (hEq) = VAF% × cfDNA. Note: vd_frac/vc_frac sont en fraction, *100 pour VAF%.
+  const ctDNA_diag = (vd_frac * 100) * (cfdna_diag || 0);
+  const ctDNA_cxj1 = (vc_frac * 100) * (cfdna_cxj1 || 0);
+  if (ctDNA_diag <= 0) return { score: NaN, score_kin: NaN, log_burden: NaN, ctDNA_diag: 0, ctDNA_cxj1: 0, rc: NaN };
+  // Histo : HODGKIN ou DLBCL
+  const h = mapHisto(histo_label);
+  const traj = TRAJ[pipe][h];
+  const rc = ctDNA_cxj1 > 0 ? ctDNA_cxj1 / ctDNA_diag : 1e-7;
+  const pg = monoExp(dt_days, traj.lam_good);
+  const pb = monoExp(dt_days, traj.lam_bad);
+  const lg_log = Math.log(rc + 1e-9) - Math.log(pg + 1e-9);
+  const lb_log = Math.log(rc + 1e-9) - Math.log(pb + 1e-9);
+  const score_kin = (-(lb_log*lb_log) + (lg_log*lg_log)) / (2 * traj.sigma2);
+  const log_burden = Math.log(1 + ctDNA_diag);
+  return { score: score_kin + log_burden, score_kin: score_kin, log_burden: log_burden,
+           ctDNA_diag: ctDNA_diag, ctDNA_cxj1: ctDNA_cxj1, rc: rc };
+}
+
+// Helper Wilson 95% CI
+function wilsonCI(k, n) {
   if (n === 0) return [NaN, NaN];
-  const z = 1.96;
-  const p = k/n;
+  const z = 1.96, p = k/n;
   const denom = 1 + z*z/n;
   const center = (p + z*z/(2*n)) / denom;
   const halfwidth = z * Math.sqrt(p*(1-p)/n + z*z/(4*n*n)) / denom;
   return [Math.max(0, center - halfwidth), Math.min(1, center + halfwidth)];
 }
 
-// KM à t (= survie observée)
-function km_S_at(arr, t_target){
-  // arr : [{t, e}, ...] OU array de [LP, r12, t, e]
-  if (arr.length === 0) return {S: NaN, n_events: 0, N: 0};
-  const sorted = arr.slice().sort((a,b) => a.t - b.t);
-  let S = 1.0, n_alive = sorted.length, n_events = 0;
-  for (const p of sorted){
-    if (p.t > t_target) break;
-    if (p.e === 1){
-      S *= (n_alive - 1) / n_alive;
-      n_events++;
-    }
-    n_alive--;
+function calculate() {
+  const pipe = document.getElementById('pipeline').value;
+  const dt   = parseFloat(document.getElementById('delai_jours').value) || 0;
+  const vd   = parseFloat(document.getElementById('vaf_diag').value) || 0;
+  const vc   = parseFloat(document.getElementById('vaf_cxj1').value) || 0;
+  const n_drv = parseFloat(document.getElementById('n_drv_pos').value) || 0;
+  const n_tot = parseFloat(document.getElementById('n_total_pos').value) || 0;
+  const sumR  = parseFloat(document.getElementById('sum_reads_drv').value) || 0;
+  // ─── Sélection du modèle : M2 (avec TEP) ou M1 (sans TEP) selon toggle ───
+  const noTep = CALC_NO_TEP;
+  const tepRaw = document.getElementById('tep2_deauville').value;
+  if (!noTep && !tepRaw) {
+    alert("Renseignez le score TEP2 Deauville (ou cochez 'TEP2 non disponible' pour utiliser le modèle 2-vars).");
+    return;
   }
-  return {S: S, n_events: n_events, N: sorted.length};
-}
+  const tep2_pos = noTep ? null : ((parseInt(tepRaw) >= 4) ? 1 : 0);
 
-// Score mono-exp + log_burden
-function computeScore(pipe, histo, vaf_diag, vaf_cxj1, cfdna_diag, cfdna_cxj1, delai, quali){
-  // Polish v56 ou v75
-  const vaf_cxj1_polish = (quali === 0) ? 0 : vaf_cxj1;
-  // ctDNA = VAF % × cfDNA
-  const ctDNA_diag = vaf_diag * cfdna_diag;
-  const ctDNA_cxj1 = vaf_cxj1_polish * cfdna_cxj1;
-  if (ctDNA_diag <= 0 || delai <= 0) return {score: NaN, ctDNA_diag: NaN, ctDNA_cxj1: NaN};
-  // Ratio observé
-  const rc = ctDNA_cxj1 > 0 ? ctDNA_cxj1 / ctDNA_diag : 1e-7;
-  // Trajectoire selon (pipe, histo)
-  const traj = DATA_V2.TRAJ[pipe][histo];
-  // Prédictions mono-exp
-  const pg = Math.exp(-traj.lam_good * delai);
-  const pb = Math.exp(-traj.lam_bad  * delai);
-  // Log-likelihoods
-  const lg = -Math.pow(logSafe(rc) - logSafe(pg), 2) / (2 * traj.sigma2);
-  const lb = -Math.pow(logSafe(rc) - logSafe(pb), 2) / (2 * traj.sigma2);
-  const score_kin = lb - lg;
-  const log_burden = Math.log(1 + ctDNA_diag);
-  return {score: score_kin + log_burden, score_kin: score_kin, log_burden: log_burden,
-          ctDNA_diag: ctDNA_diag, ctDNA_cxj1: ctDNA_cxj1, rc: rc};
-}
+  // Quali gate
+  let quali = 0;
+  if (pipe === 'IDES') {
+    const pv = parseFloat(document.getElementById('pvalue_ides').value);
+    quali = (pv <= 1/100001) ? 1 : 0;
+  } else {
+    const nbr = parseFloat(document.getElementById('nbr_pv').value) || 0;
+    const sum = parseFloat(document.getElementById('sum_umi').value) || 0;
+    quali = (nbr >= 3 && sum >= 3) ? 1 : 0;
+  }
 
-// LP et r12
-function predict(model, score_NEW, v5A_gated, TEP2_pos){
-  const coefs = model.coefs;
-  let LP = coefs.score_NEW * score_NEW + coefs.v5A_gated * v5A_gated;
-  if (TEP2_pos !== null) LP += coefs.TEP2_pos * TEP2_pos;
-  const S12 = Math.pow(model.S0['12'], Math.exp(LP));
-  const S24 = Math.pow(model.S0['24'], Math.exp(LP));
-  return {LP: LP, S12: S12, S24: S24, r12: 1-S12, r24: 1-S24};
-}
+  // Si quali=0 → VAF_CXJ1 = 0 dans le score (V56/V75 polish)
+  const vc_polish = quali === 1 ? vc/100 : 0;     // % → fraction
+  const vd_frac   = vd/100;
+  const histo_label = document.getElementById('histo_label').value;
 
-// Zone Tern 10/40
-function zone(r12){
-  if (r12 <= 0.10) return 'Faible';
-  if (r12 <= 0.40) return 'Modéré';
-  return 'Élevé';
-}
+  // Score joint avec trajectoire personnalisée V15.130 (Hodgkin classique vs reste)
+  const cfdna_diag = parseFloat(document.getElementById('cfdna_diag').value) || 0;
+  const cfdna_cxj1 = parseFloat(document.getElementById('cfdna_cxj1').value) || 0;
+  const _s_obj = computeScore(vd_frac, vc_polish, dt, pipe, histo_label, cfdna_diag, cfdna_cxj1);
+  const score = _s_obj.score;
+  window._scoreDetails = _s_obj;  // pour affichage debug
 
-// VPN/VPP rank-based avec Wilson CI
-function vpn_vpp(cohort, patient_r12){
-  // cohort = [[LP, r12, t, e], ...]
-  const le = cohort.filter(p => p[1] <= patient_r12).map(p => ({t: p[2], e: p[3]}));
-  const ge = cohort.filter(p => p[1] >= patient_r12).map(p => ({t: p[2], e: p[3]}));
-  const km_le = km_S_at(le, 12);
-  const km_ge = km_S_at(ge, 12);
-  // VPN = S(12) chez ≤ patient (= proportion SANS rechute)
-  // VPP = 1 - S(12) chez ≥ patient (= proportion AVEC rechute)
-  const vpn = km_le.S;
-  const vpp = isNaN(km_ge.S) ? NaN : 1 - km_ge.S;
-  // Wilson CI approximative (Wilson sur proportion non censurée)
-  // Nombre d'événements à 12mo et N à risque utilisé comme proxy
-  const [vpn_lo, vpn_hi] = wilson_ci(km_le.N - km_le.n_events, km_le.N);
-  const [vpp_lo, vpp_hi] = wilson_ci(km_ge.n_events, km_ge.N);
-  return {
-    vpn: vpn, vpn_lo: vpn_lo, vpn_hi: vpn_hi, n_le: km_le.N, ev_le: km_le.n_events,
-    vpp: vpp, vpp_lo: vpp_lo, vpp_hi: vpp_hi, n_ge: km_ge.N, ev_ge: km_ge.n_events,
-  };
-}
-
-// ═══ MAIN ═══
-function run(){
-  const pipe = document.getElementById('pipe').value;
-  const histo = document.getElementById('histo').value;
-  const vaf_diag = parseFloat(document.getElementById('vaf_diag').value) || NaN;
-  const vaf_cxj1 = parseFloat(document.getElementById('vaf_cxj1').value);
-  const cfdna_diag = parseFloat(document.getElementById('cfdna_diag').value) || NaN;
-  const cfdna_cxj1 = parseFloat(document.getElementById('cfdna_cxj1').value);
-  const delai = parseFloat(document.getElementById('delai').value) || NaN;
-  const quali = parseInt(document.getElementById('quali').value);
-  const n_drv = parseFloat(document.getElementById('n_drv').value) || 0;
-  const n_tot = parseFloat(document.getElementById('n_tot').value) || 0;
-  const sum_reads = parseFloat(document.getElementById('sum_reads_drv').value) || 0;
-  const tep_avail = parseInt(document.getElementById('tep_avail').value);
-  const deauv = parseInt(document.getElementById('deauv').value);
-
-  // v5A_gated
-  const v5A = Math.log(1 + sum_reads) * (n_drv / Math.max(1, n_tot));
+  // v5A
+  const ratio_drv = n_tot > 0 ? n_drv / n_tot : 0;
+  const v5A = Math.log1p(sumR) * ratio_drv;
   const v5A_gated = v5A * quali;
 
-  // Score NEW
-  const vc = isNaN(vaf_cxj1) ? 0 : vaf_cxj1;
-  const cf_c = isNaN(cfdna_cxj1) ? 0 : cfdna_cxj1;
-  const s = computeScore(pipe, histo, vaf_diag, vc, cfdna_diag, cf_c, delai, quali);
+  // LP — modèle M2 (avec TEP) ou M1 (sans TEP) selon toggle
+  const m = noTep ? MODELS_NO_TEP[pipe] : MODELS[pipe];
+  const lp = m.coefs.score * (isNaN(score) ? 0 : score)
+            + m.coefs.v5 * v5A_gated
+            + (noTep ? 0 : m.coefs.tep2 * tep2_pos);
 
-  // Modèle (M2 si TEP dispo, sinon M1)
-  const model_key = pipe + (tep_avail ? '_M2' : '_M1');
-  const cohort_key = pipe + (tep_avail ? '_M2' : '_M1');
-  const model = DATA_V2.COX[model_key];
-  const cohort = DATA_V2.COHORT[cohort_key];
-  if (!model || !cohort) { alert('Modèle ' + model_key + ' indisponible'); return; }
-
-  const pred = predict(model, s.score, v5A_gated, tep_avail ? deauv : null);
-  const z = isNaN(pred.r12) ? 'NA' : zone(pred.r12);
-  const cohorte_stats = vpn_vpp(cohort, pred.r12);
-
-  // === RENDU ===
-  let html = '';
-  html += '<div class="card result-box zone-' + z + '">';
-  html += '<h2>📊 Résultat — Zone <strong>' + z + '</strong></h2>';
-  html += '<div class="flex">';
-  html += '  <div><div class="muted">r12 (risque rechute à 12 mois)</div><div class="big">' + fmt_p(pred.r12) + '</div></div>';
-  html += '  <div><div class="muted">r24 (risque rechute à 24 mois)</div><div class="big">' + fmt_p(pred.r24) + '</div></div>';
-  html += '  <div><div class="muted">LP (linear predictor)</div><div class="big">' + pred.LP.toFixed(3) + '</div></div>';
-  html += '</div></div>';
-
-  html += '<div class="card">';
-  html += '<h2>🔬 Détails du calcul</h2>';
-  html += '<table>';
-  html += '<tr><th>Étape</th><th>Valeur</th><th>Note</th></tr>';
-  html += '<tr><td>ctDNA_diag = VAF×cfDNA</td><td>' + s.ctDNA_diag.toFixed(1) + '</td><td>charge tumorale baseline</td></tr>';
-  html += '<tr><td>ctDNA_CXJ1 (polished)</td><td>' + s.ctDNA_cxj1.toFixed(2) + '</td><td>= 0 si quali=0</td></tr>';
-  html += '<tr><td>ratio_obs</td><td>' + s.rc.toExponential(2) + '</td><td>= CXJ1/diag (clamp 1e-7)</td></tr>';
-  html += '<tr><td>score_cinétique</td><td>' + s.score_kin.toFixed(3) + '</td><td>= log L_bad − log L_good (mono-exp)</td></tr>';
-  html += '<tr><td>log(1 + ctDNA_diag)</td><td>' + s.log_burden.toFixed(3) + '</td><td>charge baseline (coef 1)</td></tr>';
-  html += '<tr><td><strong>score_NEW total</strong></td><td><strong>' + s.score.toFixed(3) + '</strong></td><td></td></tr>';
-  html += '<tr><td>v5A_gated</td><td>' + v5A_gated.toFixed(3) + '</td><td>drivers D11</td></tr>';
-  if (tep_avail) html += '<tr><td>TEP2_pos</td><td>' + deauv + '</td><td>Deauville ≥4</td></tr>';
-  html += '</table>';
-  html += '<div class="muted" style="margin-top:8px;">Modèle utilisé : <strong>' + model_key + '</strong> (N=' + model.N + ', evt=' + model.evt + ', C-index=' + model.C.toFixed(3) + ')</div>';
-  html += '</div>';
-
-  // === Position cohorte + Wilson CI ===
-  html += '<div class="card">';
-  html += '<h2>📍 Position du patient dans la cohorte (KM observée + IC95% Wilson)</h2>';
-  html += '<div class="muted" style="margin-bottom:8px;">VPN = % SANS rechute @12mo parmi r12 ≤ patient. VPP = % AVEC rechute @12mo parmi r12 ≥ patient.</div>';
-  html += '<div class="flex">';
-  html += '  <div><div class="muted">Cohorte r12 ≤ patient</div>';
-  html += '       <div class="big" style="color:#16a34a;">' + fmt_p(cohorte_stats.vpn) + '</div>';
-  html += '       <div class="muted">VPN @12mo · IC95% [' + fmt_p(cohorte_stats.vpn_lo) + ', ' + fmt_p(cohorte_stats.vpn_hi) + ']</div>';
-  html += '       <div class="muted">N=' + cohorte_stats.n_le + ', events=' + cohorte_stats.ev_le + '</div></div>';
-  html += '  <div><div class="muted">Cohorte r12 ≥ patient</div>';
-  html += '       <div class="big" style="color:#dc2626;">' + fmt_p(cohorte_stats.vpp) + '</div>';
-  html += '       <div class="muted">VPP @12mo · IC95% [' + fmt_p(cohorte_stats.vpp_lo) + ', ' + fmt_p(cohorte_stats.vpp_hi) + ']</div>';
-  html += '       <div class="muted">N=' + cohorte_stats.n_ge + ', events=' + cohorte_stats.ev_ge + '</div></div>';
-  html += '</div>';
-  if (cohorte_stats.n_ge < 10 || cohorte_stats.n_le < 10){
-    html += '<div class="warn">⚠️ Effectif < 10 dans un des sous-groupes — IC95% large, interprétation prudente.</div>';
+  // Risque à t mois via S0^exp(LP)
+  function risk(t) {
+    const s0 = m.baseline_S0[t];
+    if (!s0) return NaN;
+    return 1 - Math.pow(s0, Math.exp(lp));
   }
-  html += '</div>';
+  const r12 = risk(12), r24 = risk(24);
 
-  document.getElementById('results').innerHTML = html;
+  // Classification 3-zones CLINIQUES (split V15.150 Tern 10/40)
+  // Seuils 10% et 40% CALIBRÉS pour MAXIMISER la séparation pairwise des 3 courbes KM
+  // (gain de visibilité Low/Mid vs ancien 20/50 — N_min=9, min χ²_pair=7.1)
+  let zone, zoneLabel, zoneCSS, action;
+  if (r12 <= 0.10) {
+    zone = 'low';  zoneLabel = 'FAIBLE'; zoneCSS = 'low';
+    action = 'Surveillance standard. Dans la cohorte de calibration (N=103 IDES / N=69 PV), PFS@12mo ≈ 94-97% et PFS@24mo ≈ 94-97% (courbe plate, peu d\'évènements tardifs).';
+  } else if (r12 <= 0.40) {
+    zone = 'mid';  zoneLabel = 'MODÉRÉ'; zoneCSS = 'mid';
+    action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière). Dans la cohorte (N=18 IDES / N=13 PV), PFS@12mo ≈ 71-84% — gap visible vs Low (~20pt). PFS@24mo descend à 54-71% (événements tardifs).';
+  } else {
+    zone = 'high'; zoneLabel = 'ÉLEVÉ'; zoneCSS = 'high';
+    action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai). Dans la cohorte (N=22 IDES / N=9 PV), PFS@12mo ≈ 0-50% (PV : 0%, IDES : 50%) et PFS@24mo ≈ 0% — rechute quasi-systématique.';
+  }
+
+  // (groupe binaire conservé pour référence, non utilisé dans drawKM nouvelle version)
+  const grpKey = (r12 > 0.40) ? 'high' : 'low';
+
+  // ─── Calibration locale KNN (diagnostic, PAS de blending) ───
+  const K_neighbors = 30;
+  const _neighbors = knn(pipe, lp, K_neighbors);
+  const _kmLocal = km(_neighbors);
+  const r12_local = 1 - _kmLocal.S12;
+  const divergence = Math.abs(r12 - r12_local);
+  const _kmConfidence = _kmLocal.n_events;
+  const significant_divergence = (divergence > 0.20) && (_kmConfidence >= 5);
+
+  // Banner — Cox seul (pas de modification). KNN affiché en diagnostic à côté.
+  const banner = document.getElementById('riskBanner');
+  banner.className = 'risk-banner risk-' + zoneCSS;
+  const gaugeLeft = Math.min(99, Math.max(1, r12*100));
+  let divWarning = '';
+  if (significant_divergence) {
+    divWarning =
+      `<div style="background:rgba(0,0,0,0.06); border-left:3px solid currentColor; padding:10px 12px; border-radius:4px; margin-top:12px; font-size:12px;">` +
+      `⚠️ <strong>Calibration locale divergente</strong> — Le Cox prédit ${(r12*100).toFixed(1)}% mais sur les ${K_neighbors} patients similaires en LP, ` +
+      `seulement <strong>${(r12_local*100).toFixed(1)}%</strong> ont eu un événement à 12mo (${_kmConfidence} obs.). ` +
+      `<br>Le modèle extrapole probablement (LP=${lp.toFixed(2)} en queue de distribution). ` +
+      `<strong>Interpréter le ${(r12*100).toFixed(0)}% avec prudence</strong> ; la valeur réelle est probablement plus proche du KM observé.` +
+      `</div>`;
+  }
+  banner.innerHTML =
+    `<div style="font-size:13px; opacity:.8; margin-bottom:8px;">Risque prédit par le modèle Cox V15.102 (PFS)</div>` +
+    `<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 10px;">` +
+      `<div>` +
+        `<div style="font-size:12px; opacity:.75; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">À 12 mois</div>` +
+        `<div style="font-size:44px; font-weight:700; line-height:1;">${(r12*100).toFixed(1)}%</div>` +
+      `</div>` +
+      `<div>` +
+        `<div style="font-size:12px; opacity:.75; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">À 24 mois</div>` +
+        `<div style="font-size:44px; font-weight:700; line-height:1;">${(r24*100).toFixed(1)}%</div>` +
+      `</div>` +
+    `</div>` +
+    `<div style="font-size:14px; margin-bottom:8px;">Zone : <strong>${zoneLabel}</strong> <span style="opacity:.7;">(seuils 10%/40% — meilleure séparation adjacente, V15.150)</span></div>` +
+    `<div style="font-size:13px; margin-bottom:10px;">${action}</div>` +
+    `<div class="risk-gauge">` +
+      `<div class="risk-gauge-track">` +
+        `<div class="risk-gauge-marker" style="left:${gaugeLeft}%" data-val="${(r12*100).toFixed(1)}%"></div>` +
+      `</div>` +
+      `<div class="risk-gauge-labels">` +
+        `<span>0%</span><span style="position:absolute; left:10%; transform:translateX(-50%);">10%</span>` +
+        `<span style="position:absolute; left:40%; transform:translateX(-50%);">40%</span>` +
+        `<span>100%</span>` +
+      `</div>` +
+    `</div>` +
+    divWarning;
+
+
+  // Display values
+  document.getElementById('r_score').textContent = isNaN(score) ? '--' : score.toFixed(3);
+  document.getElementById('r_v5').textContent    = v5A_gated.toFixed(3);
+  document.getElementById('r_tep').textContent   = noTep ? 'N/A (M1)' : tep2_pos;
+  document.getElementById('r_lp').textContent    = lp.toFixed(3);
+  // R12 et R24 sont affichés directement dans le riskBanner (suppression du doublon)
+
+  // Breakdown — modèle 3-vars ou 2-vars selon noTep
+  const tbody = document.getElementById('lpBreakdown');
+  const c1 = m.coefs.score * (isNaN(score) ? 0 : score);
+  const c2 = m.coefs.v5 * v5A_gated;
+  const c3 = noTep ? 0 : (m.coefs.tep2 * tep2_pos);
+  let bkRows = `
+    <tr><td>score (joint)</td><td>${isNaN(score) ? '--' : score.toFixed(3)}</td><td>${m.coefs.score.toFixed(3)}</td><td>${m.HR.score.toFixed(2)}</td><td>${c1.toFixed(3)}</td></tr>
+    <tr><td>v5A_gated</td><td>${v5A_gated.toFixed(3)}</td><td>${m.coefs.v5.toFixed(3)}</td><td>${m.HR.v5.toFixed(2)}</td><td>${c2.toFixed(3)}</td></tr>
+  `;
+  if (!noTep) {
+    bkRows += `<tr><td>TEP2_pos</td><td>${tep2_pos}</td><td>${m.coefs.tep2.toFixed(3)}</td><td>${m.HR.tep2.toFixed(2)}</td><td>${c3.toFixed(3)}</td></tr>`;
+  } else {
+    bkRows += `<tr style="color:#94a3b8;font-style:italic;"><td colspan="5" style="text-align:center;">TEP2 non utilisé (modèle M1 : C-index ${m.C_index.toFixed(3)}, N=${m.N}, evt=${m.events})</td></tr>`;
+  }
+  bkRows += `<tr style="background:#f8fafc;font-weight:600;"><td colspan="4">LP total ${noTep ? '(M1, 2 vars)' : '(M2, 3 vars)'}</td><td>${lp.toFixed(3)}</td></tr>`;
+  tbody.innerHTML = bkRows;
+
+  // ─── Position du patient dans la cohorte : VPN observées par rang ───
+  updateRankBasedVPN(pipe, r12);
+
+  document.getElementById('resultsCard').style.display = 'block';
+  document.getElementById('kmCard').style.display = 'block';
+  drawKM(pipe, lp);
+  drawVPNDepth(pipe);
+  window.scrollTo({ top: document.getElementById('resultsCard').offsetTop - 20, behavior: 'smooth' });
 }
+
+function drawKM(pipe, lp) {
+  // Courbe de survie INDIVIDUELLE : S(t) = S0(t)^exp(LP)
+  // Sélectionne le bon modèle (M2 avec TEP ou M1 sans TEP) selon le toggle global
+  const m = CALC_NO_TEP ? MODELS_NO_TEP[pipe] : MODELS[pipe];
+  const W = 700, H = 320, mL = 55, mR = 15, mT = 25, mB = 45;
+  const x = (t) => mL + (W - mL - mR) * t/36;
+  const y = (s) => mT + (H - mT - mB) * (1 - s);
+  const expLP = Math.exp(lp);
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Zone colorées HORIZONTALES (risque) : à 12mo
+  // Calcule les survies du patient qui correspondent aux seuils Risque 10% et 40% (V15.150 Tern 10/40)
+  // Y-axis is survival (S), high S = low risk → vert en haut
+  const sBoundLow  = 0.90; // S=90% correspond à 10% risk (borne low/mid)
+  const sBoundHigh = 0.60; // S=60% correspond à 40% risk (borne mid/high)
+  // Fond zones (très clair)
+  svg += `<rect x="${mL}" y="${y(1)}"  width="${W-mL-mR}" height="${y(sBoundLow)-y(1)}" fill="#dcfce7" opacity="0.4"/>`;
+  svg += `<rect x="${mL}" y="${y(sBoundLow)}" width="${W-mL-mR}" height="${y(sBoundHigh)-y(sBoundLow)}" fill="#fef3c7" opacity="0.4"/>`;
+  svg += `<rect x="${mL}" y="${y(sBoundHigh)}" width="${W-mL-mR}" height="${y(0)-y(sBoundHigh)}" fill="#fee2e2" opacity="0.4"/>`;
+
+  // Axes
+  svg += `<line x1="${mL}" y1="${y(0)}" x2="${W-mR}" y2="${y(0)}" stroke="#cbd5e1"/>`;
+  svg += `<line x1="${mL}" y1="${y(0)}" x2="${mL}" y2="${y(1)}" stroke="#cbd5e1"/>`;
+  // Ticks Y
+  [0,0.25,0.5,0.75,1].forEach(s => {
+    svg += `<line x1="${mL-4}" y1="${y(s)}" x2="${mL}" y2="${y(s)}" stroke="#94a3b8"/>`;
+    svg += `<text x="${mL-8}" y="${y(s)+4}" text-anchor="end" font-size="10" fill="#64748b">${(s*100).toFixed(0)}%</text>`;
+  });
+  // Ticks X
+  [0,3,6,12,18,24,30,36].forEach(t => {
+    svg += `<line x1="${x(t)}" y1="${y(0)}" x2="${x(t)}" y2="${y(0)+4}" stroke="#94a3b8"/>`;
+    svg += `<text x="${x(t)}" y="${y(0)+18}" text-anchor="middle" font-size="10" fill="#64748b">${t}m</text>`;
+  });
+  svg += `<text x="${mL}" y="${mT-8}" font-size="11" fill="#475569" font-weight="600">Probabilité de survie sans rechute (PFS)</text>`;
+  svg += `<text x="${W-mR}" y="${y(0)+32}" text-anchor="end" font-size="10" fill="#64748b">Mois post-C1J1</text>`;
+
+  // ─── Calibration LOCALE : KM des K voisins (K adaptatif selon taille cohorte) ───
+  const N_cohort = (CALC_NO_TEP ? COHORT_NO_TEP : COHORT)[pipe].cohort.length;
+  const K = Math.min(30, Math.max(15, Math.round(N_cohort * 0.22)));
+  const neighbors = knn(pipe, lp, K);
+  const lp_min = Math.min(...neighbors.map(n => n.lp));
+  const lp_max = Math.max(...neighbors.map(n => n.lp));
+  const kmLocal = km(neighbors);
+
+  // Courbe KM voisins (escalier)
+  let kmPath = `M ${x(0)} ${y(1.0)}`;
+  for (const step of kmLocal.steps) {
+    if (step.t > 36) break;
+    kmPath += ` L ${x(step.t)} ${y(step.S>=0 ? step.S : 0)}`;
+  }
+  svg += `<path d="${kmPath}" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="5,3" fill="none" opacity="0.85"/>`;
+
+  // Intervalle de confiance approx (Greenwood serait préférable, ici simple ±10% pour la visualisation)
+  // Bande visuelle légère autour de la KM voisins
+  // SKIP CI pour rester lisible
+
+  // Courbe individuelle Cox
+  const times = [0, 3, 6, 12, 18, 24, 36];
+  const pts = times.map(t => {
+    const s0 = m.baseline_S0[t] !== undefined ? m.baseline_S0[t] : 1.0;
+    return [t, Math.pow(s0, expLP)];
+  });
+  const path = pts.map((p,i) => `${i===0?'M':'L'} ${x(p[0])} ${y(p[1])}`).join(' ');
+  svg += `<path d="${path}" stroke="#0f172a" stroke-width="3" fill="none"/>`;
+
+  // Points clés Cox (12mo, 24mo)
+  [12, 24].forEach(t => {
+    const s = Math.pow(m.baseline_S0[t], expLP);
+    svg += `<circle cx="${x(t)}" cy="${y(s)}" r="5" fill="#0f172a"/>`;
+    svg += `<text x="${x(t)}" y="${y(s)-10}" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">${(s*100).toFixed(0)}%</text>`;
+  });
+
+  // Points clés KM locale (12mo, 24mo) — en violet
+  [12, 24].forEach(t => {
+    const s = kmLocal.steps.filter(st => st.t <= t).pop()?.S ?? 1.0;
+    svg += `<circle cx="${x(t)}" cy="${y(s)}" r="4" fill="#7c3aed" stroke="white" stroke-width="1.5"/>`;
+  });
+
+  // Légende (4 lignes)
+  svg += `<g transform="translate(${mL+10}, ${mT+6})">`;
+  svg += `<rect x="0" y="0" width="14" height="10" fill="#dcfce7" opacity="0.6"/><text x="20" y="9" font-size="10" fill="#334155">Zone Faible (&lt;10%)</text>`;
+  svg += `<rect x="0" y="14" width="14" height="10" fill="#fef3c7" opacity="0.6"/><text x="20" y="23" font-size="10" fill="#334155">Zone Modéré (10-40%)</text>`;
+  svg += `<rect x="0" y="28" width="14" height="10" fill="#fee2e2" opacity="0.6"/><text x="20" y="37" font-size="10" fill="#334155">Zone Élevé (&gt;40%)</text>`;
+  svg += `<line x1="0" y1="49" x2="14" y2="49" stroke="#0f172a" stroke-width="3"/><text x="20" y="53" font-size="10" fill="#334155" font-weight="600">Survie prédite (Cox V15.102)</text>`;
+  svg += `<line x1="0" y1="64" x2="14" y2="64" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="5,3"/><text x="20" y="68" font-size="10" fill="#334155" font-weight="600">Patients SIMILAIRES en LP (KM observé)</text>`;
+  svg += `</g>`;
+
+  svg += `</svg>`;
+  document.getElementById('kmChart').innerHTML = svg;
+
+  // Stats calibration locale
+  document.getElementById('localCalibStats').innerHTML =
+    `<strong>Calibration locale</strong> — ${K} patients similaires à ce patient ` +
+    `(LP entre ${lp_min.toFixed(2)} et ${lp_max.toFixed(2)}, vous = ${lp.toFixed(2)}) :<br>` +
+    `<strong>${kmLocal.n_events}</strong> événement(s) observé(s) parmi ces ${K} voisins. ` +
+    `KM observé S(12mo) = <strong>${(kmLocal.S12*100).toFixed(1)}%</strong> ` +
+    `(événements à 12mo ≈ <strong>${((1-kmLocal.S12)*100).toFixed(1)}%</strong>), ` +
+    `S(24mo) = <strong>${(kmLocal.S24*100).toFixed(1)}%</strong>.<br>` +
+    `<em>Comparez avec votre Cox prédit : ${((1-Math.pow(m.baseline_S0[12], expLP))*100).toFixed(1)}% à 12mo, ` +
+    `${((1-Math.pow(m.baseline_S0[24], expLP))*100).toFixed(1)}% à 24mo.</em>`;
+}
+
+function drawVPNDepth(pipe) {
+  try {
+  const v = VPN_DEPTH[pipe];
+  if (!v) { console.warn('VPN_DEPTH manquant pour', pipe); return; }
+  const depth = parseFloat(document.getElementById('depth_input').value) || 0;
+  const card = document.getElementById('vpnCard');
+  card.style.display = 'block';
+
+  // VPN smooth PCHIP (V15.121)
+  const depth_max_100 = v.depth_min_100;
+  const depth_min_pt  = v.lis_points[1][0];  // 1er point LIS (après anchor 0,0)
+  const vpn_plateau_bas = v.lis_points[1][1];  // VPN au 1er point LIS (~95%)
+  const vpnPct = depth > 0 ? vpnAtDepth(pipe, depth) : 0;
+
+  // Texte interprétation
+  let msg = '';
+  if (depth <= 0) {
+    msg = `<div style="background:#fee2e2;border-left:4px solid #ef4444;padding:10px 14px;border-radius:4px;font-size:13px;">` +
+          `<strong>⚠️ Profondeur non renseignée</strong> — VPN technique non calculable. ` +
+          `Renseignez la profondeur de séquençage au CXJ1.</div>`;
+  } else if (depth >= depth_max_100) {
+    msg = `<div style="background:#dcfce7;border-left:4px solid #22c55e;padding:10px 14px;border-radius:4px;font-size:13px;">` +
+          `<strong>✅ Depth ${depth.toLocaleString()} ≥ ${depth_max_100.toLocaleString()}</strong> — ` +
+          `VPN technique = <strong>${v.vpn_plateau_haut.toFixed(1)}%</strong> (plateau haut atteint). ` +
+          `Un résultat MRD-négatif est très fiable techniquement.</div>`;
+  } else if (depth < depth_min_pt) {
+    msg = `<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:10px 14px;border-radius:4px;font-size:13px;">` +
+          `<strong>📊 Depth ${depth.toLocaleString()} < ${depth_min_pt.toLocaleString()}</strong> — ` +
+          `VPN technique = <strong>${vpnPct.toFixed(1)}%</strong> (zone d'extrapolation, en-dessous du 1ᵉʳ point LIS). ` +
+          `Fiabilité du négatif limitée par la profondeur insuffisante.</div>`;
+  } else {
+    msg = `<div style="background:#dbeafe;border-left:4px solid #2E75B6;padding:10px 14px;border-radius:4px;font-size:13px;">` +
+          `<strong>📊 Depth ${depth.toLocaleString()}</strong> — VPN technique = <strong>${vpnPct.toFixed(1)}%</strong> ` +
+          `(zone d'interpolation, entre plateau bas ${vpn_plateau_bas.toFixed(1)}% et plateau haut ${v.vpn_plateau_haut.toFixed(1)}%). ` +
+          `Pour atteindre ${v.vpn_plateau_haut.toFixed(1)}%, depth nécessaire ≥ ${depth_max_100.toLocaleString()}.</div>`;
+  }
+  document.getElementById('vpnContent').innerHTML = msg;
+
+  // Plot SVG : axes Y en LOG sur (1 - VPN) inversé → étire la zone HAUTE VPN (cliniquement utile)
+  const W = 700, H = 300, mL = 60, mR = 20, mT = 25, mB = 45;
+  // X = log10(depth+1) ; affichage de 1 à un peu au-delà du plateau
+  const log_xmax = Math.log10(Math.max(depth_max_100 * 3, depth * 2, 1e6));
+  const log_xmin = 0; // log10(1) = 0
+  const x = (d) => mL + (W - mL - mR) * ((Math.log10(Math.max(d, 1)) - log_xmin) / (log_xmax - log_xmin));
+  // Y axis : log10(FN_rate) où FN_rate = (100 - VPN%) / 100. Inversé → haute VPN en haut.
+  // Floor visuel : FN=100% (VPN=0%) → log(1) = 0, en bas
+  // Plafond visuel : FN=0.1% (VPN=99.9%) → log(0.001) = -3, en haut
+  const y_fn_log_max = 0;   // log10(1.0) = 0 (VPN=0% en bas)
+  const y_fn_log_min = -3;  // log10(0.001) = -3 (VPN=99.9% en haut)
+  const y = (s_pct) => {
+    const fn_rate = Math.max(0.001, Math.min(1.0, (100 - s_pct) / 100));
+    const log_val = Math.log10(fn_rate);
+    // Inversé : log_val proche de 0 (FN=100%, VPN=0%) → en bas ; log_val=-3 (FN=0.1%, VPN=99.9%) → en haut
+    return mT + (H - mT - mB) * ((log_val - y_fn_log_min) / (y_fn_log_max - y_fn_log_min));
+  };
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  // Axes
+  svg += `<line x1="${mL}" y1="${y(0)}" x2="${W-mR}" y2="${y(0)}" stroke="#cbd5e1"/>`;
+  svg += `<line x1="${mL}" y1="${y(0)}" x2="${mL}" y2="${y(99.9)}" stroke="#cbd5e1"/>`;
+  // Y ticks complémentaire-log : VPN = 0, 50, 80, 90, 95, 99, 99.9 (correspondant à FN = 100, 50, 20, 10, 5, 1, 0.1)
+  const yTicks = [0, 50, 80, 90, 95, 99, 99.9];
+  yTicks.forEach(s => {
+    svg += `<line x1="${mL-4}" y1="${y(s)}" x2="${mL}" y2="${y(s)}" stroke="#94a3b8"/>`;
+    const label = s === 99.9 ? '99.9' : s.toString();
+    svg += `<text x="${mL-8}" y="${y(s)+4}" text-anchor="end" font-size="10" fill="#64748b">${label}%</text>`;
+    // Gridline horizontal léger
+    svg += `<line x1="${mL}" y1="${y(s)}" x2="${W-mR}" y2="${y(s)}" stroke="#e2e8f0" stroke-dasharray="2,3" opacity="0.5"/>`;
+  });
+  // X ticks log
+  [1, 10, 100, 1000, 10000, 100000, 1000000].filter(t => Math.log10(t) <= log_xmax).forEach(t => {
+    svg += `<line x1="${x(t)}" y1="${y(0)}" x2="${x(t)}" y2="${y(0)+4}" stroke="#94a3b8"/>`;
+    svg += `<text x="${x(t)}" y="${y(0)+18}" text-anchor="middle" font-size="10" fill="#64748b">${t<1000?t:(t<1e6?(t/1000)+'k':(t/1e6)+'M')}</text>`;
+  });
+  svg += `<text x="${mL}" y="${mT-8}" font-size="11" fill="#475569" font-weight="600">VPN technique (%) — log sur (100-VPN), zone haute étirée</text>`;
+  svg += `<text x="${W-mR}" y="${y(0)+30}" text-anchor="end" font-size="10" fill="#64748b">Depth (log)</text>`;
+
+  // Courbe SMOOTH : UNE SEULE fonction de Hill (0 → penult) + envol final
+  // Architecture :
+  //   - Hill UNIQUE de (0,0) jusqu'à l'avant-dernier LIS (asymptote = vpn_penult)
+  //     Paramétré pour PASSER EXACTEMENT par LIS1, puis s'aplatit en plateau (slope → 0)
+  //     Les LIS intermédiaires (LIS2, LIS3, ...) sont à proximité (slight offset, dans le bruit visuel)
+  //   - Envol t² de l'avant-dernier au dernier (100%)
+  //     Slope=0 au départ ⟹ raccord C¹ continu avec le Hill, plus d'angle visible
+  const lisP = v.lis_points;
+  const ptsScreen = [];
+
+  const lis1   = lisP[1];                   // [d_LIS1, vpn_LIS1]
+  const penult = lisP[lisP.length - 2];     // [d_penult, vpn_penult] = asymptote du Hill
+  const last   = lisP[lisP.length - 1];     // [depth_min_100, 100.0]
+
+  // ── HILL paramétré : VPN(d) = A·d^k / (d^k + d50^k), avec A=vpn_penult
+  //    Contrainte : VPN(d_LIS1) = vpn_LIS1  ⟹  d50 = d_LIS1 × ((1-R)/R)^(1/k) avec R = vpn_LIS1/vpn_penult
+  const hill_k   = 3;
+  const hill_A   = penult[1];                                // asymptote = avant-dernier LIS
+  const R        = lis1[1] / hill_A;                         // ratio LIS1/penult (proche de 1)
+  const hill_d50 = lis1[0] * Math.pow((1 - R) / R, 1 / hill_k);
+  function hillVPN(d) {
+    if (d <= 0) return 0;
+    return hill_A * Math.pow(d, hill_k) / (Math.pow(d, hill_k) + Math.pow(hill_d50, hill_k));
+  }
+
+  // Échantillonner sur log-depth uniforme de d=1 à d=penult
+  const N_main = 100;
+  const log_dmin = 0;                       // log10(1) = 0
+  const log_dmax = Math.log10(penult[0]);
+  for (let i = 0; i <= N_main; i++) {
+    const log_d = log_dmin + (log_dmax - log_dmin) * (i / N_main);
+    const d = Math.pow(10, log_d);
+    ptsScreen.push([x(d), y(hillVPN(d))]);
+  }
+
+  // ── ENVOL final : penult (vpn_penult) → last (100%) en t² (slope=0 au départ ⟹ C¹ avec Hill)
+  const xs = x(penult[0]), ys = y(penult[1]);
+  const xe = x(last[0]),   ye = y(last[1]);
+  const N_envol = 30;
+  for (let i = 1; i <= N_envol; i++) {
+    const t = i / N_envol;
+    ptsScreen.push([xs + (xe - xs) * t, ys + (ye - ys) * (t * t)]);
+  }
+  // 3) Catmull-Rom → cubic Bezier (tension 0.5, lissage standard sans overshoot excessif)
+  function catmullRomToBezier(pts, tension) {
+    if (pts.length < 2) return '';
+    let d = `M ${pts[0][0].toFixed(2)} ${pts[0][1].toFixed(2)}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[Math.max(0, i-1)];
+      const p1 = pts[i];
+      const p2 = pts[i+1];
+      const p3 = pts[Math.min(pts.length-1, i+2)];
+      const c1x = p1[0] + (p2[0] - p0[0]) * tension / 3;
+      const c1y = p1[1] + (p2[1] - p0[1]) * tension / 3;
+      const c2x = p2[0] - (p3[0] - p1[0]) * tension / 3;
+      const c2y = p2[1] - (p3[1] - p1[1]) * tension / 3;
+      d += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
+    }
+    return d;
+  }
+  const pathD = catmullRomToBezier(ptsScreen, 0.5);
+  svg += `<path d="${pathD}" stroke="#2E75B6" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`;
+
+  // Points LIS calibrés (marqueurs)
+  v.lis_points.forEach(([d, vpn]) => {
+    if (d === 0) return; // pas afficher l'anchor (0,0)
+    svg += `<circle cx="${x(d)}" cy="${y(vpn)}" r="5" fill="#2E75B6" stroke="white" stroke-width="2"/>`;
+  });
+  // Anchor (0, 0) en bas (VPN=0% → FN=100% → log(1)=0)
+  svg += `<circle cx="${x(1)}" cy="${y(0)}" r="3" fill="#94a3b8" stroke="white" stroke-width="1.5"/>`;
+  svg += `<text x="${x(1)+8}" y="${y(0)-3}" font-size="9" fill="#64748b">(0, 0)</text>`;
+
+  // Ligne pointillée 99.9% (asymptote vers 100, clippée pour échelle log)
+  svg += `<line x1="${mL}" y1="${y(99.9)}" x2="${W-mR}" y2="${y(99.9)}" stroke="#22c55e" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>`;
+  svg += `<text x="${W-mR-5}" y="${y(99.9)-4}" text-anchor="end" font-size="9" fill="#22c55e">VPN ≥99.9% (depth_min ${depth_max_100.toLocaleString()})</text>`;
+
+  // Position patient
+  if (depth > 0) {
+    svg += `<line x1="${x(depth)}" y1="${y(0)}" x2="${x(depth)}" y2="${y(vpnPct)}" stroke="#0f172a" stroke-width="1" stroke-dasharray="2,2"/>`;
+    svg += `<circle cx="${x(depth)}" cy="${y(vpnPct)}" r="6" fill="#0f172a"/>`;
+    svg += `<text x="${x(depth)+10}" y="${y(vpnPct)+4}" font-size="12" font-weight="700" fill="#0f172a">${vpnPct.toFixed(1)}%</text>`;
+    svg += `<text x="${x(depth)+10}" y="${y(vpnPct)+18}" font-size="9" fill="#475569">depth ${depth.toLocaleString()}</text>`;
+  }
+
+  // Légende
+  svg += `<g transform="translate(${mL+12}, ${mT+6})">`;
+  svg += `<line x1="0" y1="0" x2="20" y2="0" stroke="#2E75B6" stroke-width="3"/><text x="26" y="4" font-size="10" fill="#334155">Courbe PCHIP lissée (V15.121)</text>`;
+  svg += `<circle cx="10" cy="14" r="5" fill="#2E75B6" stroke="white" stroke-width="2"/><text x="26" y="18" font-size="10" fill="#334155">Points LIS empiriques (V15.50)</text>`;
+  svg += `</g>`;
+
+  svg += `</svg>`;
+  document.getElementById('vpnChart').innerHTML = svg;
+  } catch (e) {
+    console.error('drawVPNDepth error:', e);
+    document.getElementById('vpnChart').innerHTML = `<div style="color:#ef4444;padding:20px;">Erreur de tracé VPN : ${e.message}</div>`;
+  }
+}
+
+function resetForm() {
+  ['delai_jours','vaf_diag','vaf_cxj1','pvalue_ides','nbr_pv','sum_umi',
+   'n_drv_pos','n_total_pos','sum_reads_drv','depth_input'].forEach(id => {
+    const e = document.getElementById(id);
+    if (e) e.value = (id==='delai_jours') ? '21' : (id==='pvalue_ides' ? '0.00001' : '0');
+  });
+  document.getElementById('tep2_deauville').value = '';
+  document.getElementById('resultsCard').style.display = 'none';
+  document.getElementById('kmCard').style.display = 'none';
+  document.getElementById('vpnCard').style.display = 'none';
+}
+
+// Init
+togglePipeline();
 </script>
 
-</div>
 </body>
 </html>
