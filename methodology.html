@@ -323,18 +323,22 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <!-- ────────────────────────────────────────────────────── -->
 <div class="card">
 <h2>🔀 Les 8 variantes du modèle</h2>
+<div class="note" style="border-color:#ed8936;background:#fffbeb;">
+<strong>V229.1 (2026-05-19) — Patch fallback Hodgkin/bad PV.</strong> Le couple <em>histo_HODGKIN/bad_responder</em> du pipeline PV n'a aucun patient calibrable (7 patients Hodgkin classique avec PFS=1 dans la cohorte, mais tous ont VAF_diag indétectable). Le fallback a été basculé de DLBCL/bad (V229, λ=0.237) à <strong>DLBCL/good (V229.1, λ=0.380)</strong> par cohérence biologique avec IDES (où on observe λ_bad_Hodgkin ≈ 0.37 ≈ λ_good_DLBCL ≈ 0.38). Coût empirique acceptable (Δ C-PV de −0.006 à −0.023 selon variante).
+</div>
+
 <p>Le calculateur bascule automatiquement entre 8 variantes selon la disponibilité des données :</p>
 
 <table>
 <tr><th>Pipeline</th><th>Quantification</th><th>TEP</th><th>Variante</th><th>N</th><th>events</th><th>C-index</th></tr>
-<tr><td rowspan="4"><strong>IDES</strong></td><td>hEq (VAF × cfDNA)</td><td>✅ inclus</td><td><strong>M2_hEq</strong> ⭐</td><td>136</td><td>25</td><td><strong>0.852</strong></td></tr>
+<tr><td rowspan="4"><strong>IDES</strong></td><td>hEq (VAF × cfDNA)</td><td>✅ inclus</td><td><strong>M2_hEq</strong> ⭐</td><td>136</td><td>25</td><td><strong>0.851</strong></td></tr>
 <tr><td>hEq (VAF × cfDNA)</td><td>❌ absent</td><td>M1_hEq</td><td>162</td><td>32</td><td>0.796</td></tr>
-<tr><td>VAF % seule</td><td>✅ inclus</td><td>M2_VAF</td><td>136</td><td>25</td><td>0.834</td></tr>
+<tr><td>VAF % seule</td><td>✅ inclus</td><td>M2_VAF</td><td>136</td><td>25</td><td>0.832</td></tr>
 <tr><td>VAF % seule</td><td>❌ absent</td><td>M1_VAF</td><td>162</td><td>32</td><td>0.758</td></tr>
-<tr><td rowspan="4"><strong>PV</strong></td><td>hEq (VAF × cfDNA)</td><td>✅ inclus</td><td><strong>M2_hEq</strong> ⭐</td><td>94</td><td>16</td><td><strong>0.899</strong></td></tr>
-<tr><td>hEq (VAF × cfDNA)</td><td>❌ absent</td><td>M1_hEq</td><td>115</td><td>24</td><td>0.824</td></tr>
-<tr><td>VAF % seule</td><td>✅ inclus</td><td>M2_VAF</td><td>94</td><td>16</td><td>0.879</td></tr>
-<tr><td>VAF % seule</td><td>❌ absent</td><td>M1_VAF</td><td>115</td><td>24</td><td>0.800</td></tr>
+<tr><td rowspan="4"><strong>PV</strong></td><td>hEq (VAF × cfDNA)</td><td>✅ inclus</td><td><strong>M2_hEq</strong> ⭐</td><td>94</td><td>16</td><td><strong>0.893</strong></td></tr>
+<tr><td>hEq (VAF × cfDNA)</td><td>❌ absent</td><td>M1_hEq</td><td>115</td><td>24</td><td>0.816</td></tr>
+<tr><td>VAF % seule</td><td>✅ inclus</td><td>M2_VAF</td><td>94</td><td>16</td><td>0.863</td></tr>
+<tr><td>VAF % seule</td><td>❌ absent</td><td>M1_VAF</td><td>115</td><td>24</td><td>0.777</td></tr>
 </table>
 
 <p>⭐ = configuration optimale (toutes les données disponibles).</p>
@@ -350,8 +354,8 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <table>
 <tr><th>Modèle</th><th>Covariables</th><th>N</th><th>events</th><th>C-index</th></tr>
 <tr><td>🩻 <strong>TEP seul</strong> (baseline clinique)</td><td>1 (TEP2_pos)</td><td>183</td><td>34</td><td><strong>0.646</strong></td></tr>
-<tr><td>🧬 <strong>M1_hEq MRD seul</strong> (sans TEP)</td><td>3 (score, burden, v5A)</td><td>261</td><td>50</td><td><strong>0.807 / 0.841</strong></td></tr>
-<tr><td>🩻🧬 <strong>M2_hEq</strong> (MRD + TEP)</td><td>4</td><td>222</td><td>39</td><td><strong>0.860 / 0.921</strong></td></tr>
+<tr><td>🧬 <strong>M1_hEq MRD seul</strong> (sans TEP)</td><td>3 (score, burden, v5A)</td><td>261</td><td>50</td><td><strong>0.796 / 0.816</strong></td></tr>
+<tr><td>🩻🧬 <strong>M2_hEq</strong> (MRD + TEP)</td><td>4</td><td>222</td><td>39</td><td><strong>0.851 / 0.893</strong></td></tr>
 </table>
 <p><strong>La MRD ctDNA est le marqueur prognostique dominant</strong> :</p>
 <ul>
@@ -381,12 +385,12 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <h4>M2_hEq — TEP+ et cfDNA dispo (production)</h4>
 <table>
 <tr><th>Param</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.410</td></tr>
-<tr><td>β_log_burden (partagé)</td><td colspan="2" style="text-align:center;">+0.181</td></tr>
-<tr><td>β_TEP2_pos (partagé)</td><td colspan="2" style="text-align:center;">+0.874</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.582</td><td>+1.495</td></tr>
-<tr><td>LP_offset</td><td>+2.275</td><td>+2.470</td></tr>
-<tr><td>S₀(12)</td><td>0.8893</td><td>0.9330</td></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.425</td></tr>
+<tr><td>β_log_burden (partagé)</td><td colspan="2" style="text-align:center;">+0.173</td></tr>
+<tr><td>β_TEP2_pos (partagé)</td><td colspan="2" style="text-align:center;">+0.873</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.580</td><td>+1.504</td></tr>
+<tr><td>LP_offset</td><td>+2.193</td><td>+2.455</td></tr>
+<tr><td>S₀(12)</td><td>0.8868</td><td>0.9328</td></tr>
 </table>
 </div>
 
@@ -394,11 +398,11 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <h4>M1_hEq — pas de TEP, cfDNA dispo</h4>
 <table>
 <tr><th>Param</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.432</td></tr>
-<tr><td>β_log_burden (partagé)</td><td colspan="2" style="text-align:center;">+0.197</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.457</td><td>+1.078</td></tr>
-<tr><td>LP_offset</td><td>+2.135</td><td>+2.251</td></tr>
-<tr><td>S₀(12)</td><td>0.8607</td><td>0.8871</td></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.439</td></tr>
+<tr><td>β_log_burden (partagé)</td><td colspan="2" style="text-align:center;">+0.194</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.456</td><td>+1.091</td></tr>
+<tr><td>LP_offset</td><td>+2.102</td><td>+2.277</td></tr>
+<tr><td>S₀(12)</td><td>0.8578</td><td>0.8878</td></tr>
 </table>
 </div>
 
@@ -406,12 +410,12 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <h4>M2_VAF — TEP+ mais pas de cfDNA Qubit</h4>
 <table>
 <tr><th>Param</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.398</td></tr>
-<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.166</td></tr>
-<tr><td>β_TEP2_pos (partagé)</td><td colspan="2" style="text-align:center;">+0.878</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.587</td><td>+1.493</td></tr>
-<tr><td>LP_offset</td><td>+0.768</td><td>+0.921</td></tr>
-<tr><td>S₀(12)</td><td>0.8858</td><td>0.9272</td></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.421</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.152</td></tr>
+<tr><td>β_TEP2_pos (partagé)</td><td colspan="2" style="text-align:center;">+0.881</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.584</td><td>+1.502</td></tr>
+<tr><td>LP_offset</td><td>+0.738</td><td>+0.970</td></tr>
+<tr><td>S₀(12)</td><td>0.8836</td><td>0.9273</td></tr>
 </table>
 </div>
 
@@ -419,11 +423,11 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <h4>M1_VAF — modèle minimal (ni TEP ni cfDNA)</h4>
 <table>
 <tr><th>Param</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.421</td></tr>
-<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.187</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.455</td><td>+1.072</td></tr>
-<tr><td>LP_offset</td><td>+0.487</td><td>+0.552</td></tr>
-<tr><td>S₀(12)</td><td>0.8580</td><td>0.8767</td></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.431</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.181</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.455</td><td>+1.088</td></tr>
+<tr><td>LP_offset</td><td>+0.473</td><td>+0.607</td></tr>
+<tr><td>S₀(12)</td><td>0.8547</td><td>0.8782</td></tr>
 </table>
 </div>
 
@@ -437,20 +441,20 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 
 <h3>Mode hEq (ratio ctDNA absolu)</h3>
 <table>
-<tr><th>Pipeline</th><th>Histologie</th><th>λ_good (j⁻¹)</th><th>t½_good</th><th>λ_bad (j⁻¹)</th><th>t½_bad</th><th>σ²</th></tr>
-<tr><td rowspan="2"><strong>IDES</strong></td><td>Hodgkin</td><td>0.649</td><td>1.1 j</td><td>0.371</td><td>1.9 j</td><td>30.6</td></tr>
-<tr><td>DLBCL</td><td>0.388</td><td>1.8 j</td><td>0.217</td><td>3.2 j</td><td>33.6</td></tr>
-<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.558</td><td>1.2 j</td><td>0.241</td><td>2.9 j</td><td>29.8</td></tr>
-<tr><td>DLBCL</td><td>0.372</td><td>1.9 j</td><td>0.241</td><td>2.9 j</td><td>25.5</td></tr>
+<tr><th>Pipeline</th><th>Histologie</th><th>λ_good (j⁻¹)</th><th>t½_good</th><th>λ_bad (j⁻¹)</th><th>t½_bad</th></tr>
+<tr><td rowspan="2"><strong>IDES</strong></td><td>Hodgkin</td><td>0.646</td><td>1.1 j</td><td>0.371</td><td>1.9 j</td></tr>
+<tr><td>DLBCL</td><td>0.377</td><td>1.8 j</td><td>0.206</td><td>3.4 j</td></tr>
+<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.415</td><td>1.7 j</td><td>0.380 <em>(fallback DLBCL/good, V229.1)</em></td><td>1.8 j</td></tr>
+<tr><td>DLBCL</td><td>0.380</td><td>1.8 j</td><td>0.237</td><td>2.9 j</td></tr>
 </table>
 
 <h3>Mode VAF (ratio VAF % uniquement)</h3>
 <table>
-<tr><th>Pipeline</th><th>Histologie</th><th>λ_good (j⁻¹)</th><th>t½_good</th><th>λ_bad (j⁻¹)</th><th>t½_bad</th><th>σ²</th></tr>
-<tr><td rowspan="2"><strong>IDES</strong></td><td>Hodgkin</td><td>0.648</td><td>1.1 j</td><td>0.365</td><td>1.9 j</td><td>31.7</td></tr>
-<tr><td>DLBCL</td><td>0.387</td><td>1.8 j</td><td>0.195</td><td>3.6 j</td><td>37.0</td></tr>
-<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.559</td><td>1.2 j</td><td>0.220</td><td>3.1 j</td><td>29.3</td></tr>
-<tr><td>DLBCL</td><td>0.369</td><td>1.9 j</td><td>0.220</td><td>3.1 j</td><td>28.5</td></tr>
+<tr><th>Pipeline</th><th>Histologie</th><th>λ_good (j⁻¹)</th><th>t½_good</th><th>λ_bad (j⁻¹)</th><th>t½_bad</th></tr>
+<tr><td rowspan="2"><strong>IDES</strong></td><td>Hodgkin</td><td>0.646</td><td>1.1 j</td><td>0.365</td><td>1.9 j</td></tr>
+<tr><td>DLBCL</td><td>0.373</td><td>1.9 j</td><td>0.189</td><td>3.7 j</td></tr>
+<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.413</td><td>1.7 j</td><td>0.373 <em>(fallback DLBCL/good, V229.1)</em></td><td>1.9 j</td></tr>
+<tr><td>DLBCL</td><td>0.373</td><td>1.9 j</td><td>0.220</td><td>3.1 j</td></tr>
 </table>
 
 <p class="muted">Les λ sont remarquablement similaires entre modes hEq et VAF, indiquant que la dynamique de décroissance ctDNA suit la VAF (le cfDNA module la magnitude mais pas la pente).</p>
