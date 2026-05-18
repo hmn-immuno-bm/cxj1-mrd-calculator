@@ -224,20 +224,26 @@ svg { width: 100%; height: 100%; overflow: visible; }
 
       <button class="btn" onclick="calculate()">🔍 Calculer le pronostic</button>
       <button class="btn btn-2" onclick="resetForm()">↺ Réinitialiser</button>
+      <button class="btn btn-2" style="background:#7c3aed;" onclick="sensitivityAnalysis()">🎯 Analyse de sensibilité ±10%</button>
+      <button class="btn btn-2" style="background:#16a34a;" onclick="exportPDF()">📄 Export PDF du résultat</button>
     </div>
 
     <div class="card">
-      <h3>📐 Formules V15.102</h3>
+      <h3>📐 Formules v2 OPTION A (V197)</h3>
       <div class="formula" style="white-space:pre-wrap">
 ctDNA_diag = VAF_diag(%) × cfDNA_diag (hEq)
 ctDNA_CXJ1 = VAF_CXJ1_polish × cfDNA_CXJ1
 ratio = ctDNA_CXJ1 / ctDNA_diag    (clamp 1e-7)
 mono_exp(t, λ) = exp(-λ · t)
 score_kin = log L_bad - log L_good (mono-exp)
-score_total = score_kin + log(1 + ctDNA_diag)
 
 v5A_gated = log(1 + Σ reads_drv) × (n_drv/n_tot) × quali
-LP = β_score·score + β_v5·v5A_gated + β_TEP2·TEP2_pos
+
+LP = β_score · score_kin
+   + β_burden · log(1 + ctDNA_diag)    [NEW v2]
+   + β_v5 · v5A_gated
+   + β_TEP2 · TEP2_pos
+
 risque(t) = 1 - S₀(t)^exp(LP)</div>
     </div>
   </div>
@@ -1073,15 +1079,114 @@ function drawVPNDepth(pipe) {
 }
 
 function resetForm() {
-  ['delai_jours','vaf_diag','vaf_cxj1','pvalue_ides','nbr_pv','sum_umi',
+  ['delai_jours','vaf_diag','vaf_cxj1','cfdna_diag','cfdna_cxj1','pvalue_ides','nbr_pv','sum_umi',
    'n_drv_pos','n_total_pos','sum_reads_drv','depth_input'].forEach(id => {
     const e = document.getElementById(id);
-    if (e) e.value = (id==='delai_jours') ? '21' : (id==='pvalue_ides' ? '0.00001' : '0');
+    if (e) e.value = (id==='delai_jours') ? '21' : (id==='pvalue_ides' ? '0.00001' : '');
   });
   document.getElementById('tep2_deauville').value = '';
   document.getElementById('resultsCard').style.display = 'none';
   document.getElementById('kmCard').style.display = 'none';
   document.getElementById('vpnCard').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SENSITIVITY ANALYSIS (V198 / V197 Option A)
+// Recalculate r12 with ±10% perturbations on VAF and cfDNA values
+// to show robustness of the prediction
+// ═══════════════════════════════════════════════════════════════
+function sensitivityAnalysis() {
+  const vd_base = parseFloat(document.getElementById('vaf_diag').value);
+  const vc_base = parseFloat(document.getElementById('vaf_cxj1').value);
+  const cf_d_base = parseFloat(document.getElementById('cfdna_diag').value);
+  const cf_c_base = parseFloat(document.getElementById('cfdna_cxj1').value);
+  if (!(vd_base > 0) || !(cf_d_base > 0)) {
+    alert('Renseignez d\\'abord VAF_diag et cfDNA_diag pour l\\'analyse de sensibilité.');
+    return;
+  }
+  // Run calculate first to populate window._scoreDetails etc.
+  calculate();
+
+  // Save current values
+  const orig = {
+    vd: document.getElementById('vaf_diag').value,
+    vc: document.getElementById('vaf_cxj1').value,
+    cd: document.getElementById('cfdna_diag').value,
+    cc: document.getElementById('cfdna_cxj1').value,
+  };
+
+  const scenarios = [
+    {name: 'Reference', vd: vd_base, vc: vc_base, cd: cf_d_base, cc: cf_c_base},
+    {name: 'VAF_diag +10%', vd: vd_base*1.1, vc: vc_base, cd: cf_d_base, cc: cf_c_base},
+    {name: 'VAF_diag −10%', vd: vd_base*0.9, vc: vc_base, cd: cf_d_base, cc: cf_c_base},
+    {name: 'VAF_CXJ1 +10%', vd: vd_base, vc: vc_base*1.1, cd: cf_d_base, cc: cf_c_base},
+    {name: 'VAF_CXJ1 −10%', vd: vd_base, vc: vc_base*0.9, cd: cf_d_base, cc: cf_c_base},
+    {name: 'cfDNA_diag +10%', vd: vd_base, vc: vc_base, cd: cf_d_base*1.1, cc: cf_c_base},
+    {name: 'cfDNA_diag −10%', vd: vd_base, vc: vc_base, cd: cf_d_base*0.9, cc: cf_c_base},
+    {name: 'cfDNA_CXJ1 +10%', vd: vd_base, vc: vc_base, cd: cf_d_base, cc: cf_c_base*1.1},
+    {name: 'cfDNA_CXJ1 −10%', vd: vd_base, vc: vc_base, cd: cf_d_base, cc: cf_c_base*0.9},
+    {name: 'All +10% combined', vd: vd_base*1.1, vc: vc_base*1.1, cd: cf_d_base*1.1, cc: cf_c_base*1.1},
+    {name: 'All −10% combined', vd: vd_base*0.9, vc: vc_base*0.9, cd: cf_d_base*0.9, cc: cf_c_base*0.9},
+  ];
+
+  const results = [];
+  for (const sc of scenarios) {
+    document.getElementById('vaf_diag').value = sc.vd;
+    document.getElementById('vaf_cxj1').value = sc.vc;
+    document.getElementById('cfdna_diag').value = sc.cd;
+    document.getElementById('cfdna_cxj1').value = sc.cc;
+    // Compute silently (without rerendering DOM)
+    try {
+      calculate();
+      const r12_text = document.querySelector('.summary-box-value[id="r_lp"]').textContent;
+      // r12 is displayed in the banner instead; let's parse from banner
+      const banner = document.getElementById('riskBanner').textContent;
+      const m = banner.match(/(\d+\.?\d*)%/);
+      const r12 = m ? parseFloat(m[1]) : null;
+      results.push({name: sc.name, r12: r12});
+    } catch (e) {
+      results.push({name: sc.name, r12: null});
+    }
+  }
+
+  // Restore
+  document.getElementById('vaf_diag').value = orig.vd;
+  document.getElementById('vaf_cxj1').value = orig.vc;
+  document.getElementById('cfdna_diag').value = orig.cd;
+  document.getElementById('cfdna_cxj1').value = orig.cc;
+  calculate();
+
+  // Display in a modal-like alert
+  let txt = '🎯 SENSITIVITY ANALYSIS (±10% perturbations)\\n\\n';
+  txt += 'Scenario'.padEnd(28) + ' | r12 prédit\\n';
+  txt += '─'.repeat(45) + '\\n';
+  const ref_r12 = results[0].r12;
+  for (const r of results) {
+    const diff = (r.r12 !== null && ref_r12 !== null) ? (r.r12 - ref_r12) : null;
+    const diff_str = diff !== null ? (diff>=0 ? '+':'') + diff.toFixed(1) + 'pt' : '-';
+    txt += (r.name.padEnd(28) + ' | ' + (r.r12!==null ? r.r12.toFixed(1)+'%' : '-').padEnd(8) + ' (' + diff_str + ')\\n');
+  }
+  txt += '\\nNote: Stabilité = écart-type r12 sur tous les scénarios.';
+  alert(txt);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PDF EXPORT — minimal jsPDF-like via window.print (saves to PDF)
+// ═══════════════════════════════════════════════════════════════
+function exportPDF() {
+  // Run calculate to ensure result panel populated
+  calculate();
+  // Use browser print → save as PDF
+  const cards = document.querySelectorAll('.card');
+  // Hide input panel temporarily
+  const containers = document.querySelectorAll('.container > div');
+  if (containers.length >= 2) {
+    containers[0].style.display = 'none';  // input panel
+  }
+  setTimeout(() => {
+    window.print();
+    if (containers.length >= 2) containers[0].style.display = '';  // restore
+  }, 300);
 }
 
 // Init

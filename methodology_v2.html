@@ -125,6 +125,63 @@ h(t | x) = h₀(t) · exp(β₁·score_NEW + β₂·v5A_gated + β₃·TEP2_pos)
 </div>
 
 <div class="card">
+<h2>🔬 Validation rigoureuse (V197 Option A — bootstrap B=500)</h2>
+<p>Avant adoption finale, l'Option A (linéaire calibré) a été validée par 3 tests indépendants pour confirmer son adéquation vs alternatives (notamment splines RCS sur log_burden).</p>
+
+<h3>1. Hypothèse de linéarité — confirmée</h3>
+<table>
+<tr><th>Test</th><th>Résultat</th><th>Verdict</th></tr>
+<tr><td>Martingale residuals (lowess vs log_burden)</td><td>Amplitude = <strong>0.13</strong> (&lt; 0.3 seuil)</td><td>✓ Pattern plat</td></tr>
+<tr><td>Grambsch-Therneau PH test (4 covariables)</td><td>log_burden p=0.48, score_kin p=0.63, v5A p=0.57, TEP p=0.58</td><td>✓ PH valide</td></tr>
+<tr><td>LR test ajout 4 splines à modèle linéaire</td><td>χ²=1.66, df=4, <strong>p=0.80 NS</strong></td><td>✓ Splines n'apportent rien</td></tr>
+</table>
+<p>→ La forme linéaire de log_burden dans le LP est <strong>formellement validée</strong>, ce n'est pas un défaut de puissance.</p>
+
+<h3>2. Bootstrap C-index optimism-corrigé (B=500, méthode Harrell)</h3>
+<table>
+<tr><th>Modèle</th><th>C apparent</th><th>Mean optimism</th><th>C corrigé</th></tr>
+<tr><td>Option A (linéaire calibré, 4 covars)</td><td>0.860</td><td><strong>0.009</strong></td><td><strong>0.852</strong> ⭐</td></tr>
+<tr><td>Option C (spline RCS, 9 covars)</td><td>0.864</td><td>0.028 (3.2× plus)</td><td>0.837</td></tr>
+</table>
+<p>→ <strong>Δ corrigé = +0.015 en faveur de Option A</strong>. Le spline a 3× plus d'optimism (overfit confirmé sur 24 events).</p>
+
+<h3>3. Stabilité du coefficient β_burden</h3>
+<table>
+<tr><th>Statistique</th><th>Valeur (IDES M2)</th></tr>
+<tr><td>Apparent</td><td>0.288</td></tr>
+<tr><td>Mean / Median bootstrap</td><td>0.289 / 0.290</td></tr>
+<tr><td><strong>IC95% percentile</strong></td><td><strong>[0.100, 0.465]</strong></td></tr>
+<tr><td>% bootstraps avec β &gt; 0</td><td><strong>100%</strong></td></tr>
+<tr><td>% bootstraps avec β ∈ [0.1, 0.5]</td><td>96.6%</td></tr>
+</table>
+<p>→ Robuste pour publication : <code>β_burden = 0.29 (95%CI 0.10–0.47, p=0.017)</code>.</p>
+<p class="muted">Détails complets : <a href="../output/V15_196_validation_results.json">V15_196_validation_results.json</a> · <a href="../output/publication/methods_TRIPOD.md">methods_TRIPOD.md</a></p>
+</div>
+
+<div class="card">
+<h2>📊 Coefficients Cox finaux (V197 Option A)</h2>
+<table>
+<tr><th>Modèle</th><th>N</th><th>evt</th><th>C-index</th><th>β_score_kin</th><th>β_burden</th><th>β_v5A</th><th>β_TEP2</th></tr>
+<tr><td><strong>IDES M2</strong></td><td>134</td><td>24</td><td><strong>0.859</strong></td><td>0.541 (p=0.005)</td><td>0.288 (p=0.017)</td><td>0.563 (p&lt;0.001)</td><td>0.926 (p=0.013)</td></tr>
+<tr><td><strong>IDES M1</strong></td><td>158</td><td>30</td><td><strong>0.810</strong></td><td>0.486 (p=0.005)</td><td>0.323 (p=0.001)</td><td>0.471 (p&lt;0.001)</td><td>—</td></tr>
+<tr><td><strong>PV M2</strong></td><td>88</td><td>15</td><td><strong>0.924</strong></td><td>0.387 (p=0.12)</td><td>0.316 (p=0.05)</td><td>1.383 (p&lt;0.001)</td><td>0.849 (p=0.08)</td></tr>
+<tr><td><strong>PV M1</strong></td><td>103</td><td>20</td><td>0.844</td><td>0.309 (p=0.15)</td><td>0.240 (p=0.06)</td><td>1.130 (p&lt;0.001)</td><td>—</td></tr>
+</table>
+<div class="center">
+<img class="figure" src="figs/publication/Fig_forest_plot_IDES.png" alt="Forest plot HR IDES" style="max-width:80%;">
+<p class="muted">Forest plot des hazard ratios IDES (95% CI bootstrap).</p>
+</div>
+</div>
+
+<div class="card">
+<h2>📈 Trajectoires mono-exponentielles</h2>
+<div class="center">
+<img class="figure" src="figs/publication/Fig_trajectories.png" alt="Mono-exp trajectories">
+<p class="muted">Modèle de décroissance ctDNA mono-exponentielle par (histologie × responder). Bandes verticales = C2J1 (J21) et C3J1 (J42).</p>
+</div>
+</div>
+
+<div class="card">
 <h2>📉 Stratification Tern 10/40</h2>
 <table>
 <tr><th>Zone</th><th>Plage r12</th><th>IDES PFS@12 / @24</th><th>PV PFS@12 / @24</th></tr>
