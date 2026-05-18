@@ -137,10 +137,24 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 
 <div class="note">
 <strong>Coûts mesurés (Δ C-index)</strong> :<br>
-• Retirer cfDNA Qubit (hEq→VAF) : IDES −0.013 / PV −0.003 en M2 ; IDES −0.032 / PV −0.019 en M1<br>
-• Retirer TEP interim (M2→M1) : IDES −0.053 / PV −0.080 en hEq ; IDES −0.071 / PV −0.096 en VAF<br>
-Le TEP est le marqueur le plus impactant. Le cfDNA aide modérément, surtout en l'absence de TEP.
+• Retirer cfDNA Qubit (hEq → VAF) : IDES −0.013 / PV −0.003 en M2 ; IDES −0.032 / PV −0.019 en M1<br>
+• Retirer TEP interim (M2 → M1) : IDES −0.053 / PV −0.080 en hEq ; IDES −0.071 / PV −0.096 en VAF
 </div>
+
+<h3>🩻 Baseline TEP seul (clinique pipeline-indépendant)</h3>
+<p>Modèle Cox univarié avec TEP2_pos comme seul prédicteur, fitté sur l'union IDES + PV (patient overlap = 99%) :</p>
+<table>
+<tr><th>Modèle</th><th>Covariables</th><th>N</th><th>events</th><th>C-index</th></tr>
+<tr><td>🩻 <strong>TEP seul</strong> (baseline clinique)</td><td>1 (TEP2_pos)</td><td>183</td><td>34</td><td><strong>0.646</strong></td></tr>
+<tr><td>🧬 <strong>M1_hEq MRD seul</strong> (sans TEP)</td><td>3 (score, burden, v5A)</td><td>261</td><td>50</td><td><strong>0.807 / 0.841</strong></td></tr>
+<tr><td>🩻🧬 <strong>M2_hEq</strong> (MRD + TEP)</td><td>4</td><td>222</td><td>39</td><td><strong>0.860 / 0.921</strong></td></tr>
+</table>
+<p><strong>La MRD ctDNA est le marqueur prognostique dominant</strong> :</p>
+<ul>
+  <li>Apport de la MRD ajoutée au TEP : <strong>ΔC-index = +0.18</strong> (très grande amélioration)</li>
+  <li>Apport du TEP ajouté à la MRD : <strong>ΔC-index = +0.07</strong> (amélioration modérée)</li>
+</ul>
+<p>Le TEP interim conserve une valeur incrémentale combinée à la MRD ctDNA mais ne peut pas s'y substituer. β_TEP seul = +0.95 (HR=2.59, p=0.002).</p>
 </div>
 
 <!-- ────────────────────────────────────────────────────── -->

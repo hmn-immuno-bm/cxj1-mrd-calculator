@@ -35,7 +35,15 @@ The calculator switches automatically between 8 variants based on data availabil
 - Missing cfDNA Qubit (hEq → VAF): IDES ΔC-index −0.013 / PV −0.003 with TEP; −0.032 / −0.019 without TEP
 - Missing PET (M2 → M1): IDES ΔC-index −0.053 / PV −0.080 with cfDNA; −0.071 / −0.096 without cfDNA
 
-Interim PET is the most impactful single marker. Cell-free DNA helps moderately, especially when PET is unavailable.
+**Clinical baseline comparison** (single-covariate Cox on patient union, N=183, 34 events):
+
+| Model | Covariates | C-index |
+|---|---|---|
+| TEP only (baseline) | 1 (TEP2_pos only) | **0.646** |
+| M1_hEq MRD ctDNA only (no TEP) | 3 (score, burden, v5A) | **0.807 / 0.841** |
+| M2_hEq MRD + TEP (full) | 4 | **0.860 / 0.921** |
+
+**ctDNA MRD is the dominant prognostic signal**: adding ctDNA to TEP improves C-index by **+0.18** on average, while adding TEP to ctDNA improves it by only **+0.07**. The interim PET retains incremental value when combined with MRD, but cannot replace it.
 
 ## Pipelines
 
