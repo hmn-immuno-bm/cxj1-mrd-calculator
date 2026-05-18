@@ -272,7 +272,7 @@ risque(t) = 1 - S₀(t)^exp(LP)</div>
           <div class="summary-box-value" id="r_score">--</div>
         </div>
         <div class="summary-box">
-          <div class="summary-box-label">v5A_gated (drivers)</div>
+          <div class="summary-box-label">v5A_gated (drivers) <span id="r_v5_status" style="font-size:11px; padding:2px 6px; border-radius:3px; margin-left:4px;"></span></div>
           <div class="summary-box-value" id="r_v5">--</div>
         </div>
         <div class="summary-box">
@@ -498,33 +498,45 @@ function knn(pipe, LP_target, K) {
 }
 
 // Kaplan-Meier sur tableau de patients
-// renvoie {steps:[{t, S}], S12, S24, n_events}
+// V207 — KM avec variance Greenwood + bornes IC 95% log-log par step
+// renvoie {steps:[{t, S, lo, hi, atRisk}], S12, S24, n_events, N}
 function km(patients) {
-  // Trie par temps
   const sorted = patients.slice().sort((a,b) => a.t - b.t);
   let S = 1.0, atRisk = sorted.length;
-  const steps = [{t:0, S:1.0}];
+  let cumGreenwood = 0;     // Σ d_i / (n_i (n_i - d_i))
+  const steps = [{t:0, S:1.0, lo:1.0, hi:1.0, atRisk: atRisk}];
   let n_events = 0;
-  // Group by unique times
   const unique_t = [...new Set(sorted.map(p => p.t))].sort((a,b) => a-b);
   for (const t of unique_t) {
     const dies = sorted.filter(p => p.t === t && p.e === 1).length;
     const censored = sorted.filter(p => p.t === t && p.e === 0).length;
     if (dies > 0) {
+      if (atRisk > dies) {
+        cumGreenwood += dies / (atRisk * (atRisk - dies));
+      }
       S = S * (1 - dies/atRisk);
       n_events += dies;
     }
-    steps.push({t, S});
+    // Greenwood variance
+    const variance = S*S * cumGreenwood;
+    const se = Math.sqrt(variance);
+    // IC log-log (préserve [0,1])
+    let lo = S, hi = S;
+    if (S > 0 && S < 1 && se > 0) {
+      const se_log = se / (S * Math.log(S));   // log(S) < 0
+      const z = 1.96;
+      const expand_lo = Math.exp(+z * Math.abs(se_log));   // grossit S → lo plus bas
+      const expand_hi = Math.exp(-z * Math.abs(se_log));   // shrink S → hi plus haut
+      lo = Math.max(0, Math.min(1, Math.pow(S, expand_lo)));
+      hi = Math.max(0, Math.min(1, Math.pow(S, expand_hi)));
+    }
     atRisk -= (dies + censored);
+    steps.push({t, S, lo, hi, atRisk: Math.max(0, atRisk)});
     if (atRisk <= 0) break;
   }
-  // S à 12 et 24 mois (dernière valeur ≤ t)
   const sAt = (target) => {
     let s = 1.0;
-    for (const step of steps) {
-      if (step.t > target) break;
-      s = step.S;
-    }
+    for (const step of steps) { if (step.t > target) break; s = step.S; }
     return s;
   };
   return { steps, S12: sAt(12), S24: sAt(24), n_events, N: patients.length };
@@ -819,6 +831,25 @@ function calculate() {
   document.getElementById('r_v5').textContent    = v5A_gated.toFixed(3);
   document.getElementById('r_tep').textContent   = noTep ? 'N/A (M1)' : tep2_pos;
   document.getElementById('r_lp').textContent    = lp.toFixed(3);
+  // V207 — Indicateur visuel du statut v5A (quali gate)
+  const v5StatusEl = document.getElementById('r_v5_status');
+  if (quali === 1) {
+    v5StatusEl.textContent = '✓ ACTIVÉ';
+    v5StatusEl.style.background = '#dcfce7';
+    v5StatusEl.style.color = '#15803d';
+    v5StatusEl.style.border = '1px solid #86efac';
+    v5StatusEl.title = (pipe === 'IDES'
+      ? 'IDES p-value ≤ 1/100001 → quali=1, v5A est utilisé dans le LP.'
+      : 'PV : nbr ≥ 3 ET Σ UMI ≥ 3 → quali=1, v5A est utilisé dans le LP.');
+  } else {
+    v5StatusEl.textContent = '✗ DÉSACTIVÉ';
+    v5StatusEl.style.background = '#fee2e2';
+    v5StatusEl.style.color = '#991b1b';
+    v5StatusEl.style.border = '1px solid #fca5a5';
+    v5StatusEl.title = (pipe === 'IDES'
+      ? 'IDES p-value > 1/100001 → quali=0 : v5A_gated forcé à 0, VAF_CXJ1 forcée à 0 dans le score. Le signal MRD au CXJ1 est ignoré.'
+      : 'PV : nbr < 3 OU Σ UMI < 3 → quali=0 : v5A_gated forcé à 0, VAF_CXJ1 forcée à 0. Le signal MRD au CXJ1 est ignoré.');
+  }
   // R12 et R24 sont affichés directement dans le riskBanner (suppression du doublon)
 
   // Breakdown — modèle 3-vars ou 2-vars selon noTep
@@ -826,9 +857,12 @@ function calculate() {
   const c1 = m.coefs.score * (isNaN(score) ? 0 : score);
   const c2 = m.coefs.v5 * v5A_gated;
   const c3 = noTep ? 0 : (m.coefs.tep2 * tep2_pos);
+  // V207 — Coloration ligne v5A si désactivé (quali=0)
+  const v5RowStyle = (quali === 0) ? ' style="background:#fef2f2;color:#991b1b;"' : '';
+  const v5Note = (quali === 0) ? ' <span style="font-size:11px;color:#dc2626;">(désactivé : quali=0)</span>' : '';
   let bkRows = `
     <tr><td>score (joint)</td><td>${isNaN(score) ? '--' : score.toFixed(3)}</td><td>${m.coefs.score.toFixed(3)}</td><td>${m.HR.score.toFixed(2)}</td><td>${c1.toFixed(3)}</td></tr>
-    <tr><td>v5A_gated</td><td>${v5A_gated.toFixed(3)}</td><td>${m.coefs.v5.toFixed(3)}</td><td>${m.HR.v5.toFixed(2)}</td><td>${c2.toFixed(3)}</td></tr>
+    <tr${v5RowStyle}><td>v5A_gated${v5Note}</td><td>${v5A_gated.toFixed(3)}</td><td>${m.coefs.v5.toFixed(3)}</td><td>${m.HR.v5.toFixed(2)}</td><td>${c2.toFixed(3)}</td></tr>
   `;
   if (!noTep) {
     bkRows += `<tr><td>TEP2_pos</td><td>${tep2_pos}</td><td>${m.coefs.tep2.toFixed(3)}</td><td>${m.HR.tep2.toFixed(2)}</td><td>${c3.toFixed(3)}</td></tr>`;
@@ -893,17 +927,54 @@ function drawKM(pipe, lp) {
   const lp_max = Math.max(...neighbors.map(n => n.lp));
   const kmLocal = km(neighbors);
 
-  // Courbe KM voisins (escalier)
+  // V207 — Bande IC95% Greenwood (épaisseur = incertitude)
+  // Construit polygone {step lower → step upper inversé → close}
+  const stepsClipped = kmLocal.steps.filter(s => s.t <= 36);
+  if (stepsClipped.length >= 2) {
+    // Lower path (step function): pour chaque step, segment horizontal puis vertical
+    let lowerPts = [[x(0), y(1.0)]];
+    let prevLo = 1.0;
+    for (const step of stepsClipped) {
+      if (step.t === 0) continue;
+      lowerPts.push([x(step.t), y(prevLo)]);          // horizontal au niveau précédent
+      lowerPts.push([x(step.t), y(step.lo)]);         // saut vertical au nouveau niveau
+      prevLo = step.lo;
+    }
+    // Extension jusqu'à 36 mois
+    lowerPts.push([x(36), y(prevLo)]);
+
+    // Upper path (en ordre INVERSÉ pour fermer le polygone)
+    let upperPts = [[x(36), y(stepsClipped[stepsClipped.length-1].hi)]];
+    let prevHi = stepsClipped[stepsClipped.length-1].hi;
+    for (let i = stepsClipped.length - 1; i >= 1; i--) {
+      const step = stepsClipped[i];
+      const prevStep = stepsClipped[i-1];
+      upperPts.push([x(step.t), y(prevHi)]);          // horizontal au niveau actuel
+      upperPts.push([x(step.t), y(prevStep.hi)]);     // saut vertical au niveau précédent
+      prevHi = prevStep.hi;
+    }
+    upperPts.push([x(0), y(1.0)]);
+
+    const polyPath = lowerPts.concat(upperPts).map((p,i) => `${i===0?'M':'L'} ${p[0]} ${p[1]}`).join(' ') + ' Z';
+    // Opacity adaptative : plus le voisinage est dense (atRisk initial élevé), plus la bande est nette
+    const opacity_band = 0.18 + 0.06 * Math.min(1, neighbors.length / 30);
+    svg += `<path d="${polyPath}" fill="#7c3aed" fill-opacity="${opacity_band.toFixed(2)}" stroke="none"/>`;
+  }
+
+  // Courbe KM voisins (escalier) — centrale
   let kmPath = `M ${x(0)} ${y(1.0)}`;
+  let prevS = 1.0;
   for (const step of kmLocal.steps) {
     if (step.t > 36) break;
-    kmPath += ` L ${x(step.t)} ${y(step.S>=0 ? step.S : 0)}`;
+    if (step.t > 0) {
+      kmPath += ` L ${x(step.t)} ${y(prevS)}`;
+      kmPath += ` L ${x(step.t)} ${y(step.S>=0 ? step.S : 0)}`;
+    }
+    prevS = step.S>=0 ? step.S : 0;
   }
+  // Extension jusqu'à 36
+  kmPath += ` L ${x(36)} ${y(prevS)}`;
   svg += `<path d="${kmPath}" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="5,3" fill="none" opacity="0.85"/>`;
-
-  // Intervalle de confiance approx (Greenwood serait préférable, ici simple ±10% pour la visualisation)
-  // Bande visuelle légère autour de la KM voisins
-  // SKIP CI pour rester lisible
 
   // Courbe individuelle Cox
   const times = [0, 3, 6, 12, 18, 24, 36];
@@ -934,21 +1005,31 @@ function drawKM(pipe, lp) {
   svg += `<rect x="0" y="28" width="14" height="10" fill="#fee2e2" opacity="0.6"/><text x="20" y="37" font-size="10" fill="#334155">Zone Élevé (&gt;40%)</text>`;
   svg += `<line x1="0" y1="49" x2="14" y2="49" stroke="#0f172a" stroke-width="3"/><text x="20" y="53" font-size="10" fill="#334155" font-weight="600">Survie prédite (Cox V15.102)</text>`;
   svg += `<line x1="0" y1="64" x2="14" y2="64" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="5,3"/><text x="20" y="68" font-size="10" fill="#334155" font-weight="600">Patients SIMILAIRES en LP (KM observé)</text>`;
+  svg += `<rect x="0" y="78" width="14" height="10" fill="#7c3aed" fill-opacity="0.22"/><text x="20" y="87" font-size="10" fill="#334155" font-style="italic">IC95% Greenwood (épaisseur = incertitude)</text>`;
   svg += `</g>`;
 
   svg += `</svg>`;
   document.getElementById('kmChart').innerHTML = svg;
 
-  // Stats calibration locale
+  // V207 — Stats calibration locale avec IC95% Greenwood + indicateur de sparsité
+  // Récupère lo/hi à 12mo et 24mo depuis les steps
+  const stepAt = (target) => kmLocal.steps.filter(st => st.t <= target).pop() || {S:1.0, lo:1.0, hi:1.0};
+  const s12 = stepAt(12), s24 = stepAt(24);
+  const sparsity = (lp_max - lp_min);
+  const sparsityWarn = sparsity > 1.5
+    ? `<span style="color:#dc2626;font-weight:600;">⚠️ Zone éparse</span> (plage LP voisins=${sparsity.toFixed(2)}). `
+    : '';
   document.getElementById('localCalibStats').innerHTML =
-    `<strong>Calibration locale</strong> — ${K} patients similaires à ce patient ` +
-    `(LP entre ${lp_min.toFixed(2)} et ${lp_max.toFixed(2)}, vous = ${lp.toFixed(2)}) :<br>` +
-    `<strong>${kmLocal.n_events}</strong> événement(s) observé(s) parmi ces ${K} voisins. ` +
-    `KM observé S(12mo) = <strong>${(kmLocal.S12*100).toFixed(1)}%</strong> ` +
-    `(événements à 12mo ≈ <strong>${((1-kmLocal.S12)*100).toFixed(1)}%</strong>), ` +
-    `S(24mo) = <strong>${(kmLocal.S24*100).toFixed(1)}%</strong>.<br>` +
-    `<em>Comparez avec votre Cox prédit : ${((1-Math.pow(m.baseline_S0[12], expLP))*100).toFixed(1)}% à 12mo, ` +
-    `${((1-Math.pow(m.baseline_S0[24], expLP))*100).toFixed(1)}% à 24mo.</em>`;
+    `<strong>Calibration locale</strong> — ${K} patients similaires (LP ${lp_min.toFixed(2)} à ${lp_max.toFixed(2)}, vous=${lp.toFixed(2)}). ` +
+    sparsityWarn +
+    `<strong>${kmLocal.n_events}</strong> événement(s) observé(s).<br>` +
+    `KM observé : <strong>S(12mo) = ${(s12.S*100).toFixed(1)}%</strong> ` +
+    `<span style="color:#7c3aed;font-size:11px;">[IC95% ${(s12.lo*100).toFixed(0)}–${(s12.hi*100).toFixed(0)}%]</span>, ` +
+    `<strong>S(24mo) = ${(s24.S*100).toFixed(1)}%</strong> ` +
+    `<span style="color:#7c3aed;font-size:11px;">[IC95% ${(s24.lo*100).toFixed(0)}–${(s24.hi*100).toFixed(0)}%]</span><br>` +
+    `<em>Cox prédit : ${((1-Math.pow(m.baseline_S0[12], expLP))*100).toFixed(1)}% à 12mo, ` +
+    `${((1-Math.pow(m.baseline_S0[24], expLP))*100).toFixed(1)}% à 24mo.</em> ` +
+    `La <strong>bande violette</strong> du KM reflète l'incertitude : plus elle est large, moins le risque réel est précisément connu pour des patients comme vous.`;
 }
 
 function drawVPNDepth(pipe) {
