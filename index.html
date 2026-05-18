@@ -371,7 +371,7 @@ risque(t) = 1 - S₀(t)^exp(LP)</div>
         Deux courbes superposées :<br>
         <strong>1️⃣ Noire pleine</strong> = survie prédite par Cox V15.102 pour <strong>ce patient</strong> (S(t)=S₀(t)^exp(LP))<br>
         <strong>2️⃣ Violette pointillée</strong> = KM observé des patients voisins (KNN <strong>adaptatif</strong> : tous les voisins dans ±1 unité LP, K_min=8, K_max=40 — V208).
-        La <strong>bande violette translucide</strong> = IC95% Greenwood — son épaisseur reflète l'incertitude réelle (peu d'événements / peu de voisins → bande épaisse).<br>
+        L'<strong>IC95% Greenwood</strong> est reporté en chiffres sous le graphe (au lieu d'une bande, pour préserver la lisibilité).<br>
         Si les 2 courbes coïncident → modèle bien calibré pour cette zone de risque.
       </p>
       <div class="chart-container" id="kmChart" style="height:340px;"></div>
@@ -940,39 +940,7 @@ function drawKM(pipe, lp) {
   const lp_max = Math.max(...neighbors.map(n => n.lp));
   const kmLocal = km(neighbors);
 
-  // V207 — Bande IC95% Greenwood (épaisseur = incertitude)
-  // Construit polygone {step lower → step upper inversé → close}
-  const stepsClipped = kmLocal.steps.filter(s => s.t <= 36);
-  if (stepsClipped.length >= 2) {
-    // Lower path (step function): pour chaque step, segment horizontal puis vertical
-    let lowerPts = [[x(0), y(1.0)]];
-    let prevLo = 1.0;
-    for (const step of stepsClipped) {
-      if (step.t === 0) continue;
-      lowerPts.push([x(step.t), y(prevLo)]);          // horizontal au niveau précédent
-      lowerPts.push([x(step.t), y(step.lo)]);         // saut vertical au nouveau niveau
-      prevLo = step.lo;
-    }
-    // Extension jusqu'à 36 mois
-    lowerPts.push([x(36), y(prevLo)]);
-
-    // Upper path (en ordre INVERSÉ pour fermer le polygone)
-    let upperPts = [[x(36), y(stepsClipped[stepsClipped.length-1].hi)]];
-    let prevHi = stepsClipped[stepsClipped.length-1].hi;
-    for (let i = stepsClipped.length - 1; i >= 1; i--) {
-      const step = stepsClipped[i];
-      const prevStep = stepsClipped[i-1];
-      upperPts.push([x(step.t), y(prevHi)]);          // horizontal au niveau actuel
-      upperPts.push([x(step.t), y(prevStep.hi)]);     // saut vertical au niveau précédent
-      prevHi = prevStep.hi;
-    }
-    upperPts.push([x(0), y(1.0)]);
-
-    const polyPath = lowerPts.concat(upperPts).map((p,i) => `${i===0?'M':'L'} ${p[0]} ${p[1]}`).join(' ') + ' Z';
-    // Opacité fixe : la VARIANCE Greenwood reflète déjà l'incertitude (K_min=8 garantit la stabilité KM)
-    svg += `<path d="${polyPath}" fill="#7c3aed" fill-opacity="0.22" stroke="none"/>`;
-  }
-
+  // V210 — Bande IC95% retirée pour lisibilité (l'incertitude reste affichée en texte sous la figure)
   // Courbe KM voisins (escalier) — centrale
   let kmPath = `M ${x(0)} ${y(1.0)}`;
   let prevS = 1.0;
@@ -1017,7 +985,6 @@ function drawKM(pipe, lp) {
   svg += `<rect x="0" y="28" width="14" height="10" fill="#fee2e2" opacity="0.6"/><text x="20" y="37" font-size="10" fill="#334155">Zone Élevé (&gt;40%)</text>`;
   svg += `<line x1="0" y1="49" x2="14" y2="49" stroke="#0f172a" stroke-width="3"/><text x="20" y="53" font-size="10" fill="#334155" font-weight="600">Survie prédite (Cox V15.102)</text>`;
   svg += `<line x1="0" y1="64" x2="14" y2="64" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="5,3"/><text x="20" y="68" font-size="10" fill="#334155" font-weight="600">Patients SIMILAIRES en LP (KM observé)</text>`;
-  svg += `<rect x="0" y="78" width="14" height="10" fill="#7c3aed" fill-opacity="0.22"/><text x="20" y="87" font-size="10" fill="#334155" font-style="italic">IC95% Greenwood (épaisseur = incertitude)</text>`;
   svg += `</g>`;
 
   svg += `</svg>`;
@@ -1045,7 +1012,7 @@ function drawKM(pipe, lp) {
     `<span style="color:#7c3aed;font-size:11px;">[IC95% ${(s24.lo*100).toFixed(0)}–${(s24.hi*100).toFixed(0)}%]</span><br>` +
     `<em>Cox prédit : ${((1-Math.pow(m.baseline_S0[12], expLP))*100).toFixed(1)}% à 12mo, ` +
     `${((1-Math.pow(m.baseline_S0[24], expLP))*100).toFixed(1)}% à 24mo.</em> ` +
-    `La <strong>bande violette IC95% (Greenwood)</strong> reflète l'incertitude réelle : plus elle est large, plus le risque est mal estimé pour des patients comme vous.`;
+    `L'<strong>IC95% Greenwood</strong> (entre crochets ci-dessus) reflète l'incertitude : plus l'intervalle est large, plus le risque réel est mal estimé pour des patients comme vous.`;
 }
 
 function drawVPNDepth(pipe) {
