@@ -49,6 +49,153 @@ a.button:hover { background: #1e3a8a; }
 
 <!-- ────────────────────────────────────────────────────── -->
 <div class="card">
+<h2>📊 Population de développement (Table 1)</h2>
+<table>
+<tr><th>Caractéristique</th><th>Cohorte IDES (panel MOABI)</th><th>Cohorte PV (variants phasés)</th></tr>
+<tr><td><strong>N total</strong></td><td>223</td><td>221</td></tr>
+<tr><td><strong>Événements PFS</strong></td><td>45 (20%)</td><td>44 (20%)</td></tr>
+<tr><td><strong>Âge médian (IQR)</strong></td><td>51 (33–65)</td><td>51 (33–65)</td></tr>
+<tr><td><strong>Sexe masculin</strong></td><td>132 (59%)</td><td>132 (60%)</td></tr>
+<tr><td><strong>Hodgkin classique</strong></td><td>86 (39%)</td><td>86 (39%)</td></tr>
+<tr><td><strong>DLBCL / autre lymphome B agressif</strong></td><td>137 (61%)</td><td>135 (61%)</td></tr>
+<tr><td><strong>Stade III–IV (Ann Arbor)</strong></td><td>143/216 (66%)</td><td>142/215 (66%)</td></tr>
+<tr><td><strong>IPI médian (IQR)</strong></td><td>3 (2–4)</td><td>3 (2–4)</td></tr>
+<tr><td><strong>Hasenclever médian (IQR, Hodgkin)</strong></td><td>2 (1–4)</td><td>2 (1–4)</td></tr>
+<tr><td><strong>TEP interim positive (Deauville ≥ 4)</strong></td><td>56 (25%)</td><td>55 (25%)</td></tr>
+<tr><td><strong>TEP interim négative</strong></td><td>131 (59%)</td><td>131 (59%)</td></tr>
+<tr><td><strong>TEP non disponible</strong></td><td>36 (16%)</td><td>35 (16%)</td></tr>
+<tr><td><strong>Quality gate franchi</strong></td><td>52 (23%)</td><td>48 (22%)</td></tr>
+<tr><td><strong>Suivi PFS médian (IQR)</strong></td><td>26 mois (14–44)</td><td>27 mois (14–45)</td></tr>
+<tr><td><strong>Overlap IDES ∩ PV</strong></td><td colspan="2" style="text-align:center;">220 patients (99% de chaque cohorte)</td></tr>
+</table>
+<p class="muted">Patients inclus : adultes (≥18 ans) avec lymphome B agressif (DLBCL NOS, HGBL, PMBL, Burkitt, transformés) ou Hodgkin classique nouvellement diagnostiqué, traités au CHU Henri Mondor entre janvier 2020 et décembre 2025, avec mesures ctDNA disponibles au diagnostic ET à mi-traitement (CXJ1).</p>
+</div>
+
+<!-- ────────────────────────────────────────────────────── -->
+<div class="card">
+<h2>📐 Flux de sélection de la cohorte</h2>
+<div class="center">
+<svg viewBox="0 0 720 620" style="max-width:100%; height:auto; border:1px solid #e2e8f0; border-radius:6px; background:#fafbfc;">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <style>
+    .node { fill: #ffffff; stroke: #475569; stroke-width: 1.5; }
+    .node-main { fill: #dbeafe; stroke: #1e40af; stroke-width: 2; }
+    .node-final { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
+    .node-excl { fill: #fef3c7; stroke: #d97706; stroke-width: 1.5; }
+    .label { font-family: 'Segoe UI', sans-serif; font-size: 12px; fill: #1e293b; }
+    .label-bold { font-weight: 600; font-size: 13px; }
+    .label-small { font-size: 11px; fill: #64748b; }
+    .arrow-line { stroke: #475569; stroke-width: 1.8; fill: none; marker-end: url(#arrow); }
+  </style>
+
+  <!-- Title -->
+  <text x="360" y="22" class="label label-bold" text-anchor="middle">Flux de sélection des patients (mai 2026)</text>
+
+  <!-- Step 1: initial cohort -->
+  <rect class="node-main" x="240" y="40" width="240" height="50" rx="6"/>
+  <text x="360" y="60" class="label label-bold" text-anchor="middle">Cohorte clinique initiale</text>
+  <text x="360" y="78" class="label" text-anchor="middle">N = 224 patients lymphome B/Hodgkin (2020-2025)</text>
+
+  <line class="arrow-line" x1="360" y1="92" x2="360" y2="125"/>
+
+  <!-- Step 2: with ctDNA measurements -->
+  <rect class="node" x="220" y="130" width="280" height="50" rx="6"/>
+  <text x="360" y="150" class="label label-bold" text-anchor="middle">Mesures ctDNA disponibles au diagnostic ET CXJ1</text>
+  <text x="360" y="168" class="label" text-anchor="middle">avec dates Glims diag + CXJ1 = 224 / 224</text>
+
+  <line class="arrow-line" x1="360" y1="182" x2="360" y2="215"/>
+
+  <!-- Step 3: split by pipeline -->
+  <rect class="node" x="280" y="220" width="160" height="36" rx="6"/>
+  <text x="360" y="243" class="label" text-anchor="middle">Séquençage des 2 pipelines</text>
+
+  <!-- Left branch: IDES -->
+  <line class="arrow-line" x1="320" y1="256" x2="170" y2="295"/>
+  <rect class="node-main" x="50" y="300" width="240" height="60" rx="6"/>
+  <text x="170" y="320" class="label label-bold" text-anchor="middle">Pipeline IDES (MOABI hybrid-capture)</text>
+  <text x="170" y="338" class="label" text-anchor="middle">N = 223 patients avec analyse IDES</text>
+  <text x="170" y="354" class="label-small" text-anchor="middle">(1 patient exclu : data manquant)</text>
+
+  <!-- Right branch: PV -->
+  <line class="arrow-line" x1="400" y1="256" x2="550" y2="295"/>
+  <rect class="node-main" x="430" y="300" width="240" height="60" rx="6"/>
+  <text x="550" y="320" class="label label-bold" text-anchor="middle">Pipeline PV (phased variants UMI)</text>
+  <text x="550" y="338" class="label" text-anchor="middle">N = 221 patients avec analyse PV</text>
+  <text x="550" y="354" class="label-small" text-anchor="middle">(3 patients exclus : data manquant)</text>
+
+  <!-- Down IDES -->
+  <line class="arrow-line" x1="170" y1="362" x2="170" y2="395"/>
+
+  <!-- IDES M1/M2 split -->
+  <rect class="node-final" x="20" y="400" width="140" height="80" rx="6"/>
+  <text x="90" y="420" class="label label-bold" text-anchor="middle">IDES M2_hEq</text>
+  <text x="90" y="438" class="label" text-anchor="middle">(avec TEP, cfDNA)</text>
+  <text x="90" y="455" class="label" text-anchor="middle">N = 134 ; events = 24</text>
+  <text x="90" y="472" class="label-small" text-anchor="middle">C-index = 0.860 ⭐</text>
+
+  <rect class="node-final" x="180" y="400" width="140" height="80" rx="6"/>
+  <text x="250" y="420" class="label label-bold" text-anchor="middle">IDES M1_hEq</text>
+  <text x="250" y="438" class="label" text-anchor="middle">(sans TEP, cfDNA)</text>
+  <text x="250" y="455" class="label" text-anchor="middle">N = 158 ; events = 30</text>
+  <text x="250" y="472" class="label-small" text-anchor="middle">C-index = 0.807</text>
+
+  <!-- IDES VAF variants -->
+  <rect class="node" x="20" y="495" width="140" height="60" rx="6"/>
+  <text x="90" y="515" class="label label-bold" text-anchor="middle">IDES M2_VAF</text>
+  <text x="90" y="532" class="label" text-anchor="middle">N=135, evt=24</text>
+  <text x="90" y="548" class="label-small" text-anchor="middle">C = 0.846</text>
+
+  <rect class="node" x="180" y="495" width="140" height="60" rx="6"/>
+  <text x="250" y="515" class="label label-bold" text-anchor="middle">IDES M1_VAF</text>
+  <text x="250" y="532" class="label" text-anchor="middle">N=160, evt=30</text>
+  <text x="250" y="548" class="label-small" text-anchor="middle">C = 0.775</text>
+
+  <!-- Down PV -->
+  <line class="arrow-line" x1="550" y1="362" x2="550" y2="395"/>
+
+  <!-- PV M1/M2 split -->
+  <rect class="node-final" x="400" y="400" width="140" height="80" rx="6"/>
+  <text x="470" y="420" class="label label-bold" text-anchor="middle">PV M2_hEq</text>
+  <text x="470" y="438" class="label" text-anchor="middle">(avec TEP, cfDNA)</text>
+  <text x="470" y="455" class="label" text-anchor="middle">N = 88 ; events = 15</text>
+  <text x="470" y="472" class="label-small" text-anchor="middle">C-index = 0.921 ⭐</text>
+
+  <rect class="node-final" x="560" y="400" width="140" height="80" rx="6"/>
+  <text x="630" y="420" class="label label-bold" text-anchor="middle">PV M1_hEq</text>
+  <text x="630" y="438" class="label" text-anchor="middle">(sans TEP, cfDNA)</text>
+  <text x="630" y="455" class="label" text-anchor="middle">N = 103 ; events = 20</text>
+  <text x="630" y="472" class="label-small" text-anchor="middle">C-index = 0.841</text>
+
+  <!-- PV VAF variants -->
+  <rect class="node" x="400" y="495" width="140" height="60" rx="6"/>
+  <text x="470" y="515" class="label label-bold" text-anchor="middle">PV M2_VAF</text>
+  <text x="470" y="532" class="label" text-anchor="middle">N=89, evt=15</text>
+  <text x="470" y="548" class="label-small" text-anchor="middle">C = 0.918</text>
+
+  <rect class="node" x="560" y="495" width="140" height="60" rx="6"/>
+  <text x="630" y="515" class="label label-bold" text-anchor="middle">PV M1_VAF</text>
+  <text x="630" y="532" class="label" text-anchor="middle">N=105, evt=20</text>
+  <text x="630" y="548" class="label-small" text-anchor="middle">C = 0.822</text>
+
+  <!-- Legend -->
+  <rect class="node-main" x="20" y="585" width="20" height="14"/>
+  <text x="45" y="596" class="label label-small">Cohorte / pipeline</text>
+  <rect class="node-final" x="160" y="585" width="20" height="14"/>
+  <text x="185" y="596" class="label label-small">Variante principale (hEq)</text>
+  <rect class="node" x="340" y="585" width="20" height="14"/>
+  <text x="365" y="596" class="label label-small">Variante fallback (VAF sans cfDNA)</text>
+  <text x="700" y="596" class="label label-small" text-anchor="end">⭐ = configuration optimale</text>
+</svg>
+</div>
+<p class="muted">Les 4 variantes finales par pipeline (M2/M1 × hEq/VAF) couvrent l'ensemble des scénarios cliniques selon la disponibilité du Qubit cfDNA et de la TEP interim. L'overlap IDES ∩ PV (220 patients) permet le partial pooling stratifié pipeline (V199-200).</p>
+</div>
+
+<!-- ────────────────────────────────────────────────────── -->
+<div class="card">
 <h2>🎯 Objectif clinique</h2>
 <p>Prédire la probabilité de récidive (PFS) à 12 et 24 mois chez les patients atteints de lymphome B agressif (DLBCL, HGBL, PMBL, Burkitt, transformés, etc.) ou de Hodgkin classique, à partir d'une évaluation MRD ctDNA mi-traitement (point CXJ1, typiquement après cycle 2 ou 3 de chimio-immunothérapie de première ligne).</p>
 
@@ -259,19 +406,52 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 
 <!-- ────────────────────────────────────────────────────── -->
 <div class="card">
-<h2>🎯 Stratification clinique Tern 10/40</h2>
+<h2>🎯 Stratification clinique Tern 10/40 — pour les 8 variantes</h2>
 <p>Trois zones de risque basées sur la probabilité prédite de récidive à 12 mois (r12) :</p>
 <table>
 <tr><th>Zone</th><th>Plage r12</th><th>Conduite suggérée</th></tr>
-<tr><td>🟢 <strong>Faible</strong></td><td>r12 ≤ 10%</td><td>Surveillance standard. Dans la cohorte d'entraînement, PFS@12mo ≈ 95-98% et PFS@24mo ≈ 95-98%.</td></tr>
-<tr><td>🟡 <strong>Modéré</strong></td><td>10% &lt; r12 ≤ 40%</td><td>Surveillance rapprochée (TEP supplémentaire, MRD régulière). PFS@12mo ≈ 80-85%, PFS@24mo descend à 65-80%.</td></tr>
-<tr><td>🔴 <strong>Élevé</strong></td><td>r12 &gt; 40%</td><td>Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai). Dans la cohorte, PFS@24mo ≈ 0% (rechute quasi-systématique).</td></tr>
+<tr><td>🟢 <strong>Faible</strong></td><td>r12 ≤ 10%</td><td>Surveillance standard</td></tr>
+<tr><td>🟡 <strong>Modéré</strong></td><td>10% &lt; r12 ≤ 40%</td><td>Surveillance rapprochée (TEP supplémentaire, MRD régulière)</td></tr>
+<tr><td>🔴 <strong>Élevé</strong></td><td>r12 &gt; 40%</td><td>Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai)</td></tr>
 </table>
-<p>Les seuils 10/40 ont été sélectionnés par évaluation exhaustive de 82 splits candidats sur la métrique de séparation des courbes KM adjacentes (cross-validation 5-fold confirmant 10/40 comme optimum interprétable).</p>
+<p class="muted">Seuils 10/40 sélectionnés par évaluation exhaustive de 82 splits candidats sur la métrique de séparation des courbes KM adjacentes, cross-validation 5-fold confirmant 10/40 comme optimum interprétable.</p>
+
+<h3>Performance par zone × variante</h3>
+<p>PFS@12 et PFS@24 (Kaplan-Meier) calculés rétrospectivement sur la cohorte d'entraînement, par zone Tern et par variante de modèle :</p>
+
+<h3 style="color:#1e40af;">Pipeline IDES</h3>
+<table>
+<tr><th rowspan="2">Variante</th><th colspan="3">🟢 Faible (r12 ≤ 10%)</th><th colspan="3">🟡 Modéré (10–40%)</th><th colspan="3">🔴 Élevé (r12 &gt; 40%)</th></tr>
+<tr><th>N</th><th>PFS@12</th><th>PFS@24</th><th>N</th><th>PFS@12</th><th>PFS@24</th><th>N</th><th>PFS@12</th><th>PFS@24</th></tr>
+<tr><td><strong>M2_hEq</strong> ⭐</td><td>83</td><td>95.2%</td><td>95.2%</td><td>34</td><td>84.2%</td><td>80.6%</td><td>17</td><td>23.5%</td><td>11.8%</td></tr>
+<tr><td>M1_hEq</td><td>84</td><td>95.2%</td><td>95.2%</td><td>54</td><td>83.1%</td><td>73.9%</td><td>20</td><td>28.6%</td><td>28.6%</td></tr>
+<tr><td>M2_VAF</td><td>85</td><td>95.3%</td><td>95.3%</td><td>33</td><td>84.4%</td><td>80.5%</td><td>17</td><td>23.5%</td><td>11.8%</td></tr>
+<tr><td>M1_VAF</td><td>85</td><td>92.9%</td><td>92.9%</td><td>59</td><td>84.2%</td><td>76.3%</td><td>16</td><td>25.0%</td><td>25.0%</td></tr>
+</table>
+
+<h3 style="color:#1e40af;">Pipeline PV</h3>
+<table>
+<tr><th rowspan="2">Variante</th><th colspan="3">🟢 Faible (r12 ≤ 10%)</th><th colspan="3">🟡 Modéré (10–40%)</th><th colspan="3">🔴 Élevé (r12 &gt; 40%)</th></tr>
+<tr><th>N</th><th>PFS@12</th><th>PFS@24</th><th>N</th><th>PFS@12</th><th>PFS@24</th><th>N</th><th>PFS@12</th><th>PFS@24</th></tr>
+<tr><td><strong>M2_hEq</strong> ⭐</td><td>62</td><td>98.4%</td><td>98.4%</td><td>16</td><td>80.2%</td><td>63.8%</td><td>10</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
+<tr><td>M1_hEq</td><td>59</td><td>94.9%</td><td>93.0%</td><td>33</td><td>84.0%</td><td>78.0%</td><td>11</td><td>9.1%</td><td>9.1%</td></tr>
+<tr><td>M2_VAF</td><td>66</td><td>96.9%</td><td>96.9%</td><td>12</td><td>90.9%</td><td>68.2%</td><td>11</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
+<tr><td>M1_VAF</td><td>62</td><td>95.2%</td><td>95.2%</td><td>30</td><td>82.5%</td><td>71.6%</td><td>13</td><td>20.5%</td><td>20.5%</td></tr>
+</table>
+
+<div class="success">
+<strong>Observations clés :</strong>
+<ul>
+  <li>Zone <strong>Faible</strong> uniformément excellente (PFS@24 ≈ 93–98% dans toutes les variantes)</li>
+  <li>Zone <strong>Modéré</strong> montre des événements tardifs (PFS@12 ≈ 80–90% mais PFS@24 ≈ 64–80%) → justifie la surveillance rapprochée</li>
+  <li>Zone <strong>Élevé</strong> avec les variantes <strong>complètes M2 (TEP+) en pipeline PV</strong> atteint <strong>0% de PFS@24</strong> = rechute universelle, validant la décision RCP</li>
+  <li>Sans TEP (variantes M1), la zone Élevé conserve quelques survivants tardifs (9–29%), reflétant la moindre discrimination — d'où l'intérêt d'inclure le TEP quand disponible</li>
+</ul>
+</div>
 
 <div class="center">
-<img class="figure" src="figs/METHODO_v2_KM_tern_both.png" alt="KM curves by Tern zone">
-<p class="muted">Courbes Kaplan-Meier par zone Tern 10/40 pour la production M2_hEq (IDES à gauche, PV à droite). Séparation nette entre les 3 zones.</p>
+<img class="figure" src="figs/METHODO_v2_KM_tern_both.png" alt="KM curves by Tern zone (M2_hEq)">
+<p class="muted">Courbes Kaplan-Meier par zone Tern 10/40 pour la variante optimale M2_hEq (IDES à gauche, PV à droite). Séparation nette entre les 3 zones.</p>
 </div>
 </div>
 
@@ -350,22 +530,6 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <tr><td>log_burden</td><td>M1_VAF</td><td>0.034</td><td>+0.015</td><td>−2.5</td></tr>
 </table>
 <p>log_burden apporte une contribution significative dans les 4 variantes, y compris en mode VAF où l'échelle est plus comprimée.</p>
-</div>
-
-<!-- ────────────────────────────────────────────────────── -->
-<div class="card">
-<h2>📊 Population de développement</h2>
-<table>
-<tr><th>Caractéristique</th><th>IDES (N=158)</th><th>PV (N=103)</th></tr>
-<tr><td>Âge médian</td><td>61 ans</td><td>61 ans</td></tr>
-<tr><td>Sexe (% homme)</td><td>59%</td><td>61%</td></tr>
-<tr><td>Histologie</td><td>DLBCL 81% / Hodgkin 19%</td><td>DLBCL 78% / Hodgkin 22%</td></tr>
-<tr><td>Stade III-IV</td><td>76%</td><td>74%</td></tr>
-<tr><td>Médian PFS suivi</td><td>17 mois</td><td>17 mois</td></tr>
-<tr><td>Événements PFS @12mo</td><td>30 (19%)</td><td>20 (19%)</td></tr>
-<tr><td>Cohort overlap (patients dans les deux pipelines)</td><td colspan="2">220 / 222 (99%)</td></tr>
-</table>
-<p class="muted">Patients inclus : adultes (≥18 ans) avec lymphome B agressif ou Hodgkin classique nouvellement diagnostiqué, traités au CHU Henri Mondor entre 2020 et 2025, avec mesures ctDNA au diagnostic ET au CXJ1.</p>
 </div>
 
 <!-- ────────────────────────────────────────────────────── -->
