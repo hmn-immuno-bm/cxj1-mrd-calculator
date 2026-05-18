@@ -1,145 +1,136 @@
-# MRD ctDNA Calculator — Adult Lymphomas (CXJ1) — v2 NEW
+# MRD ctDNA Calculator — Adult Lymphomas (CXJ1)
 
-Web calculator implementing **Cox proportional hazards models** (V15.185, M2 v2)
-for prediction of progression-free survival (PFS) at 12 and 24 months
-after CXJ1 mid-treatment timepoint, using circulating tumor DNA (ctDNA)
-minimal residual disease (MRD) markers.
+Web calculator implementing **Cox proportional hazards models** for prediction of progression-free survival (PFS) at 12 and 24 months after mid-treatment timepoint (CXJ1), using circulating tumor DNA (ctDNA) minimal residual disease (MRD) markers in adult B-cell lymphomas and classical Hodgkin.
 
-🔬 **Live calculator (v2)** : <https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/index_v2.html>
-🔬 **Live calculator (v1, production)** : <https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/>
+🔬 **Live calculator** : <https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/>
+📚 **Methodology** : <https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/methodology.html>
 
-## What's new in v2
+## Overview
 
-| Aspect | v1 (V15.130, production) | **v2 (V15.185, NEW)** |
-|---|---|---|
-| **Trajectory model** | Bi-exponential (3 params) | **Mono-exponential (1 param)** |
-| **VAF representation** | VAF % (relative) | **Absolute ctDNA quantity (hEq) = VAF × cfDNA** |
-| **Mid-treatment timing** | Theoretical (J21/J42) | **Real Glims sampling date** (fallback to theoretical for 18 aberrant cases) |
-| **Baseline burden** | Not used | **Integrated into score** : score = score_kinetic + log(1 + ctDNA_diag) |
-| **Cox covariates** | 3 (score + v5A + TEP) | **3 (same)** |
-| **Number of trajectory params** | 12 (3 × 4 trajectories) | **4 (1 × 4 trajectories)** |
+The calculator predicts post-treatment relapse risk from four covariates measured around the CXJ1 timepoint (typically end of cycle 2 or 3 of first-line chemo-immunotherapy):
 
-## Two Cox models (toggle inside calculator)
+1. **Kinetic score** — distance from "good responder" vs "bad responder" mono-exponential ctDNA decay trajectories, computed from VAF and cfDNA at diagnosis and CXJ1.
+2. **Baseline tumor burden** — log(1 + ctDNA at diagnosis), capturing the prognostic weight of initial tumor mass.
+3. **Driver gene signal (v5A_gated)** — residual NGS signal on the 11 oncogenic drivers (D11: BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53) at CXJ1, gated by a pipeline-specific quality filter.
+4. **Interim FDG-PET** — Deauville score ≥ 4 at end of cycle 2 (binary).
 
-### M2 v2 — with TEP (3 variables)
+## 8 model variants (auto-selected from inputs)
 
-| Pipeline | N | Events | C-index | AIC |
-|---|---|---|---|---|
-| IDES (MOABI panel) | 135 | 24 | **0.859** | 183.36 |
-| PV (phased variants) | 89 | 15 | **0.928** | 87.56 |
+The calculator switches automatically between 8 variants based on data availability:
 
-### M1 v2 — without TEP (2 variables, fallback)
+| Pipeline | Quantification | TEP | Variant | N | events | C-index |
+|---|---|---|---|---|---|---|
+| **IDES** | hEq (VAF × cfDNA) | ✅ | **M2_hEq** ⭐ | 134 | 24 | **0.860** |
+| IDES | hEq | ❌ | M1_hEq | 158 | 30 | 0.807 |
+| IDES | VAF % only | ✅ | M2_VAF | 135 | 24 | 0.846 |
+| IDES | VAF % only | ❌ | M1_VAF | 160 | 30 | 0.775 |
+| **PV** | hEq (VAF × cfDNA) | ✅ | **M2_hEq** ⭐ | 88 | 15 | **0.921** |
+| PV | hEq | ❌ | M1_hEq | 103 | 20 | 0.841 |
+| PV | VAF % only | ✅ | M2_VAF | 89 | 15 | 0.918 |
+| PV | VAF % only | ❌ | M1_VAF | 105 | 20 | 0.822 |
 
-| Pipeline | N | Events | C-index | AIC |
-|---|---|---|---|---|
-| IDES | 159 | 30 | **0.811** | 256.78 |
-| PV | 104 | 20 | **0.847** | 143.95 |
+⭐ = optimal configuration when all data is available.
 
-→ Significant improvement vs v1 M1 (IDES: 0.752 → **0.811**, +0.06).
+**Measured impact of missing data:**
+- Missing cfDNA Qubit (hEq → VAF): IDES ΔC-index −0.013 / PV −0.003 with TEP; −0.032 / −0.019 without TEP
+- Missing PET (M2 → M1): IDES ΔC-index −0.053 / PV −0.080 with cfDNA; −0.071 / −0.096 without cfDNA
 
-## Score formula (M2 v2)
+Interim PET is the most impactful single marker. Cell-free DNA helps moderately, especially when PET is unavailable.
 
-### Step 1 — inputs
-- `VAF_diag` (%) — mean VAF at diagnosis
-- `VAF_CXJ1` (%) — mean VAF at mid-treatment, **polished** (set to 0 if quality gate fails)
-- `cfDNA_diag` (hEq/mL) — plasma cell-free DNA concentration at diagnosis
-- `cfDNA_CXJ1` (hEq/mL) — at mid-treatment
-- `t` (days) — real interval from C1J1 to CXJ1 sampling
-- `histo` — Hodgkin classical OR DLBCL/other B-cell
+## Pipelines
 
-### Step 2 — ctDNA quantities (haploid genome equivalents)
+- **IDES** — MOABI hybrid-capture panel sequencing with Watch List approach; quality gate = Monte-Carlo p-value ≤ 1/100001 (10⁵ permutations).
+- **PV** — Phased-variant UMI-based sequencing; quality gate = ≥ 3 positive doublets AND ≥ 3 total UMIs at CXJ1.
 
-```
-ctDNA_diag = VAF_diag × cfDNA_diag
-ctDNA_CXJ1 = VAF_CXJ1_polished × cfDNA_CXJ1
-```
+## Model specification
 
-### Step 3 — Mono-exponential trajectories (4 parameters total !)
+For each variant, the Cox model is fitted with partial pooling stratified by pipeline:
+- `β_score`, `β_burden`, `β_TEP` are **shared** between IDES and PV (LR test p > 0.97 — supports biological universality of these markers).
+- `β_v5A` is **pipeline-specific** (Reads_alt scale for IDES vs UMI scale for PV — LR test rejects sharing p < 0.005).
+- Baseline hazard `S₀(t)` is **stratified by pipeline**.
+
+### Linear predictor and risk
 
 ```
-mono_exp(t, λ) = exp(−λ·t)
+LP_raw = β_score · score_kin + β_burden · log_burden + β_v5A · v5A_gated + β_TEP · TEP2_pos
+LP    = LP_raw − LP_offset            ← centering on cohort mean
+S(t)  = S₀(t)^exp(LP)
+r(t)  = 1 − S(t)
 ```
 
-Fitted parameters per (histology × responder class) :
+The **LP_offset** is the cohort-mean β·X̄ stored per variant in the data file. This centering matches lifelines' default behavior where `baseline_survival_` is evaluated at the mean of training covariates (not at zero).
 
-| Histology | λ_good (j⁻¹) | t½ good | λ_bad (j⁻¹) | t½ bad | σ² |
+### Production coefficients (M2_hEq, all data available)
+
+Shared coefficients (identical for IDES and PV):
+- β_score_kin = +0.470
+- β_log_burden_diag = +0.298
+- β_TEP2_pos = +0.911
+
+Pipeline-specific:
+- β_v5A_gated IDES = +0.590, PV = +1.491
+- LP_offset IDES = +3.402, PV = +3.559
+- S₀(12) IDES = 0.9048, PV = 0.9352
+
+## Mono-exponential trajectories (4 parameters per mode)
+
+ctDNA decay rates fitted by histology × responder status:
+
+| Pipeline | Histology | λ_good (j⁻¹) | t½_good | λ_bad (j⁻¹) | t½_bad |
 |---|---|---|---|---|---|
-| **IDES Hodgkin** | 0.651 | 1.1 d | 0.371 | 1.9 d | 30.48 |
-| **IDES DLBCL** | 0.388 | 1.8 d | 0.217 | 3.2 d | 33.23 |
-| **PV Hodgkin** | 0.565 | 1.2 d | 0.241 (DLBCL fallback) | — | 29.51 |
-| **PV DLBCL** | 0.372 | 1.9 d | 0.241 | 2.9 d | 25.22 |
+| IDES | Hodgkin | 0.649 | 1.1 d | 0.371 | 1.9 d |
+| IDES | DLBCL | 0.388 | 1.8 d | 0.217 | 3.2 d |
+| PV | Hodgkin | 0.558 | 1.2 d | 0.241 | 2.9 d |
+| PV | DLBCL | 0.372 | 1.9 d | 0.241 | 2.9 d |
 
-### Step 4 — Kinetic score (log-likelihood ratio)
+Histology is binarized: **Hodgkin classical** uses the Hodgkin trajectory; all other B-cell lymphomas (DLBCL, HGBL, PMBL, Burkitt, transformed indolent, etc.) use the DLBCL trajectory.
 
-```
-ratio_obs = ctDNA_CXJ1 / ctDNA_diag   (clamp 1e-7 if ctDNA_CXJ1 = 0)
-pred_good = exp(−λ_good · t)
-pred_bad  = exp(−λ_bad  · t)
+## Clinical risk stratification (Tern 10/40)
 
-log L_good = −(log(ratio_obs) − log(pred_good))² / (2σ²)
-log L_bad  = −(log(ratio_obs) − log(pred_bad))²  / (2σ²)
+| Zone | r12 range | Action |
+|---|---|---|
+| 🟢 **Low** | r12 ≤ 10% | Standard surveillance |
+| 🟡 **Intermediate** | 10% < r12 ≤ 40% | Closer surveillance (additional PET, regular MRD) |
+| 🔴 **High** | r12 > 40% | Multidisciplinary discussion for additional therapy (consolidation, CAR-T, trial) |
 
-score_kinetic = log L_bad − log L_good
-```
+Within the development cohort, the High zone reaches **0% PFS at 24 months** in both pipelines (universal relapse).
 
-### Step 5 — Total score (with baseline burden, coefficient 1)
+## Local calibration (adaptive KNN)
 
-```
-score_NEW = score_kinetic + log(1 + ctDNA_diag)
-```
+Alongside the Cox prediction, the calculator displays a **non-parametric KM estimate** computed on neighbors of the patient by LP. The KNN strategy is empirically validated:
 
-This is a key innovation: the **diagnostic ctDNA burden is integrated directly into the score** (no separate covariate), reflecting that high initial tumor load is prognostic independently of the relative response dynamics.
+1. Take all neighbors with `|LP_i − LP_query| ≤ 1.0`
+2. If fewer than 8, expand to 8 nearest (sparse-tail safety)
+3. If more than 40, truncate to 40 nearest
 
-### Step 6 — Cox prediction
+This reduces calibration error in the prediction tail (ACE_tail) by ~10× compared to a fixed K=30 neighborhood. Empty / sparse regions are flagged with a visual warning so the clinician knows the Cox model is extrapolating.
 
-```
-h(t | x) = h₀(t) · exp(β₁·score_NEW + β₂·v5A_gated + β₃·TEP2_pos)
-```
+The KM 95% Greenwood log-log confidence interval is reported numerically below the survival plot.
 
-| Covariate | coef | HR | p (IDES M2) |
-|---|---|---|---|
-| score_NEW | 0.335 | 1.40 | 0.001 |
-| v5A_gated | 0.592 | 1.81 | <10⁻⁶ |
-| TEP2_pos | 0.952 | 2.59 | 0.010 |
+## Validation
 
-## Risk stratification (Tern 10/40)
-
-| Zone | r12 range | IDES PFS@12 / @24 | PV PFS@12 / @24 |
-|---|---|---|---|
-| 🟢 **Low** | r12 ≤ 10% | 95.1% / 95.1% | 98.3% / 98.3% |
-| 🟡 **Intermediate** | 10% < r12 ≤ 40% | 85.5% / 82.1% | 83.1% / 68.2% |
-| 🔴 **High** | r12 > 40% | 18.8% / **0.0%** | 0.0% / 0.0% |
-
-Note: the **High zone PFS@24 is 0% in both pipelines** — these patients all relapse within 24 months. The Intermediate zone shows continued late relapses (vs Low which is stable) → close surveillance justified.
-
-## Methodological validation history
-
-The v2 model was selected after **systematic comparison of 11+ alternative formulations** including :
-- Pooled VAF (Σ Reads/Σ Depth) with multiple imputation strategies (V155-162) — all degraded
-- Different VAF aggregations (POS only, with zeros, IDES vs MOABI source) (V163-173)
-- Bi-temporal aggregation strategies (V164: MIN, MEAN, MAX, C3-priority) — all degraded
-- Longitudinal joint models (V166: slope, NLME f_patient, time-varying Cox) — all NS
-- Real dates (delai_real) — equivalent to delai_corrige (V165)
-- Multiple Tern thresholds with cross-validation (V176) — 10/40 confirmed optimal
-- Polish strengthening with K-thresholds (V171) and soft weighting (V172) — all degraded
-- LCMM stratified trajectories with baseline ctDNA (V181) — overfit
-- Histo-specific α coefficients (V180) — power-limited
-- ctDNA score formulations (V178) — V184 mono-exp + log_burden optimal
-
-→ The v2 model represents the **best compromise** of model parsimony (3× fewer parameters) and prognostic accuracy (+0.013 C-index) validated on the development cohort.
+- **Linearity**: martingale residual lowess amplitude = 0.13 (< 0.3 threshold); Grambsch-Therneau PH test p > 0.48 for all covariates; LR test of adding RCS splines on log_burden p = 0.80 (non-significant).
+- **Bootstrap optimism-corrected C-index** (B=500, Harrell): 0.860 apparent → 0.852 corrected (optimism = 0.009).
+- **β_log_burden stability**: 95% percentile CI [0.10, 0.47], 100% of bootstraps positive.
+- **Partial pooling validation**: LR test of sharing β_score + β_burden + β_TEP between IDES and PV: χ² = 0.20, df = 3, p = 0.978 (supports sharing). Sharing v5A: rejected, p = 0.005.
+- **Predictive contribution per covariate** (LR test): log_burden p = 0.002 (M2_hEq), v5A_gated p < 0.001, TEP p = 0.001, score_kin p = 0.005.
 
 ## Confidence intervals (Wilson)
 
-The v2 calculator displays **95% Wilson confidence intervals** on observed VPP/VPN for the patient's risk group, addressing calibration uncertainty at extreme risk values (where N < 10 in development cohort).
+The calculator displays **95% Wilson confidence intervals** on observed NPV/PPV for the patient's risk group, addressing calibration uncertainty at extreme risk values (where N < 10 in development cohort).
+
+## Privacy
+
+All computations run client-side in the browser. No patient data is transmitted to any server. The model coefficients are loaded at startup and remain local.
 
 ## Citation
 
-> Calculateur MRD CXJ1 v2 (V15.185) — Cox proportional hazards models for ctDNA MRD
-> in adult lymphomas after CXJ1 mid-treatment. Mono-exponential trajectories on
-> absolute ctDNA quantity (hEq) with integrated baseline burden term. Cohort
-> development : MOABI panel (IDES) and phased variants (PV). Laboratoire d'immunologie
-> biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), 2026.
+> Calculateur MRD CXJ1 — Cox proportional hazards models for ctDNA MRD in adult B-cell and Hodgkin lymphomas after mid-treatment. Partial pooling across IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines, with mono-exponential decay trajectories per histology × responder strata and integrated baseline tumor burden. Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), 2026.
 
 ## License
 
 MIT
+
+## Disclaimer
+
+The calculator is a **research prototype**. It is not validated for individual clinical care. Any therapeutic decision must rely on the independent evaluation of a qualified hematologist. Calibration at extreme risk values (r12 > 60% or ctDNA_diag < 500 hEq/mL) is limited by development cohort size. External validation on independent cohort is pending.
