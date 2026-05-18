@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>MRD Calculator v2 — Méthodologie</title>
+<title>MRD Calculator — Méthodologie</title>
 <style>
 * { box-sizing: border-box; }
 body { font-family: 'Segoe UI', Roboto, sans-serif; line-height: 1.55; background: #f1f5f9; margin: 0; padding: 24px; color: #1e293b; }
@@ -23,269 +23,375 @@ img.figure { max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-ra
 .muted { color: #64748b; font-size: 13px; }
 .note { background: #fef3c7; border-left: 4px solid #d97706; padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
 .success { background: #dcfce7; border-left: 4px solid #16a34a; padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
+.warning { background: #fee2e2; border-left: 4px solid #dc2626; padding: 10px 14px; margin: 10px 0; border-radius: 4px; color: #7f1d1d; }
 a.button { display: inline-block; padding: 10px 18px; background: #1e40af; color: white; text-decoration: none; border-radius: 5px; margin-right: 8px; }
 a.button:hover { background: #1e3a8a; }
 .flex { display: flex; gap: 16px; flex-wrap: wrap; }
 .flex > div { flex: 1; min-width: 280px; }
+.variant-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.variant-card { background: #f8fafc; border-radius: 6px; padding: 14px; border: 1px solid #e2e8f0; }
+.variant-card h4 { margin: 0 0 8px; color: #1e40af; font-size: 14px; }
+.variant-card table { margin: 0; font-size: 13px; }
+.variant-card td { padding: 4px 8px; }
 </style>
 </head>
 <body>
 <div class="container">
 
-<h1>📚 MRD Calculator v2 — Méthodologie</h1>
-<div class="subtitle">Cox V200 (mai 2026) : trajectoires mono-exp + ctDNA absolu + charge baseline + <em>partial pooling</em> IDES/PV</div>
+<h1>📚 MRD Calculator — Méthodologie</h1>
+<div class="subtitle">Modèle Cox proportional hazards pour la PFS post-CXJ1 dans les lymphomes B agressifs et le Hodgkin</div>
 
 <div class="banner">
-  <strong>v2 PRODUCTION (V200, mai 2026)</strong> — Partial pooling Cox stratifié pipeline.
-  3 coefficients partagés entre IDES et PV (β_score, β_burden, β_TEP), seul β_v5A reste pipeline-spécifique.
-  LR test validé (p&gt;0.97), C-index préservé (IDES 0.860 / PV 0.921), AIC −5.80.<br>
-  <a class="button" href="index.html" style="margin-top: 8px;">🧪 Calculateur (production)</a>
-  <a class="button" href="index_v1.html" style="background:#64748b;">v1 (legacy bi-exp)</a>
+  <strong>Production stable (mai 2026)</strong> — 8 variantes de modèle disponibles (2 pipelines × 2 quantifications × 2 disponibilités TEP).
+  Le calculateur web bascule automatiquement entre variantes selon les données disponibles.<br>
+  <a class="button" href="index.html" style="margin-top: 8px;">🧪 Ouvrir le calculateur</a>
 </div>
 
+<!-- ────────────────────────────────────────────────────── -->
 <div class="card">
-<h2>🎯 Objectif</h2>
-<p>Prédire la survie sans progression (PFS) à 12 et 24 mois chez les patients atteints de lymphome (Hodgkin classique ou DLBCL/autre lymphome B), à partir d'une évaluation MRD ctDNA mi-traitement (CXJ1) avec :</p>
+<h2>🎯 Objectif clinique</h2>
+<p>Prédire la probabilité de récidive (PFS) à 12 et 24 mois chez les patients atteints de lymphome B agressif (DLBCL, HGBL, PMBL, Burkitt, transformés, etc.) ou de Hodgkin classique, à partir d'une évaluation MRD ctDNA mi-traitement (point CXJ1, typiquement après cycle 2 ou 3 de chimio-immunothérapie de première ligne).</p>
+
+<p><strong>Variables d'entrée requises :</strong></p>
 <ul>
-  <li><strong>Pipeline IDES</strong> (panel MOABI MOABI) — séquençage hybrid-capture</li>
-  <li><strong>Pipeline PV</strong> (variants phasés) — séquençage UMI-based avec phasing</li>
-  <li><strong>Combiné avec</strong> : signal driver oncogénique (D11) + TEP interim Deauville</li>
+  <li>VAF moyenne au diagnostic et au CXJ1 (par pipeline de séquençage)</li>
+  <li>Concentration cfDNA plasmatique au diagnostic (optionnelle ; bascule auto en mode VAF si absente)</li>
+  <li>Score Deauville à la TEP interim (optionnel ; bascule auto en modèle 2-vars si absent)</li>
+  <li>Filtre qualité spécifique au pipeline (p-value MOABI pour IDES, comptage UMI pour PV)</li>
+  <li>Signal de séquençage sur les 11 gènes drivers oncogéniques (D11)</li>
+  <li>Histologie (Hodgkin classique vs reste → 2 trajectoires)</li>
+  <li>Délai réel entre J1 du cycle 1 et le prélèvement CXJ1 (jours)</li>
 </ul>
 </div>
 
+<!-- ────────────────────────────────────────────────────── -->
 <div class="card">
-<h2>📐 Modèle de score v2 (4 étapes)</h2>
+<h2>📐 Structure du modèle</h2>
 
-<h3>Étape 1 — Quantité ctDNA absolue (hEq)</h3>
+<h3>1. Trajectoire de décroissance ctDNA (mono-exponentielle)</h3>
+<p>Pour chaque histologie (Hodgkin / DLBCL), deux trajectoires sont fittées : <strong>good responder</strong> (PFS sans événement &gt;12 mois) et <strong>bad responder</strong> (événement ≤12 mois) :</p>
 <div class="formula">
-ctDNA_diag = VAF_diag × cfDNA_diag<br>
-ctDNA_CXJ1 = VAF_CXJ1_polished × cfDNA_CXJ1
+mono_exp(t, λ) = exp(−λ · t)
 </div>
-<p>Le <strong>polish</strong> (v56 pour IDES, v75 pour PV) force la VAF_CXJ1 à 0 si le quality gate du test échoue (= test non interprétable).</p>
-
-<h3>Étape 2 — Score cinétique (mono-exponentiel)</h3>
+<p>Le score cinétique mesure la log-vraisemblance Gaussienne du ratio observé sous chacune des deux trajectoires :</p>
 <div class="formula">
-mono_exp(t, λ) = exp(−λ · t)<br><br>
-ratio_obs = ctDNA_CXJ1 / ctDNA_diag (clamp 1e-7 si CXJ1=0)<br>
-pred_good = exp(−λ_good × t)<br>
-pred_bad  = exp(−λ_bad  × t)<br><br>
-log L_good = −(log(ratio_obs) − log(pred_good))² / (2σ²)<br>
-log L_bad  = −(log(ratio_obs) − log(pred_bad))²  / (2σ²)<br><br>
-score_kinétique = log L_bad − log L_good
+ratio_obs = ctDNA_CXJ1 / ctDNA_diag  (= VAF_CXJ1 / VAF_diag si mode VAF)<br>
+log L_good = − (log(ratio_obs) − log(exp(−λ_good · t)))² / (2σ²)<br>
+log L_bad  = − (log(ratio_obs) − log(exp(−λ_bad  · t)))² / (2σ²)<br>
+<strong>score_kin = log L_bad − log L_good</strong>
 </div>
+<p>Un score positif indique une trajectoire plus proche du <em>bad responder</em> (mauvais pronostic) ; un score négatif indique un <em>good responder</em>.</p>
 
-<h3>Étape 3 — Score total (avec charge baseline, coef 1)</h3>
+<h3>2. Charge tumorale baseline</h3>
 <div class="formula">
-score_NEW = score_kinétique + log(1 + ctDNA_diag)
+log_burden = log(1 + ctDNA_diag)   [mode hEq, ctDNA en haploid genome equivalents/mL]<br>
+            ou log(1 + VAF_diag)    [mode VAF, VAF en %]
 </div>
-<p class="muted">La charge tumorale baseline est intégrée directement (coef 1 fixe), reflétant que des valeurs initiales élevées augmentent intrinsèquement le risque même en cas de bonne réponse relative.</p>
 
-<h3>Étape 4 — Cox</h3>
+<h3>3. Signal driver oncogénique au CXJ1 (v5A_gated)</h3>
+<p>Mesure le signal résiduel sur les 11 gènes drivers (<strong>D11 = BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53</strong>) :</p>
 <div class="formula">
-h(t | x) = h₀(t) · exp(β₁·score_NEW + β₂·v5A_gated + β₃·TEP2_pos)
+v5A = log(1 + Σ Reads_alt sur drivers D11) × (n_drv_positifs / n_total_positifs)<br>
+<strong>v5A_gated = v5A × quality_gate</strong>
 </div>
+<p>Le <strong>quality_gate</strong> est binaire (0 ou 1) :</p>
+<ul>
+  <li><strong>Pipeline IDES</strong> : p-value MOABI Monte-Carlo (10⁵ permutations) ≤ 1/100001 → quali = 1</li>
+  <li><strong>Pipeline PV</strong> : (nbr doublets PV+ ≥ 3) ET (Σ UMI PV+ ≥ 3) → quali = 1</li>
+</ul>
+<p>Si quali = 0, alors v5A_gated = 0 ET VAF_CXJ1 est forcée à 0 dans le calcul du ratio (polish v56/v75).</p>
+
+<h3>4. TEP2_pos (interim PET)</h3>
+<div class="formula">
+TEP2_pos = 1 si Deauville ≥ 4 (positif), sinon 0
 </div>
 
+<h3>5. Linear Predictor (LP) et risque prédit</h3>
+<div class="formula">
+LP_raw = β_score · score_kin + β_burden · log_burden + β_v5A · v5A_gated + β_TEP2 · TEP2_pos<br>
+LP_centered = LP_raw − LP_offset   ← <strong>centrage cohorte</strong><br>
+S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
+<strong>r(t) = 1 − S(t | x)</strong>
+</div>
+<p class="muted">Le LP_offset est une constante par modèle (= β·X̄ moyen de la cohorte d'entraînement) qui aligne S₀(t) sur le patient médian. Sans ce centrage, le risque prédit serait systématiquement surévalué.</p>
+</div>
+
+<!-- ────────────────────────────────────────────────────── -->
 <div class="card">
-<h2>📊 Trajectoires mono-exp (4 paramètres totaux !)</h2>
+<h2>🔀 Les 8 variantes du modèle</h2>
+<p>Le calculateur bascule automatiquement entre 8 variantes selon la disponibilité des données :</p>
+
 <table>
-<tr><th>Pipeline</th><th>Histologie</th><th>λ good (j⁻¹)</th><th>t½ good</th><th>λ bad (j⁻¹)</th><th>t½ bad</th><th>σ²</th></tr>
-<tr><td rowspan="2"><strong>IDES</strong></td><td>Hodgkin</td><td>0.6512</td><td>1.1 j</td><td>0.3707</td><td>1.9 j</td><td>30.48</td></tr>
-<tr><td>DLBCL</td><td>0.3879</td><td>1.8 j</td><td>0.2167</td><td>3.2 j</td><td>33.23</td></tr>
-<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.5649</td><td>1.2 j</td><td>0.2410 (fb)</td><td>—</td><td>29.51</td></tr>
-<tr><td>DLBCL</td><td>0.3722</td><td>1.9 j</td><td>0.2410</td><td>2.9 j</td><td>25.22</td></tr>
+<tr><th>Pipeline</th><th>Quantification</th><th>TEP</th><th>Variante</th><th>N</th><th>events</th><th>C-index</th></tr>
+<tr><td rowspan="4"><strong>IDES</strong></td><td>hEq (VAF × cfDNA)</td><td>✅ inclus</td><td><strong>M2_hEq</strong> ⭐</td><td>134</td><td>24</td><td><strong>0.860</strong></td></tr>
+<tr><td>hEq (VAF × cfDNA)</td><td>❌ absent</td><td>M1_hEq</td><td>158</td><td>30</td><td>0.807</td></tr>
+<tr><td>VAF % seule</td><td>✅ inclus</td><td>M2_VAF</td><td>135</td><td>24</td><td>0.846</td></tr>
+<tr><td>VAF % seule</td><td>❌ absent</td><td>M1_VAF</td><td>160</td><td>30</td><td>0.775</td></tr>
+<tr><td rowspan="4"><strong>PV</strong></td><td>hEq (VAF × cfDNA)</td><td>✅ inclus</td><td><strong>M2_hEq</strong> ⭐</td><td>88</td><td>15</td><td><strong>0.921</strong></td></tr>
+<tr><td>hEq (VAF × cfDNA)</td><td>❌ absent</td><td>M1_hEq</td><td>103</td><td>20</td><td>0.841</td></tr>
+<tr><td>VAF % seule</td><td>✅ inclus</td><td>M2_VAF</td><td>89</td><td>15</td><td>0.918</td></tr>
+<tr><td>VAF % seule</td><td>❌ absent</td><td>M1_VAF</td><td>105</td><td>20</td><td>0.822</td></tr>
 </table>
-<p class="muted">fb = fallback DLBCL (Hodgkin/bad N=0 chez PV, paramètres copiés de DLBCL).</p>
+
+<p>⭐ = configuration optimale (toutes les données disponibles).</p>
+
+<div class="note">
+<strong>Coûts mesurés (Δ C-index)</strong> :<br>
+• Retirer cfDNA Qubit (hEq→VAF) : IDES −0.013 / PV −0.003 en M2 ; IDES −0.032 / PV −0.019 en M1<br>
+• Retirer TEP interim (M2→M1) : IDES −0.053 / PV −0.080 en hEq ; IDES −0.071 / PV −0.096 en VAF<br>
+Le TEP est le marqueur le plus impactant. Le cfDNA aide modérément, surtout en l'absence de TEP.
+</div>
 </div>
 
+<!-- ────────────────────────────────────────────────────── -->
 <div class="card">
-<h2>📈 Performance Cox v2</h2>
-<div class="flex">
-<div>
-<h3>M2 v2 (avec TEP)</h3>
+<h2>📊 Coefficients Cox par variante</h2>
+
+<h3>Structure partial pooling (validée empiriquement)</h3>
+<p>Pour chaque variante (M2/M1 × hEq/VAF), le modèle Cox est fitté en <strong>partial pooling stratifié pipeline</strong> :</p>
+<ul>
+  <li><strong>β_score, β_burden, β_TEP partagés</strong> entre IDES et PV (LR test : χ²=0.20, df=3, <strong>p=0.978</strong> M2 hEq ; p&gt;0.97 toutes variantes)</li>
+  <li><strong>β_v5A pipeline-spécifique</strong> (échelles Reads_alt IDES vs fu_UMI PV trop différentes ; LR test rejet de partage p&lt;0.005)</li>
+  <li><strong>Baseline hazard stratifiée pipeline</strong> (S₀(t) séparée IDES vs PV)</li>
+</ul>
+
+<h3>Tableau complet des coefficients</h3>
+
+<div class="variant-grid">
+
+<div class="variant-card">
+<h4>M2_hEq — TEP+ et cfDNA dispo (production)</h4>
 <table>
-<tr><th>Pipeline</th><th>N</th><th>Events</th><th>C-index</th><th>AIC</th></tr>
-<tr><td>IDES</td><td>135</td><td>24</td><td><strong>0.859</strong></td><td>183.4</td></tr>
-<tr><td>PV</td><td>89</td><td>15</td><td><strong>0.928</strong></td><td>87.6</td></tr>
+<tr><th>Param</th><th>IDES</th><th>PV</th></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.470</td></tr>
+<tr><td>β_log_burden (partagé)</td><td colspan="2" style="text-align:center;">+0.298</td></tr>
+<tr><td>β_TEP2_pos (partagé)</td><td colspan="2" style="text-align:center;">+0.911</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.590</td><td>+1.491</td></tr>
+<tr><td>LP_offset</td><td>+3.402</td><td>+3.559</td></tr>
+<tr><td>S₀(12)</td><td>0.9048</td><td>0.9352</td></tr>
 </table>
 </div>
-<div>
-<h3>M1 v2 (sans TEP, fallback)</h3>
+
+<div class="variant-card">
+<h4>M1_hEq — pas de TEP, cfDNA dispo</h4>
 <table>
-<tr><th>Pipeline</th><th>N</th><th>Events</th><th>C-index</th><th>AIC</th></tr>
-<tr><td>IDES</td><td>159</td><td>30</td><td><strong>0.811</strong></td><td>256.8</td></tr>
-<tr><td>PV</td><td>104</td><td>20</td><td><strong>0.847</strong></td><td>144.0</td></tr>
+<tr><th>Param</th><th>IDES</th><th>PV</th></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.403</td></tr>
+<tr><td>β_log_burden (partagé)</td><td colspan="2" style="text-align:center;">+0.290</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.494</td><td>+1.172</td></tr>
+<tr><td>LP_offset</td><td>+3.082</td><td>+3.165</td></tr>
+<tr><td>S₀(12)</td><td>0.8766</td><td>0.8949</td></tr>
 </table>
 </div>
-</div>
-<div class="success">
-  <strong>Gain vs v1</strong> : M1 v2 IDES <code>0.811</code> vs M1 v1 <code>0.752</code> (+0.06).
-  M2 v2 équivalent à M2 v1 (≈0.86 IDES / 0.93 PV) mais avec <strong>3× moins de paramètres</strong> et intégration de la charge baseline.
-</div>
-</div>
 
-<div class="card">
-<h2>🔬 Validation rigoureuse (V197 Option A — bootstrap B=500)</h2>
-<p>Avant adoption finale, l'Option A (linéaire calibré) a été validée par 3 tests indépendants pour confirmer son adéquation vs alternatives (notamment splines RCS sur log_burden).</p>
-
-<h3>1. Hypothèse de linéarité — confirmée</h3>
+<div class="variant-card">
+<h4>M2_VAF — TEP+ mais pas de cfDNA Qubit</h4>
 <table>
-<tr><th>Test</th><th>Résultat</th><th>Verdict</th></tr>
-<tr><td>Martingale residuals (lowess vs log_burden)</td><td>Amplitude = <strong>0.13</strong> (&lt; 0.3 seuil)</td><td>✓ Pattern plat</td></tr>
-<tr><td>Grambsch-Therneau PH test (4 covariables)</td><td>log_burden p=0.48, score_kin p=0.63, v5A p=0.57, TEP p=0.58</td><td>✓ PH valide</td></tr>
-<tr><td>LR test ajout 4 splines à modèle linéaire</td><td>χ²=1.66, df=4, <strong>p=0.80 NS</strong></td><td>✓ Splines n'apportent rien</td></tr>
+<tr><th>Param</th><th>IDES</th><th>PV</th></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.447</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.489</td></tr>
+<tr><td>β_TEP2_pos (partagé)</td><td colspan="2" style="text-align:center;">+0.853</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.573</td><td>+1.491</td></tr>
+<tr><td>LP_offset</td><td>+1.271</td><td>+1.363</td></tr>
+<tr><td>S₀(12)</td><td>0.9026</td><td>0.9322</td></tr>
 </table>
-<p>→ La forme linéaire de log_burden dans le LP est <strong>formellement validée</strong>, ce n'est pas un défaut de puissance.</p>
-
-<h3>2. Bootstrap C-index optimism-corrigé (B=500, méthode Harrell)</h3>
-<table>
-<tr><th>Modèle</th><th>C apparent</th><th>Mean optimism</th><th>C corrigé</th></tr>
-<tr><td>Option A (linéaire calibré, 4 covars)</td><td>0.860</td><td><strong>0.009</strong></td><td><strong>0.852</strong> ⭐</td></tr>
-<tr><td>Option C (spline RCS, 9 covars)</td><td>0.864</td><td>0.028 (3.2× plus)</td><td>0.837</td></tr>
-</table>
-<p>→ <strong>Δ corrigé = +0.015 en faveur de Option A</strong>. Le spline a 3× plus d'optimism (overfit confirmé sur 24 events).</p>
-
-<h3>3. Stabilité du coefficient β_burden</h3>
-<table>
-<tr><th>Statistique</th><th>Valeur (IDES M2)</th></tr>
-<tr><td>Apparent</td><td>0.288</td></tr>
-<tr><td>Mean / Median bootstrap</td><td>0.289 / 0.290</td></tr>
-<tr><td><strong>IC95% percentile</strong></td><td><strong>[0.100, 0.465]</strong></td></tr>
-<tr><td>% bootstraps avec β &gt; 0</td><td><strong>100%</strong></td></tr>
-<tr><td>% bootstraps avec β ∈ [0.1, 0.5]</td><td>96.6%</td></tr>
-</table>
-<p>→ Robuste pour publication : <code>β_burden = 0.29 (95%CI 0.10–0.47, p=0.017)</code>.</p>
-<p class="muted">Détails complets : <a href="../output/V15_196_validation_results.json">V15_196_validation_results.json</a> · <a href="../output/publication/methods_TRIPOD.md">methods_TRIPOD.md</a></p>
 </div>
 
-<div class="card">
-<h2>📊 Coefficients Cox finaux (V200 — partial pooling)</h2>
-<p>Après V197 (modèles séparés), une analyse de <em>partial pooling</em> (V199-200) a montré que <strong>β_score_kin, β_burden et β_TEP2 peuvent être partagés</strong> entre IDES et PV sans perte de performance (LR test χ²=0.20, df=3, <strong>p=0.978</strong> pour M2 ; p=0.993 pour M1). Seul <strong>β_v5A</strong> reste pipeline-spécifique (échelles reads IDES vs UMI PV).</p>
-
+<div class="variant-card">
+<h4>M1_VAF — modèle minimal (ni TEP ni cfDNA)</h4>
 <table>
-<tr><th>Modèle</th><th>N</th><th>evt</th><th>C-index</th><th>β_score_kin</th><th>β_burden</th><th>β_v5A</th><th>β_TEP2</th></tr>
-<tr><td><strong>IDES M2</strong></td><td>134</td><td>24</td><td><strong>0.860</strong></td><td>0.470 (partagé)</td><td>0.298 (partagé)</td><td>0.590</td><td>0.911 (partagé)</td></tr>
-<tr><td><strong>IDES M1</strong></td><td>158</td><td>30</td><td><strong>0.807</strong></td><td>0.403 (partagé)</td><td>0.290 (partagé)</td><td>0.494</td><td>—</td></tr>
-<tr><td><strong>PV M2</strong></td><td>88</td><td>15</td><td><strong>0.921</strong></td><td>0.470 (partagé)</td><td>0.298 (partagé)</td><td>1.491</td><td>0.911 (partagé)</td></tr>
-<tr><td><strong>PV M1</strong></td><td>103</td><td>20</td><td>0.841</td><td>0.403 (partagé)</td><td>0.290 (partagé)</td><td>1.172</td><td>—</td></tr>
+<tr><th>Param</th><th>IDES</th><th>PV</th></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.394</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.437</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.473</td><td>+1.176</td></tr>
+<tr><td>LP_offset</td><td>+0.918</td><td>+0.938</td></tr>
+<tr><td>S₀(12)</td><td>0.8752</td><td>0.8885</td></tr>
 </table>
+</div>
 
-<p><strong>Argument biologique :</strong> TEP, charge tumorale au diagnostic et cinétique ctDNA sont des marqueurs <em>pipeline-indépendants</em> ; leur effet pronostique doit donc être identique quelle que soit la méthode de quantification ctDNA utilisée. Cette contrainte de partage agit comme un <em>prior</em> implicite, améliore la parcimonie (5 paramètres au lieu de 8 en M2), et le AIC diminue de 5.80 points sans dégrader le C-index.</p>
-
-<div class="center">
-<img class="figure" src="figs/publication/Fig_forest_plot_IDES.png" alt="Forest plot HR IDES" style="max-width:80%;">
-<p class="muted">Forest plot des hazard ratios IDES (95% CI bootstrap, V197).</p>
 </div>
 </div>
 
-<div class="card">
-<h2>🔗 Test de partage entre pipelines (V199-200)</h2>
-<p>Cox <em>stratifié par pipeline</em> (baseline hazard séparée IDES vs PV), <em>cluster-robust SE</em> sur identifiant patient (n_overlap=220 sur 222 patients). 5 modèles emboîtés testés par LR :</p>
-
-<table>
-<tr><th>Modèle</th><th>Coefs partagés</th><th>Coefs spécifiques</th><th>n_params M2</th><th>AIC M2</th><th>LR vs A</th></tr>
-<tr><td>A</td><td>—</td><td>tous</td><td>8</td><td>269.60</td><td>ref</td></tr>
-<tr><td>B</td><td>TEP+burden</td><td>score, v5A</td><td>6</td><td>265.80</td><td>p=0.91 ✅</td></tr>
-<tr><td><strong>B′ (retenu)</strong></td><td><strong>TEP+burden+score</strong></td><td><strong>v5A seul</strong></td><td><strong>5</strong></td><td><strong>263.80</strong></td><td><strong>p=0.98 ✅</strong></td></tr>
-<tr><td>C</td><td>TEP+burden+v5A</td><td>score</td><td>5</td><td>276.28</td><td>p=0.005 ❌</td></tr>
-<tr><td>D</td><td>tout</td><td>rien</td><td>4</td><td>274.43</td><td>p=0.01 ❌</td></tr>
-</table>
-
-<p>Le partage de v5A est rejeté (p=0.005) car les échelles diffèrent fortement entre IDES (Σ Reads_alt sur drivers D11) et PV (Σ fu_UMI sur doublons phasés). Les 3 autres covariables tolèrent le partage avec une forte évidence statistique (p&gt;0.97). Cette structure de <em>partial pooling</em> est conceptuellement équivalente à une méta-analyse à effets fixes sur les marqueurs universels avec calibration spécifique du seul marqueur dont l'échelle dépend de l'assay.</p>
-</div>
-
+<!-- ────────────────────────────────────────────────────── -->
 <div class="card">
 <h2>📈 Trajectoires mono-exponentielles</h2>
-<div class="center">
-<img class="figure" src="figs/publication/Fig_trajectories.png" alt="Mono-exp trajectories">
-<p class="muted">Modèle de décroissance ctDNA mono-exponentielle par (histologie × responder). Bandes verticales = C2J1 (J21) et C3J1 (J42).</p>
-</div>
-</div>
+<p>Quatre paramètres totaux par mode (hEq ou VAF) : 2 histologies × 2 statuts responder.</p>
 
-<div class="card">
-<h2>📉 Stratification Tern 10/40</h2>
+<h3>Mode hEq (ratio ctDNA absolu)</h3>
 <table>
-<tr><th>Zone</th><th>Plage r12</th><th>IDES PFS@12 / @24</th><th>PV PFS@12 / @24</th></tr>
-<tr><td>🟢 <strong>Faible</strong></td><td>r12 ≤ 10%</td><td>95.1% / 95.1%</td><td>98.3% / 98.3%</td></tr>
-<tr><td>🟡 <strong>Modéré</strong></td><td>10% < r12 ≤ 40%</td><td>85.5% / 82.1%</td><td>83.1% / 68.2%</td></tr>
-<tr><td>🔴 <strong>Élevé</strong></td><td>r12 > 40%</td><td>18.8% / <strong>0.0%</strong></td><td>0.0% / 0.0%</td></tr>
+<tr><th>Pipeline</th><th>Histologie</th><th>λ_good (j⁻¹)</th><th>t½_good</th><th>λ_bad (j⁻¹)</th><th>t½_bad</th><th>σ²</th></tr>
+<tr><td rowspan="2"><strong>IDES</strong></td><td>Hodgkin</td><td>0.649</td><td>1.1 j</td><td>0.371</td><td>1.9 j</td><td>30.6</td></tr>
+<tr><td>DLBCL</td><td>0.388</td><td>1.8 j</td><td>0.217</td><td>3.2 j</td><td>33.6</td></tr>
+<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.558</td><td>1.2 j</td><td>0.241</td><td>2.9 j</td><td>29.8</td></tr>
+<tr><td>DLBCL</td><td>0.372</td><td>1.9 j</td><td>0.241</td><td>2.9 j</td><td>25.5</td></tr>
 </table>
-<p>La zone Élevé v2 montre une séparation extrême : <strong>100% des patients haut risque rechutent dans les 24 mois</strong>, dans les 2 pipelines.</p>
+
+<h3>Mode VAF (ratio VAF % uniquement)</h3>
+<table>
+<tr><th>Pipeline</th><th>Histologie</th><th>λ_good (j⁻¹)</th><th>t½_good</th><th>λ_bad (j⁻¹)</th><th>t½_bad</th><th>σ²</th></tr>
+<tr><td rowspan="2"><strong>IDES</strong></td><td>Hodgkin</td><td>0.648</td><td>1.1 j</td><td>0.365</td><td>1.9 j</td><td>31.7</td></tr>
+<tr><td>DLBCL</td><td>0.387</td><td>1.8 j</td><td>0.195</td><td>3.6 j</td><td>37.0</td></tr>
+<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.559</td><td>1.2 j</td><td>0.220</td><td>3.1 j</td><td>29.3</td></tr>
+<tr><td>DLBCL</td><td>0.369</td><td>1.9 j</td><td>0.220</td><td>3.1 j</td><td>28.5</td></tr>
+</table>
+
+<p class="muted">Les λ sont remarquablement similaires entre modes hEq et VAF, indiquant que la dynamique de décroissance ctDNA suit la VAF (le cfDNA module la magnitude mais pas la pente).</p>
+
+<div class="center">
+<img class="figure" src="figs/publication/Fig_trajectories.png" alt="Mono-exp trajectories" style="max-width: 80%;">
+<p class="muted">Visualisation des trajectoires mono-exponentielles. Bandes verticales = C2J1 (J21) et C3J1 (J42).</p>
+</div>
 </div>
 
+<!-- ────────────────────────────────────────────────────── -->
 <div class="card">
-<h2>📊 Figures KM</h2>
+<h2>🎯 Stratification clinique Tern 10/40</h2>
+<p>Trois zones de risque basées sur la probabilité prédite de récidive à 12 mois (r12) :</p>
+<table>
+<tr><th>Zone</th><th>Plage r12</th><th>Conduite suggérée</th></tr>
+<tr><td>🟢 <strong>Faible</strong></td><td>r12 ≤ 10%</td><td>Surveillance standard. Dans la cohorte d'entraînement, PFS@12mo ≈ 95-98% et PFS@24mo ≈ 95-98%.</td></tr>
+<tr><td>🟡 <strong>Modéré</strong></td><td>10% &lt; r12 ≤ 40%</td><td>Surveillance rapprochée (TEP supplémentaire, MRD régulière). PFS@12mo ≈ 80-85%, PFS@24mo descend à 65-80%.</td></tr>
+<tr><td>🔴 <strong>Élevé</strong></td><td>r12 &gt; 40%</td><td>Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai). Dans la cohorte, PFS@24mo ≈ 0% (rechute quasi-systématique).</td></tr>
+</table>
+<p>Les seuils 10/40 ont été sélectionnés par évaluation exhaustive de 82 splits candidats sur la métrique de séparation des courbes KM adjacentes (cross-validation 5-fold confirmant 10/40 comme optimum interprétable).</p>
+
 <div class="center">
 <img class="figure" src="figs/METHODO_v2_KM_tern_both.png" alt="KM curves by Tern zone">
-<p class="muted">Courbes Kaplan-Meier de PFS par zone Tern 10/40 (M2 v2 IDES à gauche, M2 v2 PV à droite). Séparation nette entre les 3 zones.</p>
+<p class="muted">Courbes Kaplan-Meier par zone Tern 10/40 pour la production M2_hEq (IDES à gauche, PV à droite). Séparation nette entre les 3 zones.</p>
 </div>
 </div>
 
+<!-- ────────────────────────────────────────────────────── -->
 <div class="card">
-<h2>📐 Calibration</h2>
-<div class="center">
-<img class="figure" src="figs/METHODO_v2_calibration.png" alt="Calibration r12 predicted vs observed">
-<p class="muted">Calibration : r12 prédit (Cox) vs observé (KM). Points autour de la diagonale = bonne calibration. Intervalles de confiance 95% Wilson.</p>
-</div>
-<div class="note">
-  <strong>Note sur la calibration aux extrêmes</strong> : pour les très hauts r12 (> 0.6), peu de patients (N=5-10) → variance élevée, IC95% large. La calibration moyenne reste correcte mais l'incertitude individuelle est importante. Le calculateur v2 affiche les IC95% Wilson pour transparence.
-</div>
-</div>
+<h2>📍 Calibration locale (KNN adaptatif)</h2>
+<p>Le calculateur affiche systématiquement, à côté de la prédiction Cox, une <strong>estimation observationnelle KM</strong> calculée sur les patients de la cohorte les plus proches en LP du patient testé. Cette estimation sert de garde-fou contre l'extrapolation du Cox.</p>
 
-<div class="card">
-<h2>🔬 Innovations v2 vs v1</h2>
-<table>
-<tr><th>Aspect</th><th>v1 (V15.130, production)</th><th>v2 (V15.185, NEW)</th></tr>
-<tr><td>Trajectoire</td><td>Bi-exponentielle (3 params)</td><td><strong>Mono-exponentielle (1 param)</strong></td></tr>
-<tr><td>Variable VAF</td><td>VAF % (relative)</td><td><strong>ctDNA absolu (hEq) = VAF × cfDNA</strong></td></tr>
-<tr><td>Délai CXJ1</td><td>Théorique (J21 ou J42)</td><td><strong>Date réelle Glims</strong> (fallback théorique 18 cas)</td></tr>
-<tr><td>Charge baseline</td><td>Non utilisée</td><td><strong>Intégrée : score + log(1 + ctDNA_diag)</strong></td></tr>
-<tr><td>Coefs Cox</td><td>3 (score + v5A + TEP)</td><td>3 (mêmes)</td></tr>
-<tr><td>Params trajectoires</td><td>12 (3 × 4)</td><td><strong>4 (1 × 4)</strong></td></tr>
-<tr><td>IC95% Wilson sur VPN/VPP</td><td>Non</td><td><strong>Oui</strong></td></tr>
-</table>
-</div>
+<h3>Stratégie KNN adaptative (validée empiriquement)</h3>
+<ol>
+  <li>Prendre tous les voisins avec |LP_voisin − LP_patient| ≤ 1.0</li>
+  <li>Si N &lt; 8, élargir aux 8 plus proches (safety zone éparse)</li>
+  <li>Si N &gt; 40, tronquer aux 40 plus proches (limite visualisation)</li>
+</ol>
 
-<div class="card">
-<h2>🧪 Tests d'amélioration explorés (V15.155-187)</h2>
-<p>Le modèle v2 a été sélectionné après <strong>comparaison systématique de 14+ alternatives</strong> :</p>
+<p>Stratégie sélectionnée après comparaison de 10 alternatives par leave-one-out. ACE_tail (erreur de calibration dans la queue de risque) : <strong>0.032 IDES / 0.041 PV</strong>, contre <strong>0.312 / 0.536 pour un K=30 fixe</strong> (gain factor ~10).</p>
+
+<p>Le panneau de calibration affiche un statut visuel :</p>
 <ul>
-  <li><strong>Pooled VAF</strong> (Σ Reads/Σ Depth) avec différentes méthodes d'imputation (V155-162) — toutes dégradent</li>
-  <li><strong>Différentes agrégations VAF</strong> (POS only, avec zéros, IDES vs MOABI source) (V163-173)</li>
-  <li><strong>Agrégation bi-temporelle</strong> pour les 26 patients bi-tp (V164: MIN, MEAN, MAX, C3-priority) — toutes dégradent</li>
-  <li><strong>Modèles longitudinaux joints</strong> (V166: slope, NLME, time-varying Cox) — toutes NS</li>
-  <li><strong>Dates réelles</strong> (delai_real, V165) — équivalent à delai_corrige (médian = 0)</li>
-  <li><strong>Multiple seuils Tern</strong> avec cross-validation (V176) — 10/40 confirmé optimal</li>
-  <li><strong>Polish renforcé</strong> avec seuils K (V171) et pondération soft (V172) — toutes dégradent</li>
-  <li><strong>LCMM</strong> stratifié par baseline ctDNA (V181) — overfit cohorte petite</li>
-  <li><strong>α stratifié par histo</strong> (V180) — power-limité (Hodgkin events = 6)</li>
-  <li><strong>Score ctDNA</strong> (V178) — V184 mono-exp + log_burden optimal</li>
+  <li>🟢 <strong>Voisinage compact</strong> (plage LP voisins ≤ 1.0) — beaucoup de patients similaires, estimation fiable</li>
+  <li>🟡 <strong>Voisinage modéré</strong> (plage LP 1.0–2.0)</li>
+  <li>🔴 <strong>Zone éparse</strong> (plage LP &gt; 2.0) — K_min activé, le patient est en extrapolation</li>
 </ul>
-<p>→ Le modèle v2 représente le <strong>meilleur compromis</strong> parcimonie (3× moins de paramètres) / précision (+0.013 C-index M2 IDES, +0.06 C-index M1) validé sur la cohorte de développement.</p>
+
+<p>L'IC95% Greenwood (transformation log-log) est calculé sur l'estimateur KM local et reporté en chiffres sous le graphique.</p>
 </div>
 
+<!-- ────────────────────────────────────────────────────── -->
+<div class="card">
+<h2>🔬 Validation rigoureuse</h2>
+
+<h3>1. Hypothèse de linéarité du LP (Cox additif)</h3>
+<table>
+<tr><th>Test</th><th>Résultat</th><th>Verdict</th></tr>
+<tr><td>Martingale residuals lowess vs log_burden</td><td>Amplitude = 0.13 (&lt; 0.3)</td><td>✓ Pattern plat</td></tr>
+<tr><td>Grambsch-Therneau PH test (4 covars)</td><td>p &gt; 0.48 pour toutes</td><td>✓ PH valide</td></tr>
+<tr><td>LR test ajout splines RCS à log_burden</td><td>χ²=1.66, df=4, p=0.80 NS</td><td>✓ Splines inutiles</td></tr>
+</table>
+
+<h3>2. Bootstrap C-index optimism-corrigé (B=500, Harrell)</h3>
+<table>
+<tr><th>Modèle</th><th>C apparent</th><th>Mean optimism</th><th>C corrigé</th></tr>
+<tr><td>Linéaire (4 covars)</td><td>0.860</td><td>0.009</td><td><strong>0.852</strong></td></tr>
+<tr><td>Spline RCS (9 covars)</td><td>0.864</td><td>0.028</td><td>0.837</td></tr>
+</table>
+<p>Le modèle linéaire généralise mieux que le spline (+0.015 C corrigé). Le spline avait 3× plus d'optimism (overfit confirmé sur 24 events).</p>
+
+<h3>3. Stabilité du coefficient β_burden (M2_hEq IDES)</h3>
+<table>
+<tr><th>Statistique</th><th>Valeur</th></tr>
+<tr><td>Apparent</td><td>0.288</td></tr>
+<tr><td>Mean / Median bootstrap (B=500)</td><td>0.289 / 0.290</td></tr>
+<tr><td>IC95% percentile</td><td>[0.100, 0.465]</td></tr>
+<tr><td>% bootstraps avec β &gt; 0</td><td>100%</td></tr>
+<tr><td>% bootstraps avec β ∈ [0.1, 0.5]</td><td>96.6%</td></tr>
+</table>
+
+<h3>4. Test de partage entre pipelines (partial pooling)</h3>
+<p>5 modèles emboîtés comparés par LR test sur la cohorte stackée IDES+PV (cluster-robust SE sur NOM) :</p>
+<table>
+<tr><th>Modèle</th><th>Coefs partagés</th><th>params M2</th><th>AIC M2</th><th>LR vs A</th></tr>
+<tr><td>A</td><td>aucun (séparé total)</td><td>8</td><td>269.60</td><td>ref</td></tr>
+<tr><td>B</td><td>TEP + burden</td><td>6</td><td>265.80</td><td>p=0.91 ✓</td></tr>
+<tr><td><strong>B′ (retenu)</strong></td><td><strong>TEP + burden + score</strong></td><td><strong>5</strong></td><td><strong>263.80</strong></td><td><strong>p=0.98 ✓</strong></td></tr>
+<tr><td>C</td><td>TEP + burden + v5A</td><td>5</td><td>276.28</td><td>p=0.005 ❌</td></tr>
+<tr><td>D</td><td>tout partagé</td><td>4</td><td>274.43</td><td>p=0.01 ❌</td></tr>
+</table>
+<p>Le partage des coefs TEP, burden et score est statistiquement supporté (LR p=0.98), améliore le AIC de 5.80 points et préserve le C-index. v5A doit rester pipeline-spécifique (échelles Reads_alt IDES vs UMI PV différentes).</p>
+
+<h3>5. Validation de l'utilité de chaque covariable (LR tests)</h3>
+<table>
+<tr><th>Covariable</th><th>Variante</th><th>LR p</th><th>ΔC-index</th><th>ΔAIC</th></tr>
+<tr><td>log_burden</td><td>M2_hEq</td><td>0.002</td><td>+0.030</td><td>−7.4</td></tr>
+<tr><td>log_burden</td><td>M1_hEq</td><td>&lt;0.001</td><td>+0.036</td><td>−12.9</td></tr>
+<tr><td>log_burden</td><td>M2_VAF</td><td>0.018</td><td>+0.019</td><td>−3.6</td></tr>
+<tr><td>log_burden</td><td>M1_VAF</td><td>0.034</td><td>+0.015</td><td>−2.5</td></tr>
+</table>
+<p>log_burden apporte une contribution significative dans les 4 variantes, y compris en mode VAF où l'échelle est plus comprimée.</p>
+</div>
+
+<!-- ────────────────────────────────────────────────────── -->
+<div class="card">
+<h2>📊 Population de développement</h2>
+<table>
+<tr><th>Caractéristique</th><th>IDES (N=158)</th><th>PV (N=103)</th></tr>
+<tr><td>Âge médian</td><td>61 ans</td><td>61 ans</td></tr>
+<tr><td>Sexe (% homme)</td><td>59%</td><td>61%</td></tr>
+<tr><td>Histologie</td><td>DLBCL 81% / Hodgkin 19%</td><td>DLBCL 78% / Hodgkin 22%</td></tr>
+<tr><td>Stade III-IV</td><td>76%</td><td>74%</td></tr>
+<tr><td>Médian PFS suivi</td><td>17 mois</td><td>17 mois</td></tr>
+<tr><td>Événements PFS @12mo</td><td>30 (19%)</td><td>20 (19%)</td></tr>
+<tr><td>Cohort overlap (patients dans les deux pipelines)</td><td colspan="2">220 / 222 (99%)</td></tr>
+</table>
+<p class="muted">Patients inclus : adultes (≥18 ans) avec lymphome B agressif ou Hodgkin classique nouvellement diagnostiqué, traités au CHU Henri Mondor entre 2020 et 2025, avec mesures ctDNA au diagnostic ET au CXJ1.</p>
+</div>
+
+<!-- ────────────────────────────────────────────────────── -->
+<div class="card">
+<h2>🔧 Détails techniques</h2>
+
+<h3>Centrage du LP (LP_offset)</h3>
+<p>La librairie lifelines (Python) stocke <code>baseline_survival_</code> au <strong>mean des covariables</strong> de la cohorte d'entraînement, et non à X=0. Pour appliquer correctement la formule <code>S(t|x) = S₀(t)^exp(LP)</code>, il faut soustraire <code>β·X̄</code> au LP brut. Chaque modèle stocke donc son <strong>LP_offset</strong> dans le JSON et le calculateur JS l'applique automatiquement.</p>
+
+<h3>Régularisation</h3>
+<p>Tous les modèles Cox utilisent une pénalisation L2 (Ridge) avec λ=0.05 pour assurer la stabilité numérique avec des événements rares.</p>
+
+<h3>Cohérence des prédictions</h3>
+<p>Le calculateur JS reproduit exactement les prédictions de <code>lifelines.predict_survival_function</code> (validation : erreur max &lt; 1e-6 sur la cohorte).</p>
+
+<h3>Réutilisation des données patient</h3>
+<p>Aucune donnée patient n'est transmise au serveur. Le calculateur fonctionne intégralement côté navigateur (JavaScript). Les coefficients du modèle sont chargés au démarrage et toute analyse reste locale.</p>
+</div>
+
+<!-- ────────────────────────────────────────────────────── -->
+<div class="card">
+<h2>⚠️ Disclaimer</h2>
+<div class="warning">
+<p>Le calculateur est un <strong>prototype de recherche</strong>. Il n'est pas validé pour la prise en charge clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante d'un médecin hématologue qualifié.</p>
+<p>La calibration aux extrêmes de risque (r12 &gt; 60% ou ctDNA_diag &lt; 500 hEq/mL) est limitée par la taille de la cohorte de développement. Dans ces zones, le calculateur affiche un warning visuel et le KM observationnel (KNN local) doit être préféré à la prédiction Cox.</p>
+<p><strong>Validation externe</strong> sur cohorte indépendante en cours.</p>
+</div>
+</div>
+
+<!-- ────────────────────────────────────────────────────── -->
 <div class="card">
 <h2>📝 Citation</h2>
 <p style="background:#f8fafc; padding:14px; border-left:4px solid #94a3b8;">
-Calculateur MRD CXJ1 v2 (V15.185) — Cox proportional hazards models for ctDNA MRD
-in adult lymphomas after CXJ1 mid-treatment. Mono-exponential trajectories on
-absolute ctDNA quantity (hEq) with integrated baseline burden term. Cohort
-development: MOABI panel (IDES) and phased variants (PV).<br>
+Calculateur MRD CXJ1 — Cox proportional hazards models for ctDNA MRD in adult B-cell and Hodgkin lymphomas after mid-treatment timepoint. Partial pooling between IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines. Mono-exponential decay trajectories per histology × responder strata. Integrated baseline tumor burden term.<br>
 Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), 2026.
 </p>
 </div>
 
-<div class="card">
-<h2>⚠️ Disclaimer</h2>
-<p>Le calculateur v2 est un <strong>prototype de recherche</strong>. Il n'est pas validé pour la prise en charge
-clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante
-d'un médecin hématologue qualifié. La calibration aux extrêmes r12 (> 60%) est limitée par
-la taille de la cohorte de développement (N=135-159 patients selon le modèle).</p>
-</div>
-
 <p class="center muted" style="margin-top: 24px;">
-  <a href="index_v2.html">← Calculateur v2</a> |
-  <a href="index.html">v1 (production)</a> |
+  <a href="index.html">← Retour au calculateur</a> ·
   <a href="https://github.com/hmn-immuno-bm/cxj1-mrd-calculator">GitHub repo</a>
 </p>
 
