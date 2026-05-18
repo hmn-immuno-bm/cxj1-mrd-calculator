@@ -143,18 +143,19 @@ a.button:hover { background: #1e3a8a; }
   <text x="360" y="454" class="label-excl" text-anchor="middle" style="font-size:10px;">(VAF_diag manqu./0)</text>
   <line class="arrow-excl" x1="300" y1="430" x2="310" y2="430"/>
 
-  <!-- PV technical filter (most exclusions here) -->
+  <!-- PV data availability filter -->
   <line class="arrow-line" x1="560" y1="362" x2="560" y2="395"/>
   <rect class="node" x="440" y="400" width="240" height="60" rx="6"/>
-  <text x="560" y="420" class="label label-bold" text-anchor="middle">PV phasage réussi + VAF_diag + PFS</text>
+  <text x="560" y="420" class="label label-bold" text-anchor="middle">PV : fichier résultats exploitable</text>
   <text x="560" y="438" class="label" text-anchor="middle">N = 107 patients (48% des tentatives)</text>
-  <text x="560" y="454" class="label-small" text-anchor="middle">114 exclus : pas de variants phasés au diag</text>
+  <text x="560" y="454" class="label-small" text-anchor="middle">114 exclus : fastq perdus ou non processés</text>
 
   <!-- PV exclusion box -->
-  <rect class="node-excl" x="690" y="404" width="50" height="52" rx="4"/>
-  <text x="715" y="424" class="label-excl label-bold" text-anchor="middle">Exclus</text>
-  <text x="715" y="440" class="label-excl" text-anchor="middle">114</text>
-  <text x="715" y="454" class="label-excl" text-anchor="middle" style="font-size:10px;">(no phasing)</text>
+  <rect class="node-excl" x="690" y="404" width="50" height="60" rx="4"/>
+  <text x="715" y="420" class="label-excl label-bold" text-anchor="middle">Exclus PV</text>
+  <text x="715" y="434" class="label-excl" text-anchor="middle">114</text>
+  <text x="715" y="446" class="label-excl" text-anchor="middle" style="font-size:10px;">105 fastq</text>
+  <text x="715" y="458" class="label-excl" text-anchor="middle" style="font-size:10px;">9 agg.bug</text>
   <line class="arrow-excl" x1="680" y1="430" x2="690" y2="430"/>
 
   <!-- IDES splits with TEP/cfDNA -->
@@ -225,15 +226,23 @@ a.button:hover { background: #1e3a8a; }
 </div>
 
 <div class="note" style="margin-top:14px;">
-<strong>Précision sur la chute des effectifs pipeline PV (221 → 107) :</strong>
-<p style="margin:6px 0;">La majorité des 114 exclusions PV ne sont <strong>pas des choix méthodologiques</strong> mais des <em>échecs techniques de phasage</em> : pour ces patients, l'algorithme PV n'a pas pu phaser de variant somatique au diagnostic (mutation absente du séquençage, faible profondeur, ou clonalité insuffisante pour permettre le phasage). Ces patients restent dans la cohorte IDES (où la détection de variants ne nécessite pas de phasage), ce qui explique la différence d'effectif entre les deux pipelines (175 IDES vs 107 PV).</p>
-
-<p style="margin:6px 0;">À partir des cohortes "phasage réussi" (175 IDES / 107 PV), les filtres additionnels sont :</p>
+<strong>Précision sur la chute des effectifs pipeline PV (221 → 107) — données manquantes, pas échecs techniques :</strong>
+<p style="margin:6px 0;">Sur 221 patients ayant Glims diagnostic ET Glims CXJ1 (= prélèvements faits), <strong>114 patients ont un fichier de résultats PV manquant ou incomplet</strong> :</p>
 <ul style="margin:6px 0; padding-left:20px;">
-  <li><strong>M2 vs M1</strong> : ~70 patients en moins en M2 par absence de TEP interim (Deauville non documenté)</li>
-  <li><strong>hEq vs VAF</strong> : ~2-3 patients en moins en hEq par absence de cfDNA Qubit (variantes VAF récupèrent ces patients)</li>
-  <li><strong>delai_pfs &gt; 0 et Glims valides</strong> : ~5 patients perdus pour suivi incomplet</li>
+  <li><strong>105 patients</strong> : aucune donnée PV (per_variant CSV) → <em>fastq probablement perdus ou processing PV jamais lancé</em>. Ces données seraient récupérables si les fastq sont retrouvés et le pipeline relancé.</li>
+  <li><strong>9 patients</strong> : présence de données dans le CSV per_variant mais pas d'agrégation au niveau patient (vaf_diag_total = NaN) → <em>bug d'agrégation à investiguer/corriger</em>, données potentiellement récupérables par reparsing.</li>
+  <li><strong>0 patient</strong> : échec biologique du phasage (vaf_diag_total = 0) → contrairement à l'hypothèse initiale, le pipeline PV n'a pas échoué sur des patients où il a été correctement lancé.</li>
 </ul>
+<p style="margin:6px 0;">Les 107 patients restants sont ceux où le pipeline PV a abouti à un fichier de résultats utilisable. Ces patients restent simultanément dans la cohorte IDES (qui a son propre flux de processing indépendant), expliquant l'overlap quasi-total IDES ∩ PV mais l'effectif analysable plus faible côté PV.</p>
+
+<p style="margin:6px 0;">À partir des cohortes utilisables (175 IDES / 107 PV), les filtres additionnels pour les variantes finales sont :</p>
+<ul style="margin:6px 0; padding-left:20px;">
+  <li><strong>M2 vs M1</strong> : ~15–70 patients en moins en M2 par absence de TEP interim (Deauville non documenté)</li>
+  <li><strong>hEq vs VAF</strong> : ~2–3 patients en moins en hEq par absence de cfDNA Qubit (variantes VAF récupèrent ces patients)</li>
+  <li><strong>delai_pfs &gt; 0 et Glims valides</strong> : ~5 patients perdus pour suivi incomplet ou Glims aberrant</li>
+</ul>
+
+<p style="margin:6px 0; font-style:italic;">Note pour validation externe : les 105 patients "fastq perdus" représentent un biais de sélection potentiel. Idéalement, le pipeline PV devrait être relancé sur l'ensemble de la cohorte avant publication, ou bien la cohorte PV doit être présentée comme un sous-échantillon avec son propre Table 1 et sans extrapolation à la cohorte complète.</p>
 </div>
 </div>
 
