@@ -33,14 +33,14 @@ a.button:hover { background: #1e3a8a; }
 <div class="container">
 
 <h1>📚 MRD Calculator v2 — Méthodologie</h1>
-<div class="subtitle">Cox model V15.185 (mai 2026) : trajectoires mono-exponentielles + ctDNA absolu + charge baseline</div>
+<div class="subtitle">Cox V200 (mai 2026) : trajectoires mono-exp + ctDNA absolu + charge baseline + <em>partial pooling</em> IDES/PV</div>
 
 <div class="banner">
-  <strong>v2 NEW (mai 2026)</strong> — Refonte méthodologique du calculateur ctDNA MRD.
-  Modèle plus parcimonieux (4 paramètres au lieu de 12), intègre la charge tumorale baseline,
-  utilise les dates réelles de prélèvement.<br>
-  <a class="button" href="index_v2.html" style="margin-top: 8px;">🧪 Calculateur v2</a>
-  <a class="button" href="index.html" style="background:#64748b;">v1 (production)</a>
+  <strong>v2 PRODUCTION (V200, mai 2026)</strong> — Partial pooling Cox stratifié pipeline.
+  3 coefficients partagés entre IDES et PV (β_score, β_burden, β_TEP), seul β_v5A reste pipeline-spécifique.
+  LR test validé (p&gt;0.97), C-index préservé (IDES 0.860 / PV 0.921), AIC −5.80.<br>
+  <a class="button" href="index.html" style="margin-top: 8px;">🧪 Calculateur (production)</a>
+  <a class="button" href="index_v1.html" style="background:#64748b;">v1 (legacy bi-exp)</a>
 </div>
 
 <div class="card">
@@ -159,18 +159,39 @@ h(t | x) = h₀(t) · exp(β₁·score_NEW + β₂·v5A_gated + β₃·TEP2_pos)
 </div>
 
 <div class="card">
-<h2>📊 Coefficients Cox finaux (V197 Option A)</h2>
+<h2>📊 Coefficients Cox finaux (V200 — partial pooling)</h2>
+<p>Après V197 (modèles séparés), une analyse de <em>partial pooling</em> (V199-200) a montré que <strong>β_score_kin, β_burden et β_TEP2 peuvent être partagés</strong> entre IDES et PV sans perte de performance (LR test χ²=0.20, df=3, <strong>p=0.978</strong> pour M2 ; p=0.993 pour M1). Seul <strong>β_v5A</strong> reste pipeline-spécifique (échelles reads IDES vs UMI PV).</p>
+
 <table>
 <tr><th>Modèle</th><th>N</th><th>evt</th><th>C-index</th><th>β_score_kin</th><th>β_burden</th><th>β_v5A</th><th>β_TEP2</th></tr>
-<tr><td><strong>IDES M2</strong></td><td>134</td><td>24</td><td><strong>0.859</strong></td><td>0.541 (p=0.005)</td><td>0.288 (p=0.017)</td><td>0.563 (p&lt;0.001)</td><td>0.926 (p=0.013)</td></tr>
-<tr><td><strong>IDES M1</strong></td><td>158</td><td>30</td><td><strong>0.810</strong></td><td>0.486 (p=0.005)</td><td>0.323 (p=0.001)</td><td>0.471 (p&lt;0.001)</td><td>—</td></tr>
-<tr><td><strong>PV M2</strong></td><td>88</td><td>15</td><td><strong>0.924</strong></td><td>0.387 (p=0.12)</td><td>0.316 (p=0.05)</td><td>1.383 (p&lt;0.001)</td><td>0.849 (p=0.08)</td></tr>
-<tr><td><strong>PV M1</strong></td><td>103</td><td>20</td><td>0.844</td><td>0.309 (p=0.15)</td><td>0.240 (p=0.06)</td><td>1.130 (p&lt;0.001)</td><td>—</td></tr>
+<tr><td><strong>IDES M2</strong></td><td>134</td><td>24</td><td><strong>0.860</strong></td><td>0.470 (partagé)</td><td>0.298 (partagé)</td><td>0.590</td><td>0.911 (partagé)</td></tr>
+<tr><td><strong>IDES M1</strong></td><td>158</td><td>30</td><td><strong>0.807</strong></td><td>0.403 (partagé)</td><td>0.290 (partagé)</td><td>0.494</td><td>—</td></tr>
+<tr><td><strong>PV M2</strong></td><td>88</td><td>15</td><td><strong>0.921</strong></td><td>0.470 (partagé)</td><td>0.298 (partagé)</td><td>1.491</td><td>0.911 (partagé)</td></tr>
+<tr><td><strong>PV M1</strong></td><td>103</td><td>20</td><td>0.841</td><td>0.403 (partagé)</td><td>0.290 (partagé)</td><td>1.172</td><td>—</td></tr>
 </table>
+
+<p><strong>Argument biologique :</strong> TEP, charge tumorale au diagnostic et cinétique ctDNA sont des marqueurs <em>pipeline-indépendants</em> ; leur effet pronostique doit donc être identique quelle que soit la méthode de quantification ctDNA utilisée. Cette contrainte de partage agit comme un <em>prior</em> implicite, améliore la parcimonie (5 paramètres au lieu de 8 en M2), et le AIC diminue de 5.80 points sans dégrader le C-index.</p>
+
 <div class="center">
 <img class="figure" src="figs/publication/Fig_forest_plot_IDES.png" alt="Forest plot HR IDES" style="max-width:80%;">
-<p class="muted">Forest plot des hazard ratios IDES (95% CI bootstrap).</p>
+<p class="muted">Forest plot des hazard ratios IDES (95% CI bootstrap, V197).</p>
 </div>
+</div>
+
+<div class="card">
+<h2>🔗 Test de partage entre pipelines (V199-200)</h2>
+<p>Cox <em>stratifié par pipeline</em> (baseline hazard séparée IDES vs PV), <em>cluster-robust SE</em> sur identifiant patient (n_overlap=220 sur 222 patients). 5 modèles emboîtés testés par LR :</p>
+
+<table>
+<tr><th>Modèle</th><th>Coefs partagés</th><th>Coefs spécifiques</th><th>n_params M2</th><th>AIC M2</th><th>LR vs A</th></tr>
+<tr><td>A</td><td>—</td><td>tous</td><td>8</td><td>269.60</td><td>ref</td></tr>
+<tr><td>B</td><td>TEP+burden</td><td>score, v5A</td><td>6</td><td>265.80</td><td>p=0.91 ✅</td></tr>
+<tr><td><strong>B′ (retenu)</strong></td><td><strong>TEP+burden+score</strong></td><td><strong>v5A seul</strong></td><td><strong>5</strong></td><td><strong>263.80</strong></td><td><strong>p=0.98 ✅</strong></td></tr>
+<tr><td>C</td><td>TEP+burden+v5A</td><td>score</td><td>5</td><td>276.28</td><td>p=0.005 ❌</td></tr>
+<tr><td>D</td><td>tout</td><td>rien</td><td>4</td><td>274.43</td><td>p=0.01 ❌</td></tr>
+</table>
+
+<p>Le partage de v5A est rejeté (p=0.005) car les échelles diffèrent fortement entre IDES (Σ Reads_alt sur drivers D11) et PV (Σ fu_UMI sur doublons phasés). Les 3 autres covariables tolèrent le partage avec une forte évidence statistique (p&gt;0.97). Cette structure de <em>partial pooling</em> est conceptuellement équivalente à une méta-analyse à effets fixes sur les marqueurs universels avec calibration spécifique du seul marqueur dont l'échelle dépend de l'assay.</p>
 </div>
 
 <div class="card">
