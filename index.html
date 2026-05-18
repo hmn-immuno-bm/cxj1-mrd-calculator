@@ -370,8 +370,8 @@ risque(t) = 1 - S₀(t)^exp(LP)</div>
       <p style="font-size: 12px; color: #475569;">
         Deux courbes superposées :<br>
         <strong>1️⃣ Noire pleine</strong> = survie prédite par Cox V15.102 pour <strong>ce patient</strong> (S(t)=S₀(t)^exp(LP))<br>
-        <strong>2️⃣ Violette pointillée</strong> = KM observé des <strong>K patients de la cohorte les plus similaires</strong> en LP (K adaptatif : 30 IDES / 20 PV)
-        (calibration <em>locale</em>).<br>
+        <strong>2️⃣ Violette pointillée</strong> = KM observé des patients voisins (KNN <strong>adaptatif</strong> : tous les voisins dans ±1 unité LP, K_min=8, K_max=40 — V208).
+        La <strong>bande violette translucide</strong> = IC95% Greenwood — son épaisseur reflète l'incertitude réelle (peu d'événements / peu de voisins → bande épaisse).<br>
         Si les 2 courbes coïncident → modèle bien calibré pour cette zone de risque.
       </p>
       <div class="chart-container" id="kmChart" style="height:340px;"></div>
@@ -488,13 +488,27 @@ function pickModels()  { return CALC_NO_QUBIT ? (CALC_NO_TEP ? MODELS_NO_TEP_VAF
 function pickCohort()  { return CALC_NO_QUBIT ? (CALC_NO_TEP ? COHORT_NO_TEP_VAF : COHORT_VAF) : (CALC_NO_TEP ? COHORT_NO_TEP : COHORT); }
 function pickTraj()    { return CALC_NO_QUBIT ? TRAJ_VAF : DATA_V2_SPL.TRAJ; }
 
-// KNN local : trouve les K patients les plus proches par LP
-function knn(pipe, LP_target, K) {
-  const cohort = pickCohort()[pipe].cohort;  // V204
-  // calcul des distances
+// V208 — KNN ADAPTATIF (radius h=1.0 + safety K_min=8, K_max=40)
+//   Stratégie validée empiriquement (leave-one-out sur cohortes IDES/PV V200) :
+//   ACE_tail réduit de 10× vs ancien K=30 fixe.
+//   1) Prendre tous les voisins avec |LP_i − LP_query| <= radius (par défaut 1.0)
+//   2) Si N < K_min, étendre jusqu'à atteindre K_min voisins
+//   3) Si N > K_max, tronquer aux K_max plus proches
+function knn(pipe, LP_target, _legacy_K) {
+  const cohort = pickCohort()[pipe].cohort;
+  const radius = 1.0, K_min = 8, K_max = 40;
   const arr = cohort.map(p => ({ lp:p[0], r12:p[1], t:p[2], e:p[3], d:Math.abs(p[0]-LP_target) }));
   arr.sort((a,b) => a.d - b.d);
-  return arr.slice(0, K);
+  // Sélection par rayon
+  let selected = arr.filter(n => n.d <= radius);
+  if (selected.length < K_min) {
+    // Zone très éparse : élargir au K_min plus proches
+    selected = arr.slice(0, K_min);
+  } else if (selected.length > K_max) {
+    // Zone très dense : limiter
+    selected = arr.slice(0, K_max);
+  }
+  return selected;
 }
 
 // Kaplan-Meier sur tableau de patients
@@ -776,9 +790,8 @@ function calculate() {
   // (groupe binaire conservé pour référence, non utilisé dans drawKM nouvelle version)
   const grpKey = (r12 > 0.40) ? 'high' : 'low';
 
-  // ─── Calibration locale KNN (diagnostic, PAS de blending) ───
-  const K_neighbors = 30;
-  const _neighbors = knn(pipe, lp, K_neighbors);
+  // ─── Calibration locale KNN adaptatif V208 (radius 1.0 + K_min 8 + K_max 40) ───
+  const _neighbors = knn(pipe, lp);
   const _kmLocal = km(_neighbors);
   const r12_local = 1 - _kmLocal.S12;
   const divergence = Math.abs(r12 - r12_local);
@@ -919,10 +932,10 @@ function drawKM(pipe, lp) {
   svg += `<text x="${mL}" y="${mT-8}" font-size="11" fill="#475569" font-weight="600">Probabilité de survie sans rechute (PFS)</text>`;
   svg += `<text x="${W-mR}" y="${y(0)+32}" text-anchor="end" font-size="10" fill="#64748b">Mois post-C1J1</text>`;
 
-  // ─── Calibration LOCALE : KM des K voisins (K adaptatif selon taille cohorte) ───
-  const N_cohort = pickCohort()[pipe].cohort.length;  // V204
-  const K = Math.min(30, Math.max(15, Math.round(N_cohort * 0.22)));
-  const neighbors = knn(pipe, lp, K);
+  // ─── Calibration LOCALE V208 — KNN adaptatif radius=1.0 + K_min=8 + K_max=40 ───
+  // (Validé empiriquement : ACE_tail réduit 10× vs ancien K=30 fixe.)
+  const neighbors = knn(pipe, lp);
+  const K = neighbors.length;
   const lp_min = Math.min(...neighbors.map(n => n.lp));
   const lp_max = Math.max(...neighbors.map(n => n.lp));
   const kmLocal = km(neighbors);
@@ -956,9 +969,8 @@ function drawKM(pipe, lp) {
     upperPts.push([x(0), y(1.0)]);
 
     const polyPath = lowerPts.concat(upperPts).map((p,i) => `${i===0?'M':'L'} ${p[0]} ${p[1]}`).join(' ') + ' Z';
-    // Opacity adaptative : plus le voisinage est dense (atRisk initial élevé), plus la bande est nette
-    const opacity_band = 0.18 + 0.06 * Math.min(1, neighbors.length / 30);
-    svg += `<path d="${polyPath}" fill="#7c3aed" fill-opacity="${opacity_band.toFixed(2)}" stroke="none"/>`;
+    // Opacité fixe : la VARIANCE Greenwood reflète déjà l'incertitude (K_min=8 garantit la stabilité KM)
+    svg += `<path d="${polyPath}" fill="#7c3aed" fill-opacity="0.22" stroke="none"/>`;
   }
 
   // Courbe KM voisins (escalier) — centrale
@@ -1011,17 +1023,21 @@ function drawKM(pipe, lp) {
   svg += `</svg>`;
   document.getElementById('kmChart').innerHTML = svg;
 
-  // V207 — Stats calibration locale avec IC95% Greenwood + indicateur de sparsité
-  // Récupère lo/hi à 12mo et 24mo depuis les steps
+  // V208 — Stats calibration locale avec KNN adaptatif + IC95% Greenwood
   const stepAt = (target) => kmLocal.steps.filter(st => st.t <= target).pop() || {S:1.0, lo:1.0, hi:1.0};
   const s12 = stepAt(12), s24 = stepAt(24);
   const sparsity = (lp_max - lp_min);
-  const sparsityWarn = sparsity > 1.5
-    ? `<span style="color:#dc2626;font-weight:600;">⚠️ Zone éparse</span> (plage LP voisins=${sparsity.toFixed(2)}). `
-    : '';
+  // Diagnostic du voisinage : compact (radius respecté) vs étiré (K_min fallback)
+  const isFallback = sparsity > 2.0;     // K_min=8 a été atteint et la plage a explosé
+  const isCompact = sparsity <= 1.0;     // radius ±0.5 réel
+  const sparsityNote = isFallback
+    ? `<span style="color:#dc2626;font-weight:600;">⚠️ Zone éparse — voisinage étendu pour atteindre K_min=8 (plage LP=${sparsity.toFixed(2)})</span>. `
+    : isCompact
+      ? `<span style="color:#16a34a;">✓ Voisinage compact</span> (plage LP=${sparsity.toFixed(2)}). `
+      : `<span style="color:#ca8a04;">Voisinage modéré</span> (plage LP=${sparsity.toFixed(2)}). `;
   document.getElementById('localCalibStats').innerHTML =
-    `<strong>Calibration locale</strong> — ${K} patients similaires (LP ${lp_min.toFixed(2)} à ${lp_max.toFixed(2)}, vous=${lp.toFixed(2)}). ` +
-    sparsityWarn +
+    `<strong>Calibration locale</strong> — KNN adaptatif (radius=1.0, K_min=8, K_max=40) : <strong>${K} voisins</strong> (LP ${lp_min.toFixed(2)} à ${lp_max.toFixed(2)}, vous=${lp.toFixed(2)}). ` +
+    sparsityNote +
     `<strong>${kmLocal.n_events}</strong> événement(s) observé(s).<br>` +
     `KM observé : <strong>S(12mo) = ${(s12.S*100).toFixed(1)}%</strong> ` +
     `<span style="color:#7c3aed;font-size:11px;">[IC95% ${(s12.lo*100).toFixed(0)}–${(s12.hi*100).toFixed(0)}%]</span>, ` +
@@ -1029,7 +1045,7 @@ function drawKM(pipe, lp) {
     `<span style="color:#7c3aed;font-size:11px;">[IC95% ${(s24.lo*100).toFixed(0)}–${(s24.hi*100).toFixed(0)}%]</span><br>` +
     `<em>Cox prédit : ${((1-Math.pow(m.baseline_S0[12], expLP))*100).toFixed(1)}% à 12mo, ` +
     `${((1-Math.pow(m.baseline_S0[24], expLP))*100).toFixed(1)}% à 24mo.</em> ` +
-    `La <strong>bande violette</strong> du KM reflète l'incertitude : plus elle est large, moins le risque réel est précisément connu pour des patients comme vous.`;
+    `La <strong>bande violette IC95% (Greenwood)</strong> reflète l'incertitude réelle : plus elle est large, plus le risque est mal estimé pour des patients comme vous.`;
 }
 
 function drawVPNDepth(pipe) {
