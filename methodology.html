@@ -655,15 +655,20 @@ montre les courbes complètes et le N at-risk à chaque temps.
 
 <h3 id="endpoint-pfs-rr">8c-ter. Sensibilité au choix d'endpoint — PFS vs R/R (sans morts non-liées)</h3>
 <p>L'endpoint actuel est <strong>PFS</strong> (= Rechute OR Progression OR Mort, toute cause). Question : si on restreint aux événements lymphome-spécifiques (<strong>R/R</strong> = Rechute OR Progression, censurant les morts sans rechute/progression), les coefficients et le C-index changent-ils ?</p>
-<p>Sur 223 patients IDES + 221 PV, on identifie <strong>5 patients PFS=1 mais R/R=0</strong> :</p>
+<p>Sur 223 patients IDES + 221 PV, on identifie <strong>5 patients PFS=1 mais R/R=0</strong> — deux situations très différentes :</p>
+<p><strong>(a) 3 morts strictement non-liées au lymphome</strong> (perte d'événement R/R justifiée) :</p>
 <ul>
-<li>PATIENT_F — COVID @ 6 mo</li>
-<li>PATIENT_G — COVID nosocomial au cours de l'autogreffe @ 4 mo</li>
-<li>PATIENT_H — ulcère gastrique compliqué (témoin de Jéhova, hémopathie en RC) @ 6 mo</li>
-<li>PATIENT_D — PFS=1 @ 55 mo mais Rechute/Progression non saisies (probable événement tardif non documenté)</li>
-<li>PATIENT_E — idem (PFS=1 @ 48.9 mo, R/P NaN)</li>
+<li><strong>PATIENT_F</strong> — Mort COVID @ 6 mo (Rechute=0, Progression=0)</li>
+<li><strong>PATIENT_G</strong> — Mort COVID nosocomial au cours de l'autogreffe @ 4 mo</li>
+<li><strong>PATIENT_H</strong> — Mort sur ulcère gastrique hémorragique (témoin de Jéhova ayant refusé les transfusions, hémopathie en RC) @ 6 mo</li>
 </ul>
-<p>Seuls les 3 premiers sont des morts strictement non-liées au lymphome (cohorte IDES). Refit Cox stratifié pipeline avec partial pooling B′ V229.3 sur les 4 variantes principales :</p>
+<p><strong>(b) 2 patients VIVANTS (Mort=0) avec saisie incohérente</strong> des flags Rechute/Progression — événement probablement réel mais mal encodé :</p>
+<ul>
+<li><strong>PATIENT_D</strong> — vivant, PFS=1 @ 55 mo ; <code>delai_progression=54</code> et <code>DDN_progression=2026-01-22</code> sont renseignés (= la <em>date</em> de l'événement existe), mais le <em>flag</em> binaire <code>Progression</code> est NaN. Probable progression tardive saisie comme date mais case non cochée.</li>
+<li><strong>PATIENT_E</strong> — vivant, PFS=1 @ 48.9 mo ; <code>delai_progression=48</code> et <code>DDN_progression=2026-02-16</code> renseignés, mais <code>Rechute=0</code> et <code>Progression=0</code> explicitement. Incohérence frappante (Mort=Rechute=Progression=0 mais PFS=1).</li>
+</ul>
+<p class="muted">À vérifier dans la base clinique : les 2 patients (b) sont probablement des R/R réels avec saisie binaire incomplète. Si on les recode comme R/R=1, le décompte R/R passerait de 45 à 47 dans IDES (au lieu de 48 PFS).</p>
+<p>Refit Cox stratifié pipeline avec partial pooling B′ V229.3 sur les 4 variantes principales, en utilisant le décompte R/R actuel (sans recodage des 2 patients) :</p>
 <table>
 <tr><th>Variante</th><th>Pipeline</th><th>N (events PFS / R/R)</th><th>C PFS</th><th>C R/R</th><th>Δ C (R/R − PFS)</th></tr>
 <tr><td><strong>M2_hEq</strong> ⭐</td><td>IDES</td><td>137 (25 / 26)</td><td>0.859</td><td>0.843</td><td>−0.017</td></tr>
