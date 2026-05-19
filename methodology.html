@@ -729,8 +729,10 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h3 id="sec-score-vs-blup">XI.13 Robustesse du score_kin vs slope individuel BLUP</h3>
 <p>Une approche joint longitudinal-survival two-stage (mixed-effects LMM extrayant un slope individuel par BLUP, puis Cox sur ce slope) a été testée comme alternative à <code>score_kin</code>. <strong>Bootstrap optimism-corrected (B=200) : score_kin C=0.791 vs BLUP C=0.777 (Δ=−0.014)</strong>. Le score_kin résumé (4 trajectoires moyennes par histo×responder) est plus robuste car moins de paramètres individuels à estimer sur cohorte limitée.</p>
 
-<h3 id="sec-competing">XI.14 Risque compétitif (mort sans progression)</h3>
-<p>Sur N=223 patients clinique, on observe <strong>1 seul décès sans progression préalable</strong> au sens strict (Aalen-Johansen CIF à 12mo : progression 0.225, décès pur 0.005). Le risque compétitif « décès » est négligeable (&lt;0.5%) et ne nécessite pas une approche Fine-Gray distincte du Cox composite. L'endpoint EFS V230 censure explicitement ces cas (cf. <a href="#sec-endpoint">§XI.10</a>).</p>
+<h3 id="sec-competing">XI.14 Risque compétitif (mort non-lymphome)</h3>
+<p>Sur N=223 patients clinique, on dénombre <strong>3 morts strictement non-liées au lymphome</strong> (PATIENT_F COVID @ 6mo, PATIENT_G COVID nosocomial autogreffe @ 4mo, PATIENT_H ulcère hémorragique chez témoin de Jéhova @ 6mo — cf. <a href="#sec-endpoint">§XI.10</a>). Sous l'endpoint <strong>V230 EFS</strong>, ces patients sont <strong>censurés au temps du décès</strong> (pas comptés comme événement R/P), ce qui correspond à la gestion canonique du risque compétitif par <em>censoring informatif faible</em> compte tenu de la faible fréquence (3/223 = 1.3%).</p>
+<p>Sous l'ancien endpoint PFS (V229.x), ces 3 morts étaient comptées comme événements composites. L'analyse Aalen-Johansen CIF à 12 mois donnait : progression 0.225, décès « pur » (sans R/P préalable) 0.013, soit un risque compétitif &lt; 2%. Une approche Fine-Gray distincte du Cox composite n'aurait apporté aucune amélioration significative (différence de cumulative incidence &lt; 0.005).</p>
+<p>Avec le passage à EFS, la question du risque compétitif <strong>disparaît par construction</strong> : ces patients sont à risque jusqu'au décès puis censurés, exactement comme s'ils étaient perdus de vue. La sous-estimation potentielle est négligeable (3 patients, dont 2 ont en plus <code>VAF_diag = NaN</code> et sont donc déjà exclus des cohortes M2/M1 V230 — seul PATIENT_H reste dans la cohorte).</p>
 
 <h3 id="vpn-depth">XI.15 Couverture moléculaire (Σ DEPTH / Σ PCU) — pourquoi pas covariable</h3>
 <p><strong>Précision sémantique</strong> : ce qu'on appelle ici « Σ DEPTH » ou « Σ PCU » n'est pas la profondeur par variant, mais le <strong>nombre total de molécules analysées par patient</strong> = Σ sur la Watch List de la couverture à chaque variant. Pour IDES : Σ NbrReadDepth (reads × n_variants_WL). Pour PV : Σ fu_pos_UMI = Σ Position Common UMI. C'est le « budget moléculaire » global qui détermine la sensibilité de détection des résiduels.</p>
@@ -771,126 +773,135 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h3 id="sec-consort">XII.1 Diagramme CONSORT (flow d'inclusion)</h3>
 <p>Flow d'inclusion des patients V230 — endpoint EFS, avec exclusions par pipeline et variante :</p>
 <div class="center">
-<svg viewBox="0 0 760 540" style="max-width:100%; height:auto; background:#fafbfc; border:1px solid #e2e8f0; border-radius:6px;">
+<svg viewBox="0 0 1000 540" style="max-width:100%; height:auto; background:#fafbfc; border:1px solid #e2e8f0; border-radius:6px;">
   <defs>
     <marker id="arr9" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
       <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    </marker>
+    <marker id="arr9e" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#d97706"/>
     </marker>
   </defs>
   <style>
     .nd { fill: #ffffff; stroke: #475569; stroke-width: 1.5; rx: 6; }
     .nd-top { fill: #fef3c7; stroke: #d97706; stroke-width: 2; }
     .nd-mid { fill: #dbeafe; stroke: #1e40af; stroke-width: 1.5; }
+    .nd-pv  { fill: #fce7f3; stroke: #be185d; stroke-width: 1.5; rx: 6; }
     .nd-final { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
-    .nd-excl { fill: #fee2e2; stroke: #dc2626; stroke-width: 1.5; stroke-dasharray: 4,2; }
+    .nd-excl { fill: #fee2e2; stroke: #dc2626; stroke-width: 1.5; stroke-dasharray: 4,2; rx: 6; }
     .t9 { font-family: 'Segoe UI', sans-serif; font-size: 12px; fill: #1e293b; }
     .t9-b { font-weight: 600; font-size: 12.5px; fill: #1e293b; }
     .t9-s { font-size: 11px; fill: #64748b; }
-    .t9-e { font-size: 10px; fill: #7f1d1d; }
+    .t9-e { font-size: 10.5px; fill: #7f1d1d; }
     .ar { stroke: #475569; stroke-width: 1.6; fill: none; marker-end: url(#arr9); }
-    .ar-e { stroke: #d97706; stroke-width: 1.3; fill: none; stroke-dasharray: 4,3; marker-end: url(#arr9); }
+    .ar-e { stroke: #d97706; stroke-width: 1.3; fill: none; stroke-dasharray: 4,3; marker-end: url(#arr9e); }
   </style>
 
   <!-- Title -->
-  <text x="380" y="22" class="t9-b" text-anchor="middle">Cohorte CXJ1 — flow chart d'inclusion (V230 EFS)</text>
+  <text x="500" y="22" class="t9-b" text-anchor="middle">Cohorte CXJ1 — flow chart d'inclusion (V230 EFS)</text>
 
-  <!-- Step 1: initial cohort -->
-  <rect class="nd-top" x="280" y="38" width="200" height="44"/>
-  <text x="380" y="56" class="t9-b" text-anchor="middle">Cohorte clinique screenée</text>
-  <text x="380" y="72" class="t9" text-anchor="middle">N = 224 patients (2020-2025)</text>
+  <!-- ═══════ TOP : cohorte screenée (centre) ═══════ -->
+  <rect class="nd-top" x="400" y="38" width="200" height="44" rx="6"/>
+  <text x="500" y="56" class="t9-b" text-anchor="middle">Cohorte clinique screenée</text>
+  <text x="500" y="72" class="t9" text-anchor="middle">N = 224 patients (2020-2025)</text>
 
-  <line class="ar" x1="380" y1="84" x2="380" y2="115"/>
+  <!-- Split vers IDES (gauche) et PV (droite) -->
+  <line class="ar" x1="440" y1="84" x2="280" y2="115"/>
+  <line class="ar" x1="560" y1="84" x2="720" y2="115"/>
 
-  <!-- Step 2: split by pipeline -->
-  <rect class="nd-mid" x="60" y="120" width="280" height="48"/>
-  <text x="200" y="139" class="t9-b" text-anchor="middle">Pipeline IDES (MOABI hybrid-capture)</text>
-  <text x="200" y="156" class="t9-s" text-anchor="middle">IDES p-value Monte-Carlo · 11 drivers D11</text>
+  <!-- ═══════ STEP 2 : 2 pipelines en parallèle ═══════ -->
+  <!-- IDES header (gauche) -->
+  <rect class="nd-mid" x="160" y="120" width="240" height="46"/>
+  <text x="280" y="139" class="t9-b" text-anchor="middle">Pipeline IDES (MOABI WL)</text>
+  <text x="280" y="156" class="t9-s" text-anchor="middle">IDES p-value MC · drivers D11</text>
 
-  <rect class="nd-mid" x="420" y="120" width="280" height="48" style="fill:#fce7f3; stroke:#be185d;"/>
-  <text x="560" y="139" class="t9-b" text-anchor="middle">Pipeline PV (phased variants UMI)</text>
-  <text x="560" y="156" class="t9-s" text-anchor="middle">Doublets UMI · diag_pos_UMI ≥ 10 · diag_VAFratio ≥ 0.3</text>
+  <!-- PV header (droite) -->
+  <rect class="nd-pv" x="600" y="120" width="240" height="46"/>
+  <text x="720" y="139" class="t9-b" text-anchor="middle">Pipeline PV (phased variants UMI)</text>
+  <text x="720" y="156" class="t9-s" text-anchor="middle">Doublets UMI · diag_UMI≥10 · ratio≥0.3</text>
 
-  <line class="ar" x1="320" y1="84" x2="200" y2="118"/>
-  <line class="ar" x1="440" y1="84" x2="560" y2="118"/>
+  <!-- IDES éligibles -->
+  <line class="ar" x1="280" y1="166" x2="280" y2="195"/>
+  <rect class="nd-mid" x="160" y="200" width="240" height="62"/>
+  <text x="280" y="220" class="t9-b" text-anchor="middle">IDES — éligibles Cox</text>
+  <text x="280" y="237" class="t9" text-anchor="middle">N = 162 (events EFS = 32)</text>
+  <text x="280" y="252" class="t9-s" text-anchor="middle">VAF_diag détectée + delai valide</text>
 
-  <!-- IDES M1 -->
-  <rect class="nd-mid" x="60" y="190" width="280" height="60"/>
-  <text x="200" y="208" class="t9-b" text-anchor="middle">IDES — éligibles pour modèle Cox</text>
-  <text x="200" y="225" class="t9" text-anchor="middle">N = 162 (events EFS = 32)</text>
-  <text x="200" y="241" class="t9-s" text-anchor="middle">VAF_diag détectée + cfDNA + score_kin + delai valides</text>
+  <!-- Exclusion latérale IDES → GAUCHE (extrême gauche) -->
+  <line class="ar-e" x1="160" y1="231" x2="140" y2="231"/>
+  <rect class="nd-excl" x="10" y="200" width="130" height="62"/>
+  <text x="75" y="218" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">Exclus IDES</text>
+  <text x="75" y="232" class="t9" text-anchor="middle" style="fill:#7f1d1d;">N = 62</text>
+  <text x="75" y="247" class="t9-e" text-anchor="middle">VAF_diag NaN ;</text>
+  <text x="75" y="259" class="t9-e" text-anchor="middle">cfDNA NaN ; Glims aberr.</text>
 
-  <!-- IDES exclus -->
-  <rect class="nd-excl" x="60" y="265" width="280" height="44"/>
-  <text x="200" y="283" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">Exclus (IDES, 62 patients)</text>
-  <text x="200" y="299" class="t9-e" text-anchor="middle">VAF_diag = 0/NaN ; EFS manquant ; Glims aberrant ; cfDNA NaN</text>
+  <!-- PV éligibles -->
+  <line class="ar" x1="720" y1="166" x2="720" y2="195"/>
+  <rect class="nd-pv" x="600" y="200" width="240" height="62"/>
+  <text x="720" y="220" class="t9-b" text-anchor="middle">PV — éligibles Cox</text>
+  <text x="720" y="237" class="t9" text-anchor="middle">N = 108 (events EFS = 21)</text>
+  <text x="720" y="252" class="t9-s" text-anchor="middle">Phasage réussi + delai valide</text>
 
-  <line class="ar" x1="200" y1="168" x2="200" y2="188"/>
-  <line class="ar-e" x1="200" y1="250" x2="200" y2="263"/>
+  <!-- Exclusion latérale PV → DROITE (extrême droite) -->
+  <line class="ar-e" x1="840" y1="231" x2="860" y2="231"/>
+  <rect class="nd-excl" x="860" y="200" width="130" height="62"/>
+  <text x="925" y="218" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">Exclus PV</text>
+  <text x="925" y="232" class="t9" text-anchor="middle" style="fill:#7f1d1d;">N = 116</text>
+  <text x="925" y="247" class="t9-e" text-anchor="middle">Phasage absent (8) ;</text>
+  <text x="925" y="259" class="t9-e" text-anchor="middle">phasage = 0 (19) ; quali</text>
 
-  <!-- PV M1 -->
-  <rect class="nd-mid" x="420" y="190" width="280" height="60" style="fill:#fce7f3; stroke:#be185d;"/>
-  <text x="560" y="208" class="t9-b" text-anchor="middle">PV — éligibles pour modèle Cox</text>
-  <text x="560" y="225" class="t9" text-anchor="middle">N = 108 (events EFS = 21)</text>
-  <text x="560" y="241" class="t9-s" text-anchor="middle">Phasage réussi + cfDNA + delai valides</text>
+  <!-- ═══════ STEP 3 : variantes M1 / M2 ═══════ -->
+  <!-- IDES sub-branches -->
+  <line class="ar" x1="280" y1="262" x2="210" y2="345"/>
+  <line class="ar" x1="280" y1="262" x2="350" y2="345"/>
 
-  <rect class="nd-excl" x="420" y="265" width="280" height="44"/>
-  <text x="560" y="283" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">Exclus (PV, 116 patients)</text>
-  <text x="560" y="299" class="t9-e" text-anchor="middle">Phasage absent (8) ou 0 (19) ; quali_gate ; VAF aberrante (>100%)</text>
+  <rect class="nd" x="140" y="350" width="140" height="60"/>
+  <text x="210" y="370" class="t9-b" text-anchor="middle">M1_hEq IDES</text>
+  <text x="210" y="386" class="t9" text-anchor="middle">N = 162, ev = 32</text>
+  <text x="210" y="402" class="t9-s" text-anchor="middle">C-corr = 0.805</text>
 
-  <line class="ar" x1="560" y1="168" x2="560" y2="188"/>
-  <line class="ar-e" x1="560" y1="250" x2="560" y2="263"/>
+  <rect class="nd-final" x="290" y="350" width="140" height="60"/>
+  <text x="360" y="370" class="t9-b" text-anchor="middle">M2_hEq IDES ⭐</text>
+  <text x="360" y="386" class="t9" text-anchor="middle">N = 136, ev = 26</text>
+  <text x="360" y="402" class="t9-s" text-anchor="middle">C-corr = 0.837 [0.77-0.93]</text>
 
-  <!-- IDES M1 -->
-  <rect class="nd" x="60" y="330" width="135" height="54"/>
-  <text x="127" y="348" class="t9-b" text-anchor="middle">M1_hEq IDES</text>
-  <text x="127" y="364" class="t9" text-anchor="middle">N = 162, ev = 32</text>
-  <text x="127" y="378" class="t9-s" text-anchor="middle">C-corr = 0.805</text>
+  <!-- Flèche latérale TEP NA IDES vers GAUCHE depuis M2_IDES -->
+  <line class="ar-e" x1="290" y1="380" x2="140" y2="380"/>
+  <rect class="nd-excl" x="10" y="360" width="130" height="40"/>
+  <text x="75" y="377" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−26 TEP NA</text>
+  <text x="75" y="392" class="t9-e" text-anchor="middle">routés vers M1</text>
 
-  <!-- IDES M2 (optimal) -->
-  <rect class="nd-final" x="205" y="330" width="135" height="54"/>
-  <text x="272" y="346" class="t9-b" text-anchor="middle">M2_hEq IDES ⭐</text>
-  <text x="272" y="362" class="t9" text-anchor="middle">N = 136, ev = 26</text>
-  <text x="272" y="376" class="t9-s" text-anchor="middle">C-corr = 0.837 [0.77-0.93]</text>
+  <!-- PV sub-branches -->
+  <line class="ar" x1="720" y1="262" x2="650" y2="345"/>
+  <line class="ar" x1="720" y1="262" x2="790" y2="345"/>
 
-  <!-- IDES TEP excl -->
-  <rect class="nd-excl" x="60" y="395" width="280" height="32"/>
-  <text x="200" y="415" class="t9-e" text-anchor="middle">−26 patients TEP « Non fait » → routés M1</text>
+  <rect class="nd" x="580" y="350" width="140" height="60"/>
+  <text x="650" y="370" class="t9-b" text-anchor="middle">M1_hEq PV</text>
+  <text x="650" y="386" class="t9" text-anchor="middle">N = 108, ev = 21</text>
+  <text x="650" y="402" class="t9-s" text-anchor="middle">C-corr = 0.840</text>
 
-  <line class="ar" x1="200" y1="309" x2="127" y2="328"/>
-  <line class="ar" x1="200" y1="309" x2="272" y2="328"/>
-  <line class="ar-e" x1="200" y1="384" x2="200" y2="395"/>
+  <rect class="nd-final" x="730" y="350" width="140" height="60"/>
+  <text x="800" y="370" class="t9-b" text-anchor="middle">M2_hEq PV ⭐</text>
+  <text x="800" y="386" class="t9" text-anchor="middle">N = 91, ev = 16</text>
+  <text x="800" y="402" class="t9-s" text-anchor="middle">C-corr = 0.869 [0.82-0.97]</text>
 
-  <!-- PV M1 -->
-  <rect class="nd" x="420" y="330" width="135" height="54"/>
-  <text x="487" y="348" class="t9-b" text-anchor="middle">M1_hEq PV</text>
-  <text x="487" y="364" class="t9" text-anchor="middle">N = 108, ev = 21</text>
-  <text x="487" y="378" class="t9-s" text-anchor="middle">C-corr = 0.840</text>
+  <!-- Flèche latérale TEP NA PV vers DROITE depuis M2_PV -->
+  <line class="ar-e" x1="870" y1="380" x2="990" y2="380"/>
+  <rect class="nd-excl" x="860" y="360" width="130" height="40"/>
+  <text x="925" y="377" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−17 TEP NA</text>
+  <text x="925" y="392" class="t9-e" text-anchor="middle">routés vers M1</text>
 
-  <!-- PV M2 (optimal) -->
-  <rect class="nd-final" x="565" y="330" width="135" height="54"/>
-  <text x="632" y="346" class="t9-b" text-anchor="middle">M2_hEq PV ⭐</text>
-  <text x="632" y="362" class="t9" text-anchor="middle">N = 91, ev = 16</text>
-  <text x="632" y="376" class="t9-s" text-anchor="middle">C-corr = 0.869 [0.82-0.97]</text>
-
-  <rect class="nd-excl" x="420" y="395" width="280" height="32"/>
-  <text x="560" y="415" class="t9-e" text-anchor="middle">−17 patients TEP « Non fait » → routés M1</text>
-
-  <line class="ar" x1="560" y1="309" x2="487" y2="328"/>
-  <line class="ar" x1="560" y1="309" x2="632" y2="328"/>
-  <line class="ar-e" x1="560" y1="384" x2="560" y2="395"/>
-
-  <!-- Notes patients atypiques -->
-  <rect class="nd-excl" x="60" y="450" width="640" height="48" style="fill:#fef9c3; stroke:#ca8a04; stroke-dasharray:0;"/>
-  <text x="380" y="468" class="t9-b" text-anchor="middle" style="fill:#713f12;">Patients atypiques documentés</text>
-  <text x="380" y="484" class="t9-s" text-anchor="middle">KINZELIN (DLBCL SNC, TEP « Non fait », rechute 2mo) · PHETMANY (échec extraction cfDNA, diag non séquencé)</text>
-
-  <!-- Legend -->
-  <rect class="nd-top" x="60" y="510" width="14" height="14"/>
-  <text x="80" y="522" class="t9-s">Cohorte initiale</text>
-  <rect class="nd-mid" x="170" y="510" width="14" height="14"/>
-  <text x="190" y="522" class="t9-s">Étape de filtrage</text>
-  <rect class="nd-final" x="290" y="510" width="14" height="14"/>
-  <text x="310" y="522" class="t9-s">Variante optimale (M2 ⭐)</text>
+  <!-- ═══════ LEGEND ═══════ -->
+  <rect class="nd-top" x="10" y="495" width="14" height="14" rx="3"/>
+  <text x="30" y="507" class="t9-s">Cohorte initiale</text>
+  <rect class="nd-mid" x="155" y="495" width="14" height="14" rx="3"/>
+  <text x="175" y="507" class="t9-s">Étape (IDES)</text>
+  <rect class="nd-pv" x="265" y="495" width="14" height="14" rx="3"/>
+  <text x="285" y="507" class="t9-s">Étape (PV)</text>
+  <rect class="nd-final" x="370" y="495" width="14" height="14" rx="3"/>
+  <text x="390" y="507" class="t9-s">Variante optimale ⭐</text>
+  <rect class="nd-excl" x="525" y="495" width="14" height="14"/>
+  <text x="545" y="507" class="t9-s">Exclusion (flèche pointillée)</text>
   <rect class="nd-excl" x="450" y="510" width="14" height="14"/>
   <text x="470" y="522" class="t9-s">Exclusions / observations</text>
 </svg>
