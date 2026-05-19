@@ -637,6 +637,27 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 </table>
 <p>Différence moyenne <strong>Δ ≈ 0</strong> (médiane = +0.0006). 4 variantes favorisent <code>lin</code>, 4 favorisent <code>bin</code>. Seule M2_VAF PV montre une différence notable (favor bin, +0.010). <strong>Conclusion : équivalents en performance</strong>. La spécification binaire (Deauville ≥4) est retenue pour cohérence Lugano 2014 et robustesse face à la variation Deauville 2 vs 3.</p>
 
+<h3 id="vpn-depth">8d. Pourquoi la profondeur n'apparaît pas comme covariable du modèle</h3>
+<p>Une carte « VPN technique en fonction de la profondeur » a été retirée du calculateur (V15.272-273). Justification empirique :</p>
+<table>
+<tr><th>Variante M1 (sans TEP)</th><th>N polished-neg</th><th>Events @12mo</th><th>β log₁₀(depth)</th><th>p</th></tr>
+<tr><td>IDES_hEq</td><td>99</td><td>9</td><td>−0.47</td><td>0.45 NS</td></tr>
+<tr><td>IDES_VAF</td><td>103</td><td>9</td><td>−0.53</td><td>0.40 NS</td></tr>
+<tr><td>PV_hEq</td><td>57</td><td>4</td><td>−0.26</td><td>0.75 NS</td></tr>
+<tr><td>PV_VAF</td><td>60</td><td>4</td><td>−0.31</td><td>0.71 NS</td></tr>
+</table>
+<p>Modèle <code>logit(no event @ 12mo) ~ log₁₀(depth)</code> sur la sous-cohorte des patients « polished neg » (gate qualité IDES p &gt; 1/100001 ou PV UMI &lt; 3) : la depth n'est <strong>jamais</strong> un prédicteur significatif. VPN observée stable à 91-93% sur 4 ordres de grandeur de depth (1.8k → 4M reads IDES ; 3.5k → 2.4M UMI PV).</p>
+
+<p>Test de confondage par cfDNA — modèle ajusté <code>logit(no event) ~ log(depth) + log(cfDNA_CXJ1) + log(cfDNA_diag)</code> :</p>
+<table>
+<tr><th>Pipeline</th><th>r(log_depth, log_cfDNA_diag)</th><th>β_depth brut</th><th>β_depth ajusté cfDNA</th><th>Interprétation</th></tr>
+<tr><td>IDES</td><td><strong>+0.35 (p=0.0004)</strong></td><td>−0.46 (p=0.45)</td><td>−0.06 (p=0.93)</td><td>Polish v56 absorbe déjà la depth</td></tr>
+<tr><td>PV</td><td>+0.26 (p=0.04)</td><td>+0.53 (p=0.27)</td><td><strong>+1.09 (p=0.083, borderline)</strong></td><td>Effet technique pur émerge après ajustement</td></tr>
+</table>
+<p>Conclusion : la depth est <strong>corrélée positivement</strong> avec le cfDNA (plus de matériel circulant = depth plus élevée), et le cfDNA est lui-même un facteur pronostique fort (low cfDNA = bon prono). L'effet « marginal » de la depth est donc <strong>masqué par le cfDNA</strong> : depth basse ↔ cfDNA bas ↔ bon prono, ce qui compense la perte de sensibilité technique. Le modèle M1/M2 contient déjà <code>log(1+cfDNA_diag)</code> comme covariable burden, donc cette information est encodée.</p>
+<p>Note PV : après ajustement, β_depth = +1.09 (p=0.083) → suggère un effet technique pur résiduel modeste (à cfDNA égal, depth ↑ → VPN ↑). Non incorporé en production car la cohorte M1 PV polished-neg n'a que 4 events et le pipeline PV applique déjà un quality gate v75 (UMI ≥ 3) qui filtre les samples sous-séquencés.</p>
+<p>Scripts : <code>scripts/_v15_272_VPN_technique_M1_empirical.py</code>, <code>scripts/_v15_273_depth_cfDNA_confounding.py</code>.</p>
+
 <h3>8c. Analyse exploratoire — DeltaSUVmax% vs Deauville TEP2</h3>
 <p>Le Deauville TEP2 (binaire ≥4) est le standard clinique. Question : le DeltaSUVmax% (continu, baisse relative du SUVmax diag→TEP2) apporterait-il de l'info supplémentaire ?</p>
 <table>

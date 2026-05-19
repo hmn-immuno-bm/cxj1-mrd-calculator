@@ -211,12 +211,7 @@ svg { width: 100%; height: 100%; overflow: visible; }
       </div>
       <div class="tip">Formule v5A = log(1 + Σ reads) × (n_drivers / n_total) × quality_gate.</div>
 
-      <h3>6. Profondeur de séquençage (technique → VPN)</h3>
-      <label>Depth totale au CXJ1</label>
-      <input type="number" id="depth_input" min="0" step="1000" placeholder="ex: 100000">
-      <div class="tip" id="depth_tip">Σ DEPTH NGS sur Watch List (IDES) ou Σ Position_Common_UMI sur doublets quali (PV) au CXJ1.</div>
-
-      <h3>7. TEP2 interim (cycle 2)</h3>
+      <h3>6. TEP2 interim (cycle 2)</h3>
       <div style="margin-bottom: 10px; padding: 8px 12px; background:#f1f5f9; border-radius:6px; border-left:3px solid #64748b;">
         <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#334155; cursor:pointer;">
           <input type="checkbox" id="tep_unavailable" onchange="onTepToggle()" style="width:auto;">
@@ -345,24 +340,35 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
       </p>
     </div>
 
-    <!-- VPN technique en fonction de la profondeur — affiché en bas (info technique) -->
-    <div class="card" id="vpnCard" style="display:none;">
-      <h2>🔬 VPN technique en fonction de la profondeur</h2>
-      <p style="font-size:12px; color:#475569;">
-        <strong>Définition stricte</strong> : VPN technique = parmi les patients testés MRD-négatifs,
-        la fraction qui ne sont PAS faux négatifs au sens technique strict
-        (<code>FN_tech = R12+ ET (TEP2+ OU TEP2 NA)</code>).<br>
-        <strong>Méthode</strong> : courbe PCHIP (cubic Hermite monotone) passant par <strong>(0, 0)</strong>
-        + tous les points LIS strictement monotones empiriques + plateau 100% à depth_min_100.
-        La courbe est monotone croissante stricte et lisse.
+    <!-- Encart didactique : pourquoi la depth n'est pas un input du calculateur -->
+    <div class="card" id="depthNoteCard">
+      <h2>🔬 Et la profondeur de séquençage ?</h2>
+      <p style="font-size:13px; color:#475569; line-height:1.55;">
+        On pourrait s'attendre à ce qu'une depth faible au CXJ1 dégrade la VPN
+        (faux-négatif technique). Empiriquement, dans cette cohorte, <strong>ce n'est pas le
+        cas</strong> : chez les patients « polished negative » du modèle M1
+        (gate qualité IDES ou PV active), la VPN observée à 12 mois est stable autour
+        de <strong>91-93%</strong> sur 4 ordres de grandeur de depth, et la pente
+        VPN(log depth) est <strong>non significative</strong> (p=0.40-0.75 selon variante).
       </p>
-      <div id="vpnContent"></div>
-      <div class="chart-container" id="vpnChart" style="height:320px;"></div>
-      <div style="margin-top:10px; font-size:11px; color:#64748b; font-style:italic;">
-        Note : la courbe monte très rapidement à basse profondeur car les points LIS empiriques de la cohorte
-        sont déjà à VPN ≥ 95% (cohorte globalement à faible risque). L'asymptote 100% est atteinte
-        empiriquement à depth_min : 792k (IDES), 184k (PV).
-      </div>
+      <p style="font-size:13px; color:#475569; line-height:1.55; margin-top:8px;">
+        Deux raisons :
+      </p>
+      <ol style="font-size:13px; color:#475569; line-height:1.55; margin:6px 0 0 18px; padding:0;">
+        <li>Le polish v56 (IDES p-value) / v75 (UMI count) absorbe déjà
+            l'information de qualité technique avant calcul du score.</li>
+        <li><strong>Le cfDNA agit comme confondeur</strong> : <em>low depth ↔ low cfDNA ↔ bon pronostic</em>
+            (corrélation log-depth ↔ log-cfDNA<sub>diag</sub> = +0.35, p=0.0004 dans IDES ;
+            +0.26 p=0.04 dans PV). Donc une depth basse n'est pas un mauvais signal —
+            elle reflète souvent peu de matériel circulant, ce qui est en soi
+            un bon prono. Cette compensation est déjà encodée dans le modèle M1/M2 via
+            la covariable <code>cfDNA_diag</code>.</li>
+      </ol>
+      <p style="font-size:12px; color:#64748b; line-height:1.5; margin-top:10px;">
+        Détails : modèle logistique ajusté <code>logit(no event @ 12mo) ~ log(depth) + log(cfDNA_CXJ1) + log(cfDNA_diag)</code>
+        sur la cohorte M1 polished-neg (V15.272-273). Voir
+        <a href="methodology.html#vpn-depth" style="color:#1e40af;">méthodologie §8d</a> pour le détail des modèles ajustés.
+      </p>
     </div>
 
     <div class="card" id="readmeCard">
@@ -648,25 +654,9 @@ function updateRankBasedVPN(pipe, patient_r12) {
   document.getElementById('grp_ge_v12_inline').textContent = fmt_p(vpp);
 }
 
-// VPN technique liée à la profondeur de séquençage (V15.50 LIS + PCHIP smoothing V15.121)
-// FN_tech_worst = R12+ ET (TEP2+ OU TEP2 NA) → courbe PCHIP lisse passant par (0,0) + points LIS
-const VPN_DEPTH = {"IDES":{"lis_points":[[0,0],[1829,95.1],[38613,95.6],[75155,96.3],[391833,96.4],[791779,100.0]],"depths":[0.0,1.0,1.2,1.5,1.9,2.3,2.9,3.6,4.4,5.5,6.8,8.3,10.3,12.8,15.8,19.5,24.1,29.8,36.9,45.6,56.4,69.7,86.2,106.6,131.8,162.9,201.4,249.1,307.9,380.7,470.8,582.1,719.7,889.8,1100.2,1360.3,1681.9,2079.5,2571.2,3179.0,3930.6,4859.9,6008.9,7429.5,9186.0,11357.7,14042.9,17362.9,21467.8,26543.2,32818.5,40577.4,50170.7,62032.0,76697.5,94830.3,117250.0,144970.1,179243.8,221620.5,274015.8,338798.3,418896.7,517931.8,640380.8,791779.0,1018001.6,1244224.1,1470446.7,1696669.3,1922891.9,2149114.4,2375337.0,2601559.6,2827782.1,3054004.7,3280227.3,3506449.9,3732672.4,3958895.0],"vpns":[0.0,0.054,0.067,0.083,0.103,0.127,0.158,0.195,0.241,0.298,0.369,0.456,0.565,0.699,0.866,1.072,1.329,1.647,2.043,2.535,3.15,3.916,4.876,6.078,7.588,9.491,11.892,14.93,18.777,23.646,29.792,37.492,46.996,58.394,71.337,84.42,93.941,95.11,95.128,95.15,95.176,95.205,95.239,95.276,95.317,95.358,95.398,95.434,95.464,95.491,95.531,95.634,95.85,96.138,96.301,96.315,96.328,96.341,96.351,96.358,96.364,96.377,96.437,96.906,98.054,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"depth_unit":"Σ DEPTH NGS sur Watch List au CXJ1","depth_typical_low":50000,"depth_typical_high":500000,"depth_min_100":791779,"vpn_plateau_haut":100},"PV":{"lis_points":[[0,0],[30262,95.9],[131718,96.0],[184084,100.0]],"depths":[0.0,1.0,1.2,1.5,1.8,2.1,2.6,3.1,3.8,4.6,5.5,6.6,8.0,9.7,11.7,14.2,17.1,20.7,25.0,30.3,36.6,44.2,53.4,64.5,78.0,94.3,113.9,137.7,166.4,201.1,243.1,293.7,355.0,429.1,518.5,626.7,757.4,915.3,1106.2,1336.9,1615.7,1952.7,2359.9,2852.1,3446.9,4165.8,5034.6,6084.6,7353.5,8887.1,10740.6,12980.6,15687.7,18959.4,22913.5,27692.2,33467.5,40447.3,48882.7,59077.3,71398.1,86288.4,104284.2,126033.0,152317.6,184084.0,236679.4,289274.9,341870.3,394465.7,447061.1,499656.6,552252.0,604847.4,657442.9,710038.3,762633.7,815229.1,867824.6,920420.0],"vpns":[0.0,0.004,0.005,0.006,0.007,0.008,0.01,0.012,0.015,0.018,0.021,0.026,0.031,0.038,0.046,0.055,0.067,0.081,0.098,0.118,0.143,0.172,0.208,0.252,0.304,0.368,0.445,0.538,0.65,0.786,0.95,1.15,1.39,1.682,2.035,2.464,2.983,3.612,4.376,5.304,6.433,7.805,9.476,11.512,13.995,17.022,20.712,25.204,30.654,37.228,45.077,54.285,64.765,76.056,86.937,94.716,95.907,95.921,95.933,95.942,95.949,95.955,95.963,95.989,96.885,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"depth_unit":"Σ Position_Common_UMI sur doublets quali au CXJ1","depth_typical_low":5000,"depth_typical_high":100000,"depth_min_100":184084,"vpn_plateau_haut":100}};
-
-// Interpolation linéaire sur courbe pré-calculée PCHIP (smooth de 0,0 à 100%)
-function vpnAtDepth(pipe, depth) {
-  const v = VPN_DEPTH[pipe];
-  const ds = v.depths, vs = v.vpns;
-  if (depth <= 0) return 0;
-  if (depth >= ds[ds.length-1]) return v.vpn_plateau_haut;
-  // Interpolation linéaire entre points denses (≈ PCHIP smooth visuellement)
-  for (let i = 0; i < ds.length-1; i++) {
-    if (depth >= ds[i] && depth <= ds[i+1]) {
-      const t = (depth - ds[i]) / (ds[i+1] - ds[i]);
-      return vs[i] + t * (vs[i+1] - vs[i]);
-    }
-  }
-  return v.vpn_plateau_haut;
-}
+// VPN(depth) section retirée (V15.272-273) : la depth n'est pas un prédicteur direct de la VPN
+// dans cette cohorte (slope NS p=0.40-0.75) car (1) polish v56/v75 absorbe déjà la qualité technique,
+// (2) cfDNA agit comme confondeur (low depth ↔ low cfDNA ↔ bon prono). cfDNA est déjà dans le M1/M2.
 
 // TRAJECTOIRES V15.130 — Hodgkin classique vs DLBCL (et autres)
 const TRAJ = {"IDES":{"histo_HODGKIN":{"good_responder":{"lam":0.6459181226469566},"bad_responder":{"lam":0.3706729387386885},"sigma2":32.049158019043745},"histo_DLBCL":{"good_responder":{"lam":0.37657767233575556},"bad_responder":{"lam":0.20590559250452736},"sigma2":36.18003274993404}},"PV":{"histo_HODGKIN":{"good_responder":{"lam":0.41512500502721594},"sigma2":30.17489385992992,"bad_responder":{"lam":0.38017424003589034}},"histo_DLBCL":{"good_responder":{"lam":0.38017424003589034},"bad_responder":{"lam":0.23679297736608734},"sigma2":27.0682598621083}}};
@@ -693,8 +683,6 @@ function togglePipeline() {
     p === 'IDES'
       ? 'VAF MOABI moyenne (Watch List) au diagnostic et au CXJ1.'
       : 'VAF totale calculée à partir des variants phasés.';
-  document.getElementById('depth_tip').innerHTML = `${VPN_DEPTH[p].depth_unit}<br>` +
-    `Plage typique : ${VPN_DEPTH[p].depth_typical_low.toLocaleString()} – ${VPN_DEPTH[p].depth_typical_high.toLocaleString()}.`;
 }
 
 
@@ -999,7 +987,7 @@ function calculate() {
   const readmeCard = document.getElementById('readmeCard');
   if (readmeCard) readmeCard.style.display = 'none';
   // drawKM(pipe, lp); // kmCard removed from calculator UI — KM is in methodology only
-  drawVPNDepth(pipe);
+  // drawVPNDepth removed (V15.272-273) — depth is not a marginal predictor of VPN once cfDNA is in the model
   window.scrollTo({ top: document.getElementById('resultsCard').offsetTop - 20, behavior: 'smooth' });
 }
 
@@ -1123,192 +1111,19 @@ function drawKM(pipe, lp) {
     `L'<strong>IC95% Greenwood</strong> (entre crochets ci-dessus) reflète l'incertitude : plus l'intervalle est large, plus le risque réel est mal estimé pour des patients comme vous.`;
 }
 
-function drawVPNDepth(pipe) {
-  try {
-  const v = VPN_DEPTH[pipe];
-  if (!v) { console.warn('VPN_DEPTH manquant pour', pipe); return; }
-  const depth = parseFloat(document.getElementById('depth_input').value) || 0;
-  const card = document.getElementById('vpnCard');
-  card.style.display = 'block';
-
-  // VPN smooth PCHIP (V15.121)
-  const depth_max_100 = v.depth_min_100;
-  const depth_min_pt  = v.lis_points[1][0];  // 1er point LIS (après anchor 0,0)
-  const vpn_plateau_bas = v.lis_points[1][1];  // VPN au 1er point LIS (~95%)
-  const vpnPct = depth > 0 ? vpnAtDepth(pipe, depth) : 0;
-
-  // Texte interprétation
-  let msg = '';
-  if (depth <= 0) {
-    msg = `<div style="background:#fee2e2;border-left:4px solid #ef4444;padding:10px 14px;border-radius:4px;font-size:13px;">` +
-          `<strong>⚠️ Profondeur non renseignée</strong> — VPN technique non calculable. ` +
-          `Renseignez la profondeur de séquençage au CXJ1.</div>`;
-  } else if (depth >= depth_max_100) {
-    msg = `<div style="background:#dcfce7;border-left:4px solid #22c55e;padding:10px 14px;border-radius:4px;font-size:13px;">` +
-          `<strong>✅ Depth ${depth.toLocaleString()} ≥ ${depth_max_100.toLocaleString()}</strong> — ` +
-          `VPN technique = <strong>${v.vpn_plateau_haut.toFixed(1)}%</strong> (plateau haut atteint). ` +
-          `Un résultat MRD-négatif est très fiable techniquement.</div>`;
-  } else if (depth < depth_min_pt) {
-    msg = `<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:10px 14px;border-radius:4px;font-size:13px;">` +
-          `<strong>📊 Depth ${depth.toLocaleString()} < ${depth_min_pt.toLocaleString()}</strong> — ` +
-          `VPN technique = <strong>${vpnPct.toFixed(1)}%</strong> (zone d'extrapolation, en-dessous du 1ᵉʳ point LIS). ` +
-          `Fiabilité du négatif limitée par la profondeur insuffisante.</div>`;
-  } else {
-    msg = `<div style="background:#dbeafe;border-left:4px solid #2E75B6;padding:10px 14px;border-radius:4px;font-size:13px;">` +
-          `<strong>📊 Depth ${depth.toLocaleString()}</strong> — VPN technique = <strong>${vpnPct.toFixed(1)}%</strong> ` +
-          `(zone d'interpolation, entre plateau bas ${vpn_plateau_bas.toFixed(1)}% et plateau haut ${v.vpn_plateau_haut.toFixed(1)}%). ` +
-          `Pour atteindre ${v.vpn_plateau_haut.toFixed(1)}%, depth nécessaire ≥ ${depth_max_100.toLocaleString()}.</div>`;
-  }
-  document.getElementById('vpnContent').innerHTML = msg;
-
-  // Plot SVG : axes Y en LOG sur (1 - VPN) inversé → étire la zone HAUTE VPN (cliniquement utile)
-  const W = 700, H = 300, mL = 60, mR = 20, mT = 25, mB = 45;
-  // X = log10(depth+1) ; affichage de 1 à un peu au-delà du plateau
-  const log_xmax = Math.log10(Math.max(depth_max_100 * 3, depth * 2, 1e6));
-  const log_xmin = 0; // log10(1) = 0
-  const x = (d) => mL + (W - mL - mR) * ((Math.log10(Math.max(d, 1)) - log_xmin) / (log_xmax - log_xmin));
-  // Y axis : log10(FN_rate) où FN_rate = (100 - VPN%) / 100. Inversé → haute VPN en haut.
-  // Floor visuel : FN=100% (VPN=0%) → log(1) = 0, en bas
-  // Plafond visuel : FN=0.1% (VPN=99.9%) → log(0.001) = -3, en haut
-  const y_fn_log_max = 0;   // log10(1.0) = 0 (VPN=0% en bas)
-  const y_fn_log_min = -3;  // log10(0.001) = -3 (VPN=99.9% en haut)
-  const y = (s_pct) => {
-    const fn_rate = Math.max(0.001, Math.min(1.0, (100 - s_pct) / 100));
-    const log_val = Math.log10(fn_rate);
-    // Inversé : log_val proche de 0 (FN=100%, VPN=0%) → en bas ; log_val=-3 (FN=0.1%, VPN=99.9%) → en haut
-    return mT + (H - mT - mB) * ((log_val - y_fn_log_min) / (y_fn_log_max - y_fn_log_min));
-  };
-
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
-  // Axes
-  svg += `<line x1="${mL}" y1="${y(0)}" x2="${W-mR}" y2="${y(0)}" stroke="#cbd5e1"/>`;
-  svg += `<line x1="${mL}" y1="${y(0)}" x2="${mL}" y2="${y(99.9)}" stroke="#cbd5e1"/>`;
-  // Y ticks complémentaire-log : VPN = 0, 50, 80, 90, 95, 99, 99.9 (correspondant à FN = 100, 50, 20, 10, 5, 1, 0.1)
-  const yTicks = [0, 50, 80, 90, 95, 99, 99.9];
-  yTicks.forEach(s => {
-    svg += `<line x1="${mL-4}" y1="${y(s)}" x2="${mL}" y2="${y(s)}" stroke="#94a3b8"/>`;
-    const label = s === 99.9 ? '99.9' : s.toString();
-    svg += `<text x="${mL-8}" y="${y(s)+4}" text-anchor="end" font-size="10" fill="#64748b">${label}%</text>`;
-    // Gridline horizontal léger
-    svg += `<line x1="${mL}" y1="${y(s)}" x2="${W-mR}" y2="${y(s)}" stroke="#e2e8f0" stroke-dasharray="2,3" opacity="0.5"/>`;
-  });
-  // X ticks log
-  [1, 10, 100, 1000, 10000, 100000, 1000000].filter(t => Math.log10(t) <= log_xmax).forEach(t => {
-    svg += `<line x1="${x(t)}" y1="${y(0)}" x2="${x(t)}" y2="${y(0)+4}" stroke="#94a3b8"/>`;
-    svg += `<text x="${x(t)}" y="${y(0)+18}" text-anchor="middle" font-size="10" fill="#64748b">${t<1000?t:(t<1e6?(t/1000)+'k':(t/1e6)+'M')}</text>`;
-  });
-  svg += `<text x="${mL}" y="${mT-8}" font-size="11" fill="#475569" font-weight="600">VPN technique (%) — log sur (100-VPN), zone haute étirée</text>`;
-  svg += `<text x="${W-mR}" y="${y(0)+30}" text-anchor="end" font-size="10" fill="#64748b">Depth (log)</text>`;
-
-  // Courbe SMOOTH : UNE SEULE fonction de Hill (0 → penult) + envol final
-  // Architecture :
-  //   - Hill UNIQUE de (0,0) jusqu'à l'avant-dernier LIS (asymptote = vpn_penult)
-  //     Paramétré pour PASSER EXACTEMENT par LIS1, puis s'aplatit en plateau (slope → 0)
-  //     Les LIS intermédiaires (LIS2, LIS3, ...) sont à proximité (slight offset, dans le bruit visuel)
-  //   - Envol t² de l'avant-dernier au dernier (100%)
-  //     Slope=0 au départ ⟹ raccord C¹ continu avec le Hill, plus d'angle visible
-  const lisP = v.lis_points;
-  const ptsScreen = [];
-
-  const lis1   = lisP[1];                   // [d_LIS1, vpn_LIS1]
-  const penult = lisP[lisP.length - 2];     // [d_penult, vpn_penult] = asymptote du Hill
-  const last   = lisP[lisP.length - 1];     // [depth_min_100, 100.0]
-
-  // ── HILL paramétré : VPN(d) = A·d^k / (d^k + d50^k), avec A=vpn_penult
-  //    Contrainte : VPN(d_LIS1) = vpn_LIS1  ⟹  d50 = d_LIS1 × ((1-R)/R)^(1/k) avec R = vpn_LIS1/vpn_penult
-  const hill_k   = 3;
-  const hill_A   = penult[1];                                // asymptote = avant-dernier LIS
-  const R        = lis1[1] / hill_A;                         // ratio LIS1/penult (proche de 1)
-  const hill_d50 = lis1[0] * Math.pow((1 - R) / R, 1 / hill_k);
-  function hillVPN(d) {
-    if (d <= 0) return 0;
-    return hill_A * Math.pow(d, hill_k) / (Math.pow(d, hill_k) + Math.pow(hill_d50, hill_k));
-  }
-
-  // Échantillonner sur log-depth uniforme de d=1 à d=penult
-  const N_main = 100;
-  const log_dmin = 0;                       // log10(1) = 0
-  const log_dmax = Math.log10(penult[0]);
-  for (let i = 0; i <= N_main; i++) {
-    const log_d = log_dmin + (log_dmax - log_dmin) * (i / N_main);
-    const d = Math.pow(10, log_d);
-    ptsScreen.push([x(d), y(hillVPN(d))]);
-  }
-
-  // ── ENVOL final : penult (vpn_penult) → last (100%) en t² (slope=0 au départ ⟹ C¹ avec Hill)
-  const xs = x(penult[0]), ys = y(penult[1]);
-  const xe = x(last[0]),   ye = y(last[1]);
-  const N_envol = 30;
-  for (let i = 1; i <= N_envol; i++) {
-    const t = i / N_envol;
-    ptsScreen.push([xs + (xe - xs) * t, ys + (ye - ys) * (t * t)]);
-  }
-  // 3) Catmull-Rom → cubic Bezier (tension 0.5, lissage standard sans overshoot excessif)
-  function catmullRomToBezier(pts, tension) {
-    if (pts.length < 2) return '';
-    let d = `M ${pts[0][0].toFixed(2)} ${pts[0][1].toFixed(2)}`;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[Math.max(0, i-1)];
-      const p1 = pts[i];
-      const p2 = pts[i+1];
-      const p3 = pts[Math.min(pts.length-1, i+2)];
-      const c1x = p1[0] + (p2[0] - p0[0]) * tension / 3;
-      const c1y = p1[1] + (p2[1] - p0[1]) * tension / 3;
-      const c2x = p2[0] - (p3[0] - p1[0]) * tension / 3;
-      const c2y = p2[1] - (p3[1] - p1[1]) * tension / 3;
-      d += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
-    }
-    return d;
-  }
-  const pathD = catmullRomToBezier(ptsScreen, 0.5);
-  svg += `<path d="${pathD}" stroke="#2E75B6" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`;
-
-  // Points LIS calibrés (marqueurs)
-  v.lis_points.forEach(([d, vpn]) => {
-    if (d === 0) return; // pas afficher l'anchor (0,0)
-    svg += `<circle cx="${x(d)}" cy="${y(vpn)}" r="5" fill="#2E75B6" stroke="white" stroke-width="2"/>`;
-  });
-  // Anchor (0, 0) en bas (VPN=0% → FN=100% → log(1)=0)
-  svg += `<circle cx="${x(1)}" cy="${y(0)}" r="3" fill="#94a3b8" stroke="white" stroke-width="1.5"/>`;
-  svg += `<text x="${x(1)+8}" y="${y(0)-3}" font-size="9" fill="#64748b">(0, 0)</text>`;
-
-  // Ligne pointillée 99.9% (asymptote vers 100, clippée pour échelle log)
-  svg += `<line x1="${mL}" y1="${y(99.9)}" x2="${W-mR}" y2="${y(99.9)}" stroke="#22c55e" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>`;
-  svg += `<text x="${W-mR-5}" y="${y(99.9)-4}" text-anchor="end" font-size="9" fill="#22c55e">VPN ≥99.9% (depth_min ${depth_max_100.toLocaleString()})</text>`;
-
-  // Position patient
-  if (depth > 0) {
-    svg += `<line x1="${x(depth)}" y1="${y(0)}" x2="${x(depth)}" y2="${y(vpnPct)}" stroke="#0f172a" stroke-width="1" stroke-dasharray="2,2"/>`;
-    svg += `<circle cx="${x(depth)}" cy="${y(vpnPct)}" r="6" fill="#0f172a"/>`;
-    svg += `<text x="${x(depth)+10}" y="${y(vpnPct)+4}" font-size="12" font-weight="700" fill="#0f172a">${vpnPct.toFixed(1)}%</text>`;
-    svg += `<text x="${x(depth)+10}" y="${y(vpnPct)+18}" font-size="9" fill="#475569">depth ${depth.toLocaleString()}</text>`;
-  }
-
-  // Légende
-  svg += `<g transform="translate(${mL+12}, ${mT+6})">`;
-  svg += `<line x1="0" y1="0" x2="20" y2="0" stroke="#2E75B6" stroke-width="3"/><text x="26" y="4" font-size="10" fill="#334155">Courbe PCHIP lissée (V15.121)</text>`;
-  svg += `<circle cx="10" cy="14" r="5" fill="#2E75B6" stroke="white" stroke-width="2"/><text x="26" y="18" font-size="10" fill="#334155">Points LIS empiriques (V15.50)</text>`;
-  svg += `</g>`;
-
-  svg += `</svg>`;
-  document.getElementById('vpnChart').innerHTML = svg;
-  } catch (e) {
-    console.error('drawVPNDepth error:', e);
-    document.getElementById('vpnChart').innerHTML = `<div style="color:#ef4444;padding:20px;">Erreur de tracé VPN : ${e.message}</div>`;
-  }
-}
+// drawVPNDepth supprimé (V15.272-273) : la depth n'est pas un prédicteur direct de la VPN
+// dans cette cohorte une fois cfDNA dans le modèle (confondeur). Voir methodology §8d.
 
 function resetForm() {
   ['delai_jours','vaf_diag','vaf_cxj1','cfdna_diag','cfdna_cxj1','pvalue_ides','nbr_pv','sum_umi',
-   'n_drv_pos','n_total_pos','sum_reads_drv','depth_input'].forEach(id => {
+   'n_drv_pos','n_total_pos','sum_reads_drv'].forEach(id => {
     const e = document.getElementById(id);
     if (e) e.value = (id==='delai_jours') ? '21' : (id==='pvalue_ides' ? '0.00001' : '');
   });
   document.getElementById('tep2_deauville').value = '';
   document.getElementById('resultsCard').style.display = 'none';
   const _patP  = document.getElementById('patientPositionCard'); if (_patP) _patP.style.display = 'none';
-  // kmCard, zoneCard removed from UI
-  document.getElementById('vpnCard').style.display = 'none';
+  // kmCard, zoneCard, vpnCard removed from UI
   // Restore the "À propos du modèle" intro card on reset
   const readmeCard = document.getElementById('readmeCard');
   if (readmeCard) readmeCard.style.display = 'block';
@@ -1532,7 +1347,7 @@ const PERSIST_IDS = [
   'qubit_unavailable','cfdna_diag','cfdna_cxj1',
   'pvalue_ides','nbr_pv','sum_umi',
   'n_total_pos','n_drv_pos','sum_reads_drv',
-  'depth_input','tep_unavailable','tep2_deauville',
+  'tep_unavailable','tep2_deauville',
   'use_suvmax_fallback','suvmax_diag','suvmax_2',
 ];
 function saveCalcState() {
