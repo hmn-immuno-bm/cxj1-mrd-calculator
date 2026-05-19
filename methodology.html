@@ -690,19 +690,29 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <p>Une approche joint longitudinal-survival two-stage (mixed-effects LMM extrayant un slope individuel par BLUP, puis Cox sur ce slope) a été testée comme alternative à <code>score_kin</code>. <strong>Bootstrap optimism-corrected (B=200) : V229.1 score_kin C=0.791 vs BLUP candidate C=0.777 (Δ=−0.014)</strong>. Le score_kin résumé (4 trajectoires moyennes par histo×responder) est plus robuste car moins de paramètres individuels à estimer sur cohorte limitée.</p>
 
 <h3>8b. Bootstrap V229.1 — C-index optimism-corrected + IC95% (B=500)</h3>
-<p>Pour les 8 variantes de production, bootstrap Harrell complet sur la cohorte V229.1 :</p>
+<p>Pour les 8 variantes de production, bootstrap Harrell complet sur la <strong>vraie cohorte V229.1</strong> (TEP « Non fait » correctement exclu de M2) :</p>
 <table>
 <tr><th>Variante</th><th>N (events)</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95%</th></tr>
-<tr><td><strong>M2_hEq IDES</strong> ⭐</td><td>162 (32)</td><td>0.814</td><td>+0.006</td><td><strong>0.807</strong></td><td>[0.733, 0.892]</td></tr>
-<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.804</td><td>+0.006</td><td>0.797</td><td>[0.720, 0.891]</td></tr>
-<tr><td>M2_VAF IDES</td><td>162 (32)</td><td>0.783</td><td>+0.012</td><td>0.771</td><td>[0.700, 0.877]</td></tr>
-<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.771</td><td>+0.005</td><td>0.766</td><td>[0.662, 0.867]</td></tr>
-<tr><td><strong>M2_hEq PV</strong> ⭐</td><td>89 (15)</td><td>0.913</td><td>+0.017</td><td><strong>0.896</strong></td><td>[0.835, 0.986]</td></tr>
-<tr><td>M1_hEq PV</td><td>108 (22)</td><td>0.824</td><td>+0.011</td><td>0.813</td><td>[0.717, 0.912]</td></tr>
-<tr><td>M2_VAF PV</td><td>89 (15)</td><td>0.884</td><td>+0.015</td><td>0.869</td><td>[0.781, 0.988]</td></tr>
-<tr><td>M1_VAF PV</td><td>108 (22)</td><td>0.795</td><td>+0.018</td><td>0.778</td><td>[0.682, 0.927]</td></tr>
+<tr><td><strong>M2_hEq IDES</strong> ⭐</td><td>136 (25)</td><td>0.854</td><td>+0.009</td><td><strong>0.845</strong></td><td>[0.769, 0.936]</td></tr>
+<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.804</td><td>+0.006</td><td>0.798</td><td>[0.722, 0.881]</td></tr>
+<tr><td>M2_VAF IDES</td><td>136 (25)</td><td>0.842</td><td>+0.009</td><td>0.832</td><td>[0.740, 0.934]</td></tr>
+<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.771</td><td>+0.004</td><td>0.767</td><td>[0.658, 0.865]</td></tr>
+<tr><td><strong>M2_hEq PV</strong> ⭐</td><td>91 (16)</td><td>0.907</td><td>+0.017</td><td><strong>0.891</strong></td><td>[0.822, 0.980]</td></tr>
+<tr><td>M1_hEq PV</td><td>108 (22)</td><td>0.824</td><td>+0.011</td><td>0.813</td><td>[0.718, 0.912]</td></tr>
+<tr><td>M2_VAF PV</td><td>91 (16)</td><td>0.884</td><td>+0.012</td><td>0.871</td><td>[0.777, 0.984]</td></tr>
+<tr><td>M1_VAF PV</td><td>108 (22)</td><td>0.795</td><td>+0.019</td><td>0.776</td><td>[0.680, 0.909]</td></tr>
 </table>
-<p class="muted">Optimism très faible (max +0.018, médiane ~0.012) confirme bonne généralisation. Les valeurs C-corrected à reporter en publication. Note : les N ici incluent les patients avec TEP imputé à 0 (Deauville manquant), légèrement plus que les cohortes de production strictes (M2_hEq IDES N=136 vs 162 ici). Les valeurs prod (sans imputation) sont C_apparent = 0.851/0.893 pour IDES/PV.</p>
+<p class="muted">Optimism très faible (max +0.019, médiane ~0.010) confirme bonne généralisation. Les valeurs C-corrected sont à reporter en publication. <strong>Note pré-analytique importante</strong> : les 36 patients avec TEP2 « Non fait » ou Deauville manquant (33 « Non fait » + 3 autres : PATIENT_S/GOSSE TEP fait mais Deauville non renseigné, DIEP statut absent) sont exclus de M2 (avec TEP) mais inclus dans M1 (sans TEP). Cela explique les N=136 vs 162 (IDES) et 91 vs 108 (PV) selon la variante.</p>
+
+<h3>8c. Analyse exploratoire — DeltaSUVmax% vs Deauville TEP2</h3>
+<p>Le Deauville TEP2 (binaire ≥4) est le standard clinique. Question : le DeltaSUVmax% (continu, baisse relative du SUVmax diag→TEP2) apporterait-il de l'info supplémentaire ?</p>
+<table>
+<tr><th>Modèle (cohorte N=117, ev=23)</th><th>C-index</th><th>β_TEP2_pos</th><th>β_DeltaSUV</th><th>LR vs baseline</th></tr>
+<tr><td>A. Baseline (score+burden+v5A+Deauville)</td><td>0.838</td><td>+0.94 (p=0.02)</td><td>—</td><td>—</td></tr>
+<tr><td>B. + DeltaSUV continu</td><td>0.846 (+0.008)</td><td>+0.64 (p=0.15 ⬇)</td><td>+0.010 (p=0.085)</td><td>p=0.091 NS</td></tr>
+<tr><td>C. DeltaSUV seul (sans Deauville)</td><td>0.842 (+0.004)</td><td>—</td><td>+0.015 (<strong>p=0.006</strong>)</td><td>—</td></tr>
+</table>
+<p>Conclusion : DeltaSUV et Deauville captent la <strong>même information</strong> (réponse métabolique). DeltaSUV continu pourrait remplacer Deauville (modèle C, p plus net) mais Deauville est le standard adopté en routine. Couverture DeltaSUV : 168/224 patients (75%) vs Deauville 188/224 (84%). <strong>Decision : Deauville maintenu en production</strong> ; DeltaSUVmax documenté comme variante alternative équivalente. Dans la zone Deauville=4 ambiguë (27 patients, 9 events), DeltaSUV permet une sous-stratification : shallow (Δ &gt; −70%) PFS event 42% vs deep (Δ ≤ −70%) 27%.</p>
 
 <h3>9. CONSORT flow diagram</h3>
 <p>Diagramme de flux des inclusions (V229.1) avec exclusions par pipeline et variante :</p>
