@@ -505,8 +505,23 @@ const TRAJ_VAF = {"IDES":{"histo_HODGKIN":{"good_responder":{"lam":0.64568318691
 let CALC_NO_TEP = false;
 function onTepToggle() {
   CALC_NO_TEP = document.getElementById('tep_unavailable').checked;
+  // 1) Disable the Deauville dropdown
   document.getElementById('tep2_deauville').disabled = CALC_NO_TEP;
   document.getElementById('tep2_deauville').style.opacity = CALC_NO_TEP ? 0.4 : 1.0;
+  // 2) When TEP unavailable → also disable the SUVmax fallback checkbox AND
+  //    hide the SUVmax inputs block (no TEP at all means no Deauville and no SUVmax).
+  const fallbackCb = document.getElementById('use_suvmax_fallback');
+  const suvBlock = document.getElementById('suvmax_block');
+  const fallbackWrapper = fallbackCb ? fallbackCb.closest('label').parentElement : null;
+  if (fallbackCb) {
+    fallbackCb.disabled = CALC_NO_TEP;
+    if (CALC_NO_TEP) fallbackCb.checked = false;
+  }
+  if (fallbackWrapper) {
+    fallbackWrapper.style.opacity = CALC_NO_TEP ? 0.4 : 1.0;
+    fallbackWrapper.style.pointerEvents = CALC_NO_TEP ? 'none' : 'auto';
+  }
+  if (suvBlock && CALC_NO_TEP) suvBlock.style.display = 'none';
   if (typeof updateVariantBanner === 'function') updateVariantBanner();
 }
 
