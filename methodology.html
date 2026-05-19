@@ -306,6 +306,16 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <h3>Performance par zone × variante</h3>
 <p>PFS@12 et PFS@24 (Kaplan-Meier) calculés rétrospectivement sur la cohorte d'entraînement, par zone Tern et par variante de modèle :</p>
 
+<div class="warn" style="margin:10px 0 14px; font-size:13px;">
+<strong>⚠ Lecture des valeurs « 0.0% »</strong> — Les chiffres sont des estimations Kaplan-Meier qui ajustent pour la censure.
+Une valeur PFS@24 = <strong>0.0%</strong> signifie : « parmi les patients de cette zone encore <em>à risque à 24 mois</em>
+(= non censurés et sans événement avant 24mo), tous ont eu un événement avant 24mo ». Cela ne veut <strong>pas</strong>
+dire que la totalité de la zone est décédée — certains patients peuvent être encore en suivi avec un recul &lt; 24 mo
+(censurés à droite). En particulier, la zone <strong>Élevé</strong> est petite (N=9 à 20 selon variante) et la valeur
+0.0% est donc estimée sur un sous-ensemble réduit. La <a href="#fig-km-tern">figure KM par zone</a> ci-dessous
+montre les courbes complètes et le N at-risk à chaque temps.
+</div>
+
 <h3 style="color:#1e40af;">Pipeline IDES</h3>
 <table>
 <tr><th rowspan="2">Variante</th><th colspan="3">🟢 Faible (r12 ≤ 10%)</th><th colspan="3">🟡 Modéré (10–40%)</th><th colspan="3">🔴 Élevé (r12 &gt; 40%)</th></tr>
@@ -331,14 +341,14 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <ul>
   <li>Zone <strong>Faible</strong> uniformément excellente (PFS@24 ≈ 93–98% dans toutes les variantes)</li>
   <li>Zone <strong>Modéré</strong> montre des événements tardifs (PFS@12 ≈ 80–90% mais PFS@24 ≈ 64–80%) → justifie la surveillance rapprochée</li>
-  <li>Zone <strong>Élevé</strong> avec les variantes <strong>complètes M2 (TEP+) en pipeline PV</strong> atteint <strong>0% de PFS@24</strong> = rechute universelle, validant la décision RCP</li>
+  <li>Zone <strong>Élevé</strong> avec les variantes <strong>complètes M2 (TEP+) en pipeline PV</strong> atteint <strong>PFS@24 KM = 0%</strong> : tous les patients à risque à 24 mo ont eu un événement (cohorte 9 patients, attention à la lecture — voir note interprétative ci-dessus). Cela valide la décision RCP : la zone Élevé identifie un sous-groupe à très forte rechute précoce.</li>
   <li>Sans TEP (variantes M1), la zone Élevé conserve quelques survivants tardifs (9–29%), reflétant la moindre discrimination — d'où l'intérêt d'inclure le TEP quand disponible</li>
 </ul>
 </div>
 
-<div class="center">
+<div class="center" id="fig-km-tern">
 <img class="figure" src="figs/METHODO_v2_KM_tern_both.png" alt="KM curves by Tern zone (M2_hEq)">
-<p class="muted">Courbes Kaplan-Meier par zone Tern 10/40 pour la variante optimale M2_hEq (IDES à gauche, PV à droite). Séparation nette entre les 3 zones.</p>
+<p class="muted">Courbes Kaplan-Meier par zone Tern 10/40 pour la variante optimale M2_hEq (IDES à gauche, PV à droite). Les <strong>tick marks</strong> sur les courbes représentent les censures (perdus de vue ou suivi en cours), et le tableau <em>numbers at risk</em> sous chaque axe X indique combien de patients sont encore observables à 0, 6, 12, 18, 24 mo. C'est cette information de N at-risk qui contextualise la valeur PFS@24 = 0% de la zone Élevé : la cohorte y est petite et la valeur s'estime sur les patients ayant atteint cette durée d'observation.</p>
 </div>
 </div>
 

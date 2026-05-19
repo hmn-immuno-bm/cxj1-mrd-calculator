@@ -340,6 +340,19 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
       </p>
     </div>
 
+    <div class="card" id="kmCard" style="display:none;">
+      <h2>📈 Survie prédite + Calibration locale</h2>
+      <p style="font-size: 12px; color: #475569;">
+        Deux courbes superposées :<br>
+        <strong>1️⃣ Noire pleine</strong> = survie prédite par le modèle Cox pour <strong>ce patient</strong> (S(t)=S₀(t)^exp(LP))<br>
+        <strong>2️⃣ Violette pointillée</strong> = KM observé des patients voisins (KNN <strong>adaptatif</strong> : tous les voisins dans ±1 unité LP, K_min=8, K_max=40).
+        L'<strong>IC95% Greenwood</strong> est reporté en chiffres sous le graphe (au lieu d'une bande, pour préserver la lisibilité).<br>
+        Si les 2 courbes coïncident → modèle bien calibré pour cette zone de risque.
+      </p>
+      <div class="chart-container" id="kmChart" style="height:340px;"></div>
+      <div id="localCalibStats" style="margin-top:10px; padding:10px 12px; background:#faf5ff; border-left:3px solid #7c3aed; border-radius:4px; font-size:12px; color:#334155;"></div>
+    </div>
+
     <!-- Encart didactique : pourquoi la depth n'est pas un input du calculateur -->
     <div class="card" id="depthNoteCard">
       <h2>🔬 Et la profondeur de séquençage ?</h2>
@@ -982,11 +995,12 @@ function calculate() {
   document.getElementById('resultsCard').style.display = 'block';
   const patPos = document.getElementById('patientPositionCard');
   if (patPos) patPos.style.display = 'block';
-  // kmCard removed — KM curves are documented in the Methodology tab
   // Hide the "À propos du modèle" intro card once the user has run a calculation
   const readmeCard = document.getElementById('readmeCard');
   if (readmeCard) readmeCard.style.display = 'none';
-  // drawKM(pipe, lp); // kmCard removed from calculator UI — KM is in methodology only
+  // kmCard : courbe Cox + KM voisins KNN (restauré V15.274)
+  const _kmCard = document.getElementById('kmCard'); if (_kmCard) _kmCard.style.display = 'block';
+  drawKM(pipe, lp);
   // drawVPNDepth removed (V15.272-273) — depth is not a marginal predictor of VPN once cfDNA is in the model
   window.scrollTo({ top: document.getElementById('resultsCard').offsetTop - 20, behavior: 'smooth' });
 }
@@ -1123,7 +1137,8 @@ function resetForm() {
   document.getElementById('tep2_deauville').value = '';
   document.getElementById('resultsCard').style.display = 'none';
   const _patP  = document.getElementById('patientPositionCard'); if (_patP) _patP.style.display = 'none';
-  // kmCard, zoneCard, vpnCard removed from UI
+  const _kmC   = document.getElementById('kmCard');              if (_kmC)  _kmC.style.display  = 'none';
+  // zoneCard, vpnCard removed from UI
   // Restore the "À propos du modèle" intro card on reset
   const readmeCard = document.getElementById('readmeCard');
   if (readmeCard) readmeCard.style.display = 'block';
@@ -1209,51 +1224,79 @@ function sensitivityAnalysis() {
     { label: 'Tous combinés ±10%', minus: findResult('All −10% combined'), plus: findResult('All +10% combined') },
   ];
 
-  // For each group, compute range/half-amplitude
+  // Pour chaque groupe : conserver les 2 deltas SIGNÉS (asymétrie préservée)
+  // delta_minus = r12(input -10%) − ref ; delta_plus = r12(input +10%) − ref
+  // Les 2 ne sont pas forcément symétriques (LP non-linéaire en log).
   for (const g of grouped) {
     if (g.isRef) {
-      g.lo = ref_r12; g.hi = ref_r12; g.halfAmp = 0;
+      g.lo = ref_r12; g.hi = ref_r12;
+      g.deltaMinus = 0; g.deltaPlus = 0; g.maxAbsDelta = 0;
     } else if (g.minus !== null && g.plus !== null) {
       g.lo = Math.min(g.minus, g.plus);
       g.hi = Math.max(g.minus, g.plus);
-      g.halfAmp = Math.max(Math.abs(g.minus - ref_r12), Math.abs(g.plus - ref_r12));
+      g.deltaMinus = g.minus - ref_r12;   // signé
+      g.deltaPlus  = g.plus  - ref_r12;   // signé
+      g.maxAbsDelta = Math.max(Math.abs(g.deltaMinus), Math.abs(g.deltaPlus));
     } else {
-      g.lo = null; g.hi = null; g.halfAmp = null;
+      g.lo = null; g.hi = null;
+      g.deltaMinus = null; g.deltaPlus = null; g.maxAbsDelta = null;
     }
   }
 
-  // Build HTML rows
+  // Helpers d'affichage : Δ signé coloré selon magnitude (vert/orange/rouge sur |Δ|)
+  function fmtDelta(d) {
+    if (d === null || d === undefined) return '—';
+    if (Math.abs(d) < 0.005) return '0.00 pt'; // évite "-0.00"
+    const sign = d > 0 ? '+' : '−';
+    return `${sign}${Math.abs(d).toFixed(2)} pt`;
+  }
+  function colorDelta(d) {
+    if (d === null) return '#94a3b8';
+    const a = Math.abs(d);
+    return a < 0.5 ? '#16a34a' : (a < 2 ? '#ca8a04' : '#dc2626');
+  }
+
+  // Build HTML rows (4 colonnes : Variable / r12 −10% / r12 +10% / Δ−10% & Δ+10%)
   let rows = '';
   for (const g of grouped) {
     const is_ref = !!g.isRef;
-    const ampColor = (g.halfAmp === null) ? '#94a3b8'
-                   : (g.halfAmp < 0.5 ? '#16a34a'
-                     : (g.halfAmp < 2 ? '#ca8a04' : '#dc2626'));
-    const rangeStr = is_ref ? (ref_r12 !== null ? ref_r12.toFixed(2)+'%' : '—')
-                   : (g.lo !== null ? `${g.lo.toFixed(2)}% — ${g.hi.toFixed(2)}%` : '—');
-    const ampStr = is_ref ? '—'
-                   : (g.halfAmp !== null ? `±${g.halfAmp.toFixed(2)} pt` : '—');
-    rows += `<tr${is_ref ? ' style="background:#f1f5f9;font-weight:600;"' : ''}>
+    if (is_ref) {
+      rows += `<tr style="background:#f1f5f9;font-weight:600;">
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;">${g.label}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;" colspan="3">${ref_r12 !== null ? ref_r12.toFixed(2)+'%' : '—'} (référence)</td>
+      </tr>`;
+      continue;
+    }
+    const r_minus = g.minus !== null ? g.minus.toFixed(2)+'%' : '—';
+    const r_plus  = g.plus  !== null ? g.plus.toFixed(2)+'%'  : '—';
+    rows += `<tr>
       <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;">${g.label}</td>
-      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;${is_ref ? '' : 'font-family:monospace;font-size:12px;'}">${rangeStr}</td>
-      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;color:${ampColor};font-weight:600;">${ampStr}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:12px;">${r_minus}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:12px;">${r_plus}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:12px;">
+        <span style="color:${colorDelta(g.deltaMinus)};font-weight:600;">${fmtDelta(g.deltaMinus)}</span>
+        <span style="color:#cbd5e1;">/</span>
+        <span style="color:${colorDelta(g.deltaPlus)};font-weight:600;">${fmtDelta(g.deltaPlus)}</span>
+      </td>
     </tr>`;
   }
 
-  // Plain text version for clipboard copy
+  // Plain text version for clipboard copy (préserve l'asymétrie)
   const lines = ['Analyse de sensibilité ±10% — r12 prédit', ''];
-  lines.push('Variable'.padEnd(24) + 'r12 [-10% — +10%]'.padStart(20) + '  Amplitude');
-  lines.push('-'.repeat(58));
+  lines.push('Variable'.padEnd(22) + 'r12 −10%'.padStart(10) + '  ' + 'r12 +10%'.padStart(10) + '  ' + 'Δ−10%'.padStart(10) + '  ' + 'Δ+10%'.padStart(10));
+  lines.push('-'.repeat(70));
+  if (ref_r12 !== null) lines.push('Référence'.padEnd(22) + (ref_r12.toFixed(2)+'%').padStart(10) + '  (référence)');
   for (const g of grouped) {
-    const rangeStr = g.isRef ? (ref_r12 !== null ? ref_r12.toFixed(2)+'%' : '-')
-                   : (g.lo !== null ? `${g.lo.toFixed(2)}% — ${g.hi.toFixed(2)}%` : '-');
-    const ampStr = g.isRef ? '-' : (g.halfAmp !== null ? `±${g.halfAmp.toFixed(2)} pt` : '-');
-    lines.push(g.label.padEnd(24) + rangeStr.padStart(20) + '  ' + ampStr);
+    if (g.isRef) continue;
+    const rm = g.minus !== null ? (g.minus.toFixed(2)+'%') : '-';
+    const rp = g.plus  !== null ? (g.plus .toFixed(2)+'%') : '-';
+    const dm = g.deltaMinus !== null ? fmtDelta(g.deltaMinus) : '-';
+    const dp = g.deltaPlus  !== null ? fmtDelta(g.deltaPlus)  : '-';
+    lines.push(g.label.padEnd(22) + rm.padStart(10) + '  ' + rp.padStart(10) + '  ' + dm.padStart(10) + '  ' + dp.padStart(10));
   }
-  // Max half-amplitude across non-ref groups
-  const maxAmp = Math.max(...grouped.filter(g => !g.isRef && g.halfAmp !== null).map(g => g.halfAmp));
-  if (isFinite(maxAmp)) lines.push('', 'Amplitude max (worst-case ±10%) : ±' + maxAmp.toFixed(2) + ' pt');
-  const stdev = maxAmp; // for backward compat with modal text
+  // Max |Δ| across non-ref groups (≈ amplitude pire-cas)
+  const maxAmp = Math.max(...grouped.filter(g => !g.isRef && g.maxAbsDelta !== null).map(g => g.maxAbsDelta));
+  if (isFinite(maxAmp)) lines.push('', 'Amplitude max (worst-case ±10%) : ' + maxAmp.toFixed(2) + ' pt');
   const plain_text = lines.join('\n');
 
   // Modal markup
@@ -1269,20 +1312,22 @@ function sensitivityAnalysis() {
         <button onclick="document.getElementById('sensitivity_modal').remove();" style="background:transparent; border:none; font-size:22px; cursor:pointer; color:#64748b; padding:0 4px; line-height:1;">×</button>
       </div>
       <div style="padding:14px 20px;">
-        <p style="margin:0 0 12px; font-size:13px; color:#475569;">Variation ±10% de chaque input. Chaque ligne fusionne les deux variations en une plage [-10% → +10%] et reporte l'<strong>amplitude max</strong> autour de la référence (≈ écart-type local de r12).${isFinite(maxAmp) ? ' <strong>Amplitude max globale = ±'+maxAmp.toFixed(2)+' pt</strong>.' : ''}</p>
+        <p style="margin:0 0 12px; font-size:13px; color:#475569;">Variation ±10% de chaque input. Les <strong>2 deltas signés</strong> (Δ−10% et Δ+10%) sont reportés séparément car le LP n'est pas exactement symétrique en log (un input ×0.9 ne donne pas l'opposé de ×1.1).${isFinite(maxAmp) ? ' <strong>Amplitude max globale = '+maxAmp.toFixed(2)+' pt</strong>.' : ''}</p>
         <table style="width:100%; font-size:13px; border-collapse:collapse; user-select:text;">
           <thead><tr style="background:#7c3aed; color:white;">
             <th style="padding:8px 10px; text-align:left;">Variable</th>
-            <th style="padding:8px 10px; text-align:right;">r12 [-10% → +10%]</th>
-            <th style="padding:8px 10px; text-align:right;">Amplitude</th>
+            <th style="padding:8px 10px; text-align:right;">r12 (input −10%)</th>
+            <th style="padding:8px 10px; text-align:right;">r12 (input +10%)</th>
+            <th style="padding:8px 10px; text-align:right;">Δ−10% / Δ+10%</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
         <div style="margin-top:14px; padding:10px; background:#f8fafc; border-radius:6px; font-size:12px; color:#475569;">
-          <strong>Légende</strong> :
-          <span style="color:#16a34a;">vert</span> = très stable (±&lt; 0.5pt) ·
-          <span style="color:#ca8a04;">orange</span> = stable (±&lt; 2pt) ·
-          <span style="color:#dc2626;">rouge</span> = sensible (±≥ 2pt).
+          <strong>Légende couleur sur |Δ|</strong> :
+          <span style="color:#16a34a;">vert</span> = très stable (&lt; 0.5pt) ·
+          <span style="color:#ca8a04;">orange</span> = stable (&lt; 2pt) ·
+          <span style="color:#dc2626;">rouge</span> = sensible (≥ 2pt).
+          Une asymétrie Δ−10% ≠ −Δ+10% révèle la non-linéarité log du modèle.
         </div>
       </div>
       <div style="padding:12px 20px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; gap:10px; justify-content:flex-end;">
