@@ -288,22 +288,18 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
       <h2>📊 Résultats pronostiques</h2>
       <div id="riskBanner" class="risk-banner"></div>
 
-      <div class="summary-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+      <div class="summary-grid" style="grid-template-columns: 1fr 1fr 1fr;">
         <div class="summary-box">
-          <div class="summary-box-label">Score (mono-exp)</div>
-          <div class="summary-box-value" id="r_score">--</div>
+          <div class="summary-box-label">Quantification</div>
+          <div class="summary-box-value" id="r_quant" style="font-size:16px;">--</div>
         </div>
         <div class="summary-box">
-          <div class="summary-box-label">v5A_gated (drivers) <span id="r_v5_status" style="font-size:11px; padding:2px 6px; border-radius:3px; margin-left:4px;"></span></div>
-          <div class="summary-box-value" id="r_v5">--</div>
+          <div class="summary-box-label">Drivers v5A <span id="r_v5_status" style="font-size:11px; padding:2px 6px; border-radius:3px; margin-left:4px;"></span></div>
+          <div class="summary-box-value" id="r_v5" style="font-size:16px;">--</div>
         </div>
         <div class="summary-box">
-          <div class="summary-box-label">TEP2 (Deauville ou ΔSUV)</div>
-          <div class="summary-box-value" id="r_tep">--</div>
-        </div>
-        <div class="summary-box">
-          <div class="summary-box-label">LP (prédicteur linéaire)</div>
-          <div class="summary-box-value" id="r_lp">--</div>
+          <div class="summary-box-label">TEP interim</div>
+          <div class="summary-box-value" id="r_tep" style="font-size:16px;">--</div>
         </div>
       </div>
 
@@ -926,15 +922,17 @@ function calculate() {
     divWarning;
 
 
-  // Display values
-  document.getElementById('r_score').textContent = isNaN(score) ? '--' : score.toFixed(3);
-  document.getElementById('r_v5').textContent    = v5A_gated.toFixed(3);
+  // Display values — show which model variant was actually used
+  // 1) Quantification : hEq (avec cfDNA Qubit) ou VAF (sans Qubit)
+  document.getElementById('r_quant').textContent = CALC_NO_QUBIT ? 'VAF % seule' : 'hEq (VAF × cfDNA)';
+  // 2) v5A_gated : score brut + statut activé/désactivé (via badge à droite du label)
+  document.getElementById('r_v5').textContent = v5A_gated.toFixed(3);
+  // 3) TEP : source réelle (Deauville, ΔSUV, ou aucun)
   let tepDisplay;
-  if (noTep) tepDisplay = 'N/A (M1)';
-  else if (useDelta && delta_suv_val !== null) tepDisplay = 'ΔSUV ' + delta_suv_val.toFixed(0) + '%';
+  if (noTep) tepDisplay = 'Non utilisé (M1)';
+  else if (useDelta && delta_suv_val !== null) tepDisplay = 'ΔSUVmax ' + delta_suv_val.toFixed(0) + '%';
   else tepDisplay = 'Deauville ' + (tep2_deauv_val !== null ? tep2_deauv_val : '?');
   document.getElementById('r_tep').textContent = tepDisplay;
-  document.getElementById('r_lp').textContent    = lp.toFixed(3);
   // V207 — Indicateur visuel du statut v5A (quali gate)
   const v5StatusEl = document.getElementById('r_v5_status');
   if (quali === 1) {
@@ -1363,8 +1361,7 @@ function sensitivityAnalysis() {
     // Compute silently (without rerendering DOM)
     try {
       calculate();
-      const r12_text = document.querySelector('.summary-box-value[id="r_lp"]').textContent;
-      // r12 is displayed in the banner instead; let's parse from banner
+      // r12 is displayed in the banner — parse it
       const banner = document.getElementById('riskBanner').textContent;
       const m = banner.match(/(\d+\.?\d*)%/);
       const r12 = m ? parseFloat(m[1]) : null;
