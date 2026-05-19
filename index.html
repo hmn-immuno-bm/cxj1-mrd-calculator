@@ -31,9 +31,10 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 label { display: block; font-size: 13px; color: #475569; margin: 10px 0 4px; font-weight: 500; }
 input[type="number"], select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1;
    border-radius: 6px; font-size: 14px; background: white; }
-/* Alignment fix : in row3 grids, labels stretch to bottom so all inputs align horizontally */
+/* Alignment fix : in row3/row grids, labels have min-height for top-aligned text
+   AND inputs aligned at same vertical position regardless of label line-wrap */
 .row3 > div, .row > div { display: flex; flex-direction: column; }
-.row3 > div > label, .row > div > label { flex-grow: 1; display: flex; align-items: flex-end; }
+.row3 > div > label, .row > div > label { min-height: 2.8em; margin: 10px 0 4px; align-self: stretch; }
 .row3 > div > input, .row > div > input { margin-top: 0; }
 input[type="number"]:focus, select:focus { outline: none; border-color: #2E75B6;
    box-shadow: 0 0 0 3px rgba(46,117,182,.15); }

@@ -590,6 +590,25 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 </table>
 <p><strong>Optimism très faible</strong> (max +0.023, médiane +0.013) → modèles robustes. <strong>Δ V229.1 → V229.3</strong> : M2_hEq IDES C_corr passe de 0.845 à <strong>0.848</strong> (+0.003), PV maintenu à <strong>0.891</strong>. La spécification linéaire est statistiquement équivalente à la binaire, avec l'avantage d'une interprétation plus fine (différenciation Deauville 2 vs 3, 4 vs 5).</p>
 
+<h3>8b-ter. Sensibilité au choix C2 vs C3 (bi-tp)</h3>
+<p>Pour les patients ayant 2 prélèvements CXJ1 (C2J1 et C3J1, N=24 IDES bi-tp), la valeur retenue par défaut est <strong>C2 (priorité au plus précoce)</strong>. Sensitivity analysis : comparaison de 4 stratégies de sélection sur la cohorte M2_hEq IDES (N=136, evt=25), bootstrap optimism-corrected B=200.</p>
+<table>
+<tr><th>Stratégie</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95%</th></tr>
+<tr><td><strong>C2 priority (production V229.3)</strong></td><td>0.857</td><td>+0.011</td><td><strong>0.846</strong></td><td>[0.78, 0.94]</td></tr>
+<tr><td>C3 priority</td><td>0.855</td><td>+0.009</td><td>0.847</td><td>[0.78, 0.93]</td></tr>
+<tr><td>MIN (VAF plus bas des 2)</td><td>0.855</td><td>+0.015</td><td>0.841</td><td>[0.79, 0.94]</td></tr>
+<tr><td>MAX (VAF plus haut des 2)</td><td>0.854</td><td>+0.010</td><td>0.844</td><td>[0.78, 0.93]</td></tr>
+</table>
+<p><strong>Δ C-corrected (C3 − C2) = +0.001 → équivalence statistique</strong>. Les 4 stratégies donnent une performance essentiellement identique sur la cohorte complète. Le choix C2 priority (plus précoce dans le traitement) est retenu pour son utilité clinique (décision plus précoce).</p>
+
+<p><strong>Cohérence mono-exponentielle C2 → C3</strong> : sur les 24 bi-tp, on a comparé VAF_C3 observée à VAF_C3 prédite par mono-exp depuis C2 (avec λ_good par histo et Δt = 21j).</p>
+<ul>
+<li><strong>12 patients en REBOND</strong> (VAF_C3 &gt; VAF_C2, 50% des bi-tp) — comportement atypique. <strong>Néanmoins 11/12 sont restés good responders cliniques</strong> (PFS=0 à 18-38mo). Un seul (JUNOT, DLBCL) a rechuté à 11mo.</li>
+<li><strong>12 patients en plateau</strong> (VAF_C3 ≤ VAF_C2 mais décroissance plus lente que λ_good prédit). Mix de good et bad responders.</li>
+<li><strong>0 patient avec « décroissance attendue good-like »</strong> au sens strict (VAF_C3 ≪ prédit). Cela tient au fait que λ_good prédit VAF_C3 quasi-nul en 21j ; toute mesure positive à C3 est mécaniquement classée plateau ou rebond.</li>
+</ul>
+<p class="muted">Interprétation : la mono-exponentielle est une approximation utile pour le score Cox, mais la majorité des patients bi-tp ont un comportement non-strictement mono-exp à C3 (probablement par bruit de mesure à très faibles VAF). Les rebonds ne sont pas spécifiquement associés à la rechute dans notre cohorte (1/12 events seulement). Cohorte des bi-tp probablement biaisée vers les patients pour lesquels le clinicien avait souhaité un suivi C3 supplémentaire (cas suspect C2 positif). À reproduire sur cohorte externe.</p>
+
 <h3>8b-bis. MICE sensitivity analysis</h3>
 <p>Le modèle V229.1 utilise une analyse <strong>complete-case</strong> pour chacune des 4 variantes (M2/M1 × hEq/VAF), routant les patients selon leur pattern de missingness. Sensitivity analysis MICE (Multiple Imputation by Chained Equations, m=20) pour vérifier robustesse :</p>
 <table>
