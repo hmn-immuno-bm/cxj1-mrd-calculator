@@ -55,7 +55,7 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 <header>
   <div class="header-inner">
     <h1>🧬 MRD Calculator — ctDNA mid-traitement</h1>
-    <div class="header-subtitle">Modèle Cox pronostique pour la PFS post-CXJ1 — lymphomes B agressifs et Hodgkin classique</div>
+    <div class="header-subtitle">Modèle Cox pronostique pour l'EFS post-CXJ1 — lymphomes B agressifs et Hodgkin classique</div>
     <nav class="tabs">
       <a href="index.html" class="tab">📊 Calculateur</a>
       <a href="methodology.html" class="tab tab-active" aria-current="page">📚 Méthodologie & validation</a>
@@ -80,7 +80,10 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 <!-- ────────────────────────────────────────────────────── -->
 <div class="card">
 <h2>🎯 Objectif clinique</h2>
-<p>Prédire la probabilité de récidive (PFS) à 12 et 24 mois chez les patients atteints de lymphome B agressif (DLBCL, HGBL, PMBL, Burkitt, transformés, etc.) ou de Hodgkin classique, à partir d'une évaluation MRD ctDNA mi-traitement (point CXJ1, typiquement après cycle 2 ou 3 de chimio-immunothérapie de première ligne).</p>
+<p>Prédire la probabilité d'événement (EFS = Event-Free Survival = rechute ou progression ; les morts non-lymphome sont censurées) à 12 et 24 mois chez les patients atteints de lymphome B agressif (DLBCL, HGBL, PMBL, Burkitt, transformés, etc.) ou de Hodgkin classique, à partir d'une évaluation MRD ctDNA mi-traitement (point CXJ1, typiquement après cycle 2 ou 3 de chimio-immunothérapie de première ligne).</p>
+<div class="warn" style="margin:10px 0; font-size:13px;">
+<strong>📌 V230 (mai 2026)</strong> — Passage de l'endpoint <strong>PFS</strong> (toute-cause) vers <strong>EFS</strong> (Event-Free Survival = Rechute OR Progression). Les 3 morts non-lymphome (2 COVID + 1 ulcère hémorragique) sont désormais censurées, pas comptées comme événement. Architecture inchangée (Deauville LINÉAIRE + DeltaSUV fallback, partial pooling B′ IDES=PV). Voir <a href="#endpoint-pfs-rr">§8c-ter</a> pour la justification empirique (analyse de sensibilité PFS vs EFS).
+</div>
 
 <p><strong>Variables d'entrée requises :</strong></p>
 <ul>
@@ -99,7 +102,7 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 <h2>📐 Structure du modèle</h2>
 
 <h3>1. Trajectoire de décroissance ctDNA (mono-exponentielle)</h3>
-<p>Pour chaque histologie (Hodgkin / DLBCL), deux trajectoires sont fittées : <strong>good responder</strong> (PFS sans événement &gt;12 mois) et <strong>bad responder</strong> (événement ≤12 mois) :</p>
+<p>Pour chaque histologie (Hodgkin / DLBCL), deux trajectoires sont fittées : <strong>good responder</strong> (EFS sans événement &gt;12 mois) et <strong>bad responder</strong> (événement ≤12 mois) :</p>
 <div class="formula">
 mono_exp(t, λ) = exp(−λ · t)
 </div>
@@ -304,11 +307,11 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <p class="muted">Seuils 10/40 sélectionnés par évaluation exhaustive de 82 splits candidats sur la métrique de séparation des courbes KM adjacentes, cross-validation 5-fold confirmant 10/40 comme optimum interprétable.</p>
 
 <h3>Performance par zone × variante</h3>
-<p>PFS@12 et PFS@24 (Kaplan-Meier) calculés rétrospectivement sur la cohorte d'entraînement, par zone Tern et par variante de modèle :</p>
+<p>EFS@12 et EFS@24 (Kaplan-Meier) calculés rétrospectivement sur la cohorte d'entraînement, par zone Tern et par variante de modèle :</p>
 
 <div class="warn" style="margin:10px 0 14px; font-size:13px;">
 <strong>⚠ Lecture des valeurs « 0.0% »</strong> — Les chiffres sont des estimations Kaplan-Meier qui ajustent pour la censure.
-Une valeur PFS@24 = <strong>0.0%</strong> signifie : « parmi les patients de cette zone encore <em>à risque à 24 mois</em>
+Une valeur EFS@24 = <strong>0.0%</strong> signifie : « parmi les patients de cette zone encore <em>à risque à 24 mois</em>
 (= non censurés et sans événement avant 24mo), tous ont eu un événement avant 24mo ». Cela ne veut <strong>pas</strong>
 dire que la totalité de la zone est décédée — certains patients peuvent être encore en suivi avec un recul &lt; 24 mo
 (censurés à droite). En particulier, la zone <strong>Élevé</strong> est petite (N=9 à 20 selon variante) et la valeur
@@ -319,7 +322,7 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <h3 style="color:#1e40af;">Pipeline IDES</h3>
 <table>
 <tr><th rowspan="2">Variante</th><th colspan="3">🟢 Faible (r12 ≤ 10%)</th><th colspan="3">🟡 Modéré (10–40%)</th><th colspan="3">🔴 Élevé (r12 &gt; 40%)</th></tr>
-<tr><th>N</th><th>PFS@12</th><th>PFS@24</th><th>N</th><th>PFS@12</th><th>PFS@24</th><th>N</th><th>PFS@12</th><th>PFS@24</th></tr>
+<tr><th>N</th><th>EFS@12</th><th>EFS@24</th><th>N</th><th>EFS@12</th><th>EFS@24</th><th>N</th><th>EFS@12</th><th>EFS@24</th></tr>
 <tr><td><strong>M2_hEq</strong> ⭐</td><td>82</td><td>95.1%</td><td>95.1%</td><td>37</td><td>86.1%</td><td>82.8%</td><td>17</td><td>17.6%</td><td><strong>0.0%</strong></td></tr>
 <tr><td>M1_hEq</td><td>77</td><td>94.8%</td><td>94.8%</td><td>65</td><td>79.7%</td><td>75.5%</td><td>20</td><td>40.0%</td><td>32.0%</td></tr>
 <tr><td>M2_VAF</td><td>84</td><td>95.2%</td><td>95.2%</td><td>36</td><td>82.9%</td><td>79.6%</td><td>16</td><td>18.8%</td><td><strong>0.0%</strong></td></tr>
@@ -329,7 +332,7 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <h3 style="color:#1e40af;">Pipeline PV</h3>
 <table>
 <tr><th rowspan="2">Variante</th><th colspan="3">🟢 Faible (r12 ≤ 10%)</th><th colspan="3">🟡 Modéré (10–40%)</th><th colspan="3">🔴 Élevé (r12 &gt; 40%)</th></tr>
-<tr><th>N</th><th>PFS@12</th><th>PFS@24</th><th>N</th><th>PFS@12</th><th>PFS@24</th><th>N</th><th>PFS@12</th><th>PFS@24</th></tr>
+<tr><th>N</th><th>EFS@12</th><th>EFS@24</th><th>N</th><th>EFS@12</th><th>EFS@24</th><th>N</th><th>EFS@12</th><th>EFS@24</th></tr>
 <tr><td><strong>M2_hEq</strong> ⭐</td><td>69</td><td>95.5%</td><td>95.5%</td><td>16</td><td>87.5%</td><td>70.7%</td><td>9</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
 <tr><td>M1_hEq</td><td>69</td><td>95.7%</td><td>94.0%</td><td>33</td><td>74.7%</td><td>63.9%</td><td>13</td><td>23.1%</td><td>23.1%</td></tr>
 <tr><td>M2_VAF</td><td>70</td><td>95.6%</td><td>95.6%</td><td>15</td><td>86.7%</td><td>65.7%</td><td>9</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
@@ -339,9 +342,9 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <div class="success">
 <strong>Observations clés :</strong>
 <ul>
-  <li>Zone <strong>Faible</strong> uniformément excellente (PFS@24 ≈ 93–98% dans toutes les variantes)</li>
-  <li>Zone <strong>Modéré</strong> montre des événements tardifs (PFS@12 ≈ 80–90% mais PFS@24 ≈ 64–80%) → justifie la surveillance rapprochée</li>
-  <li>Zone <strong>Élevé</strong> avec les variantes <strong>complètes M2 (TEP+) en pipeline PV</strong> atteint <strong>PFS@24 KM = 0%</strong> : tous les patients à risque à 24 mo ont eu un événement (cohorte 9 patients, attention à la lecture — voir note interprétative ci-dessus). Cela valide la décision RCP : la zone Élevé identifie un sous-groupe à très forte rechute précoce.</li>
+  <li>Zone <strong>Faible</strong> uniformément excellente (EFS@24 ≈ 93–98% dans toutes les variantes)</li>
+  <li>Zone <strong>Modéré</strong> montre des événements tardifs (EFS@12 ≈ 80–90% mais EFS@24 ≈ 64–80%) → justifie la surveillance rapprochée</li>
+  <li>Zone <strong>Élevé</strong> avec les variantes <strong>complètes M2 (TEP+) en pipeline PV</strong> atteint <strong>EFS@24 KM = 0%</strong> : tous les patients à risque à 24 mo ont eu un événement (cohorte 9 patients, attention à la lecture — voir note interprétative ci-dessus). Cela valide la décision RCP : la zone Élevé identifie un sous-groupe à très forte rechute précoce.</li>
   <li>Sans TEP (variantes M1), la zone Élevé conserve quelques survivants tardifs (9–29%), reflétant la moindre discrimination — d'où l'intérêt d'inclure le TEP quand disponible</li>
 </ul>
 </div>
@@ -349,7 +352,7 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <div class="center" id="fig-km-tern">
 <img class="figure" src="figs/METHODO_v2_KM_tern_both.png" alt="KM curves by Tern zone (M2_hEq) with censoring ticks and N at-risk">
 <p class="muted">Courbes Kaplan-Meier par zone Tern 10/40 pour la variante optimale M2_hEq (IDES à gauche, PV à droite, V229.3). Les <strong>tick marks verticaux (|)</strong> représentent les censures (perdus de vue ou suivi en cours) ; chaque tick = 1 patient sorti de la cohorte sans événement. Le <strong>tableau « At risk »</strong> sous chaque axe X indique combien de patients sont encore observables aux temps 0, 6, 12, 18, 24, 30, 36 mo. Bande colorée = IC95% Greenwood.<br><br>
-<strong>Lecture de la zone Élevé PV (N=9, evt=9)</strong> : la courbe rouge plonge à 0% vers 11 mo, et le N at-risk passe de 9 → 3 → 0 dès 7 mo. Cela ne signifie pas que <em>tout</em> patient à r12 &gt; 40% va rechuter à coup sûr — la cohorte du sous-groupe est petite (9 patients) et la valeur PFS@24=0% est une estimation KM avec un IC95% large. Pour un nouveau patient prédit à 60%, la <em>calibration locale KNN</em> du calculateur (cercle violet) donne l'estimation contextuelle : sur les patients voisins en LP, le KM observé peut être plus optimiste que l'extrapolation Tern. L'utilité clinique de la zone Élevé est d'identifier <em>un sous-groupe à haut risque</em> pour discussion RCP, pas de prophétiser un événement certain.</p>
+<strong>Lecture de la zone Élevé PV (N=9, evt=9)</strong> : la courbe rouge plonge à 0% vers 11 mo, et le N at-risk passe de 9 → 3 → 0 dès 7 mo. Cela ne signifie pas que <em>tout</em> patient à r12 &gt; 40% va rechuter à coup sûr — la cohorte du sous-groupe est petite (9 patients) et la valeur EFS@24=0% est une estimation KM avec un IC95% large. Pour un nouveau patient prédit à 60%, la <em>calibration locale KNN</em> du calculateur (cercle violet) donne l'estimation contextuelle : sur les patients voisins en LP, le KM observé peut être plus optimiste que l'extrapolation Tern. L'utilité clinique de la zone Élevé est d'identifier <em>un sous-groupe à haut risque</em> pour discussion RCP, pas de prophétiser un événement certain.</p>
 </div>
 </div>
 
@@ -694,7 +697,7 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <li><strong>M2 (avec TEP)</strong> : PFS donne un C-index très légèrement <em>supérieur</em> à R/R (ΔC ≈ −0.01 à −0.02). Le Deauville capte aussi les patients avec réponse métabolique faible qui ont un risque accru de complications non-lymphome (infection, autogreffe difficile) — donc PFS étant un endpoint plus large, il bénéficie indirectement du signal TEP sur la mortalité non-spécifique.</li>
 <li><strong>M1 (sans TEP)</strong> : R/R donne un C-index <em>supérieur</em> à PFS, surtout en PV (+0.033 à +0.037). Sans le TEP, le score MRD est un marqueur plus pur de résiduel lymphome ; restreindre l'endpoint à R/R amplifie le signal.</li>
 <li><strong>Coefficients très peu modifiés</strong> (Δβ &lt; 0.1 pour toutes les covariables). β_score_kin baisse de ~10% (les morts non-liées n'étaient pas prédites par score_kin), β_Deauville augmente de ~5% (Deauville reste central pour les vrais events lymphome).</li>
-<li><strong>Décision</strong> : <strong>endpoint PFS conservé</strong> en production pour 3 raisons : (a) c'est le standard clinique en recherche lymphome (FDA/EMA), (b) la différence est ≤ 0.03 C-index dans toutes les variantes, (c) seuls 3 patients sur 223 sont des morts strictement non-liées. Documenté ici comme analyse de sensibilité confirmant la robustesse du choix.</li>
+<li><strong>Décision V230 (mai 2026)</strong> : <strong>passage à l'endpoint EFS</strong> en production. Cette analyse de sensibilité a justifié le choix : les 3 morts non-lymphome (COVID×2, ulcère hémorragique) ne reflètent pas un échec thérapeutique et leur inclusion dilue le signal MRD. Architecture inchangée (Deauville LINÉAIRE + DeltaSUV fallback, partial pooling B′ IDES=PV) ; seul l'endpoint change : <code>EFS = Rechute OR Progression</code>. Coefficients refittés (V15.278) : β_score=+0.362, β_burden=+0.271, β_v5A_IDES=+0.591, β_v5A_PV=+1.501, β_Deauv_lin=+0.378. C-index : M2_hEq IDES 0.847, PV 0.887.</li>
 </ol>
 <p>Script : <code>scripts/_v15_274_PFS_vs_RR_endpoint.py</code>. Export : <code>output/V15_274_PFS_vs_RR_compare.csv</code>.</p>
 
@@ -867,7 +870,7 @@ montre les courbes complètes et le N at-risk à chaque temps.
   <th style="background:#1e40af !important; color:white !important;">Caractéristique</th>
   <th style="background:#1e40af !important; color:white !important;">Toute la cohorte<br/>(N=137)</th>
   <th style="background:#1e40af !important; color:white !important;">Good responder<br/>(N=114)</th>
-  <th style="background:#1e40af !important; color:white !important;">Bad responder (PFS@12)<br/>(N=23)</th>
+  <th style="background:#1e40af !important; color:white !important;">Bad responder (EFS@12)<br/>(N=23)</th>
   <th style="background:#1e40af !important; color:white !important;">Hodgkin<br/>(N=69)</th>
   <th style="background:#1e40af !important; color:white !important;">DLBCL bucket<br/>(N=68)</th>
 </tr>
