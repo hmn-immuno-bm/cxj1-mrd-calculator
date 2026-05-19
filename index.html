@@ -308,9 +308,21 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
         <thead><tr><th>Variable</th><th>Valeur</th><th>β</th><th>HR</th><th>Contribution LP</th></tr></thead>
         <tbody id="lpBreakdown"></tbody>
       </table>
+    </div>
 
-      <h3 style="margin-top:18px;">📍 Position du patient dans la cohorte (VPN et VPP observées à 12 mois)</h3>
-      <p style="font-size:12px; color:#475569; margin-top:-6px;">
+    <!-- ZONE TERN (séparée du bandeau résultat) — stats GLOBALES de la zone -->
+    <div class="card" id="zoneCard" style="display:none; border-left:5px solid #ca8a04;">
+      <h2>🎯 Zone Tern : <span id="zoneLabel">--</span> <span style="font-size:13px; color:#64748b; font-weight:400;">(seuils 10% / 40%)</span></h2>
+      <p id="zoneStats" style="font-size:13px; color:#334155; margin:6px 0 0;">--</p>
+      <p style="font-size:11px; color:#64748b; font-style:italic; margin-top:8px;">
+        Ces chiffres sont des moyennes GLOBALES sur tous les patients d'entraînement classés dans cette zone. Pour la prédiction <strong>spécifique au patient</strong>, voir la calibration locale (KNN voisinage) plus bas.
+      </p>
+    </div>
+
+    <!-- POSITION DU PATIENT — VPN/VPP observées à 12 mois sur cohorte ordonnée par r12 -->
+    <div class="card" id="patientPositionCard" style="display:none;">
+      <h2>📍 Position du patient dans la cohorte (VPN et VPP observées à 12 mois)</h2>
+      <p style="font-size:12px; color:#475569;">
         On classe la cohorte de développement par r12 prédit et on découpe au score du patient.
         <strong>VPN</strong> = % de patients <em>sans rechute</em> à 12 mois parmi ceux à risque ≤ patient (Kaplan-Meier).
         <strong>VPP</strong> = % de patients <em>ayant rechuté</em> à 12 mois parmi ceux à risque ≥ patient (1 − KM).
@@ -340,9 +352,22 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
         <strong>supérieur ou égal</strong> au vôtre, <span id="grp_ge_v12_inline">--</span> ont rechuté à 12 mois (VPP)."
         Le patient appartient aux DEUX groupes car sa valeur est son propre seuil.
       </p>
-
     </div>
 
+    <div class="card" id="kmCard" style="display:none;">
+      <h2>📈 Survie prédite + Calibration locale</h2>
+      <p style="font-size: 12px; color: #475569;">
+        Deux courbes superposées :<br>
+        <strong>1️⃣ Noire pleine</strong> = survie prédite par le modèle Cox pour <strong>ce patient</strong> (S(t)=S₀(t)^exp(LP))<br>
+        <strong>2️⃣ Violette pointillée</strong> = KM observé des patients voisins (KNN <strong>adaptatif</strong> : tous les voisins dans ±1 unité LP, K_min=8, K_max=40).
+        L'<strong>IC95% Greenwood</strong> est reporté en chiffres sous le graphe (au lieu d'une bande, pour préserver la lisibilité).<br>
+        Si les 2 courbes coïncident → modèle bien calibré pour cette zone de risque.
+      </p>
+      <div class="chart-container" id="kmChart" style="height:340px;"></div>
+      <div id="localCalibStats" style="margin-top:10px; padding:10px 12px; background:#faf5ff; border-left:3px solid #7c3aed; border-radius:4px; font-size:12px; color:#334155;"></div>
+    </div>
+
+    <!-- VPN technique en fonction de la profondeur — affiché en bas (info technique) -->
     <div class="card" id="vpnCard" style="display:none;">
       <h2>🔬 VPN technique en fonction de la profondeur</h2>
       <p style="font-size:12px; color:#475569;">
@@ -358,22 +383,8 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
       <div style="margin-top:10px; font-size:11px; color:#64748b; font-style:italic;">
         Note : la courbe monte très rapidement à basse profondeur car les points LIS empiriques de la cohorte
         sont déjà à VPN ≥ 95% (cohorte globalement à faible risque). L'asymptote 100% est atteinte
-        empiriquement à depth_min : 792k (IDES), 184k (PV). Le segment 0–1ᵉʳ point LIS est une extrapolation
-        plausible (pas de données empiriques à très basse depth dans la cohorte).
+        empiriquement à depth_min : 792k (IDES), 184k (PV).
       </div>
-    </div>
-
-    <div class="card" id="kmCard" style="display:none;">
-      <h2>📈 Survie prédite + Calibration locale</h2>
-      <p style="font-size: 12px; color: #475569;">
-        Deux courbes superposées :<br>
-        <strong>1️⃣ Noire pleine</strong> = survie prédite par le modèle Cox pour <strong>ce patient</strong> (S(t)=S₀(t)^exp(LP))<br>
-        <strong>2️⃣ Violette pointillée</strong> = KM observé des patients voisins (KNN <strong>adaptatif</strong> : tous les voisins dans ±1 unité LP, K_min=8, K_max=40).
-        L'<strong>IC95% Greenwood</strong> est reporté en chiffres sous le graphe (au lieu d'une bande, pour préserver la lisibilité).<br>
-        Si les 2 courbes coïncident → modèle bien calibré pour cette zone de risque.
-      </p>
-      <div class="chart-container" id="kmChart" style="height:340px;"></div>
-      <div id="localCalibStats" style="margin-top:10px; padding:10px 12px; background:#faf5ff; border-left:3px solid #7c3aed; border-radius:4px; font-size:12px; color:#334155;"></div>
     </div>
 
     <div class="card" id="readmeCard">
@@ -859,15 +870,21 @@ function calculate() {
   // Seuils 10% et 40% CALIBRÉS pour MAXIMISER la séparation pairwise des 3 courbes KM
   // (gain de visibilité Low/Mid vs ancien 20/50 — N_min=9, min χ²_pair=7.1)
   let zone, zoneLabel, zoneCSS, action;
+  // 'action' = phrase courte affichée dans le bandeau résultat
+  // 'zoneStats' = stat globale de la zone, affichée dans la carte "Zone Tern" ci-dessous
+  let zoneStats;
   if (r12 <= 0.10) {
     zone = 'low';  zoneLabel = 'FAIBLE'; zoneCSS = 'low';
-    action = 'Surveillance standard. Statistique GLOBALE de la zone Faible dans la cohorte d\'entraînement (N=103 IDES / N=69 PV) : PFS@12 ≈ 94-97% et PFS@24 ≈ 94-97% (peu d\'évènements). Pour la prédiction spécifique à ce patient, voir la calibration locale (KNN voisinage) ci-dessous.';
+    action = 'Surveillance standard.';
+    zoneStats = 'Dans la cohorte d\'entraînement (N=103 IDES / N=69 PV), PFS@12mo ≈ 94-97% et PFS@24mo ≈ 94-97% (courbe plate, peu d\'évènements tardifs).';
   } else if (r12 <= 0.40) {
     zone = 'mid';  zoneLabel = 'MODÉRÉ'; zoneCSS = 'mid';
-    action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière). Statistique GLOBALE de la zone Modéré dans la cohorte d\'entraînement (N=18 IDES / N=13 PV) : PFS@12 ≈ 71-84%, PFS@24 ≈ 54-71%. Pour la prédiction spécifique à ce patient, voir la calibration locale (KNN voisinage) ci-dessous.';
+    action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière).';
+    zoneStats = 'Dans la cohorte d\'entraînement (N=18 IDES / N=13 PV), PFS@12mo ≈ 71-84% — gap visible vs Faible (~20pt). PFS@24mo descend à 54-71% (évènements tardifs).';
   } else {
     zone = 'high'; zoneLabel = 'ÉLEVÉ'; zoneCSS = 'high';
-    action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai). Statistique GLOBALE de la zone Élevé dans la cohorte d\'entraînement (N=22 IDES / N=9 PV) : PFS@12 ≈ 0-50%, PFS@24 ≈ 0%. Pour la prédiction spécifique à ce patient, voir la calibration locale (KNN voisinage) ci-dessous.';
+    action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai).';
+    zoneStats = 'Dans la cohorte d\'entraînement (N=22 IDES / N=9 PV), PFS@12mo ≈ 0-50% (PV : 0%, IDES : 50%) et PFS@24mo ≈ 0% — rechute quasi-systématique.';
   }
 
   // (groupe binaire conservé pour référence, non utilisé dans drawKM nouvelle version)
@@ -907,8 +924,7 @@ function calculate() {
         `<div style="font-size:44px; font-weight:700; line-height:1;">${(r24*100).toFixed(1)}%</div>` +
       `</div>` +
     `</div>` +
-    `<div style="font-size:14px; margin-bottom:8px;">Zone : <strong>${zoneLabel}</strong> <span style="opacity:.7;">(seuils 10% / 40%)</span></div>` +
-    `<div style="font-size:13px; margin-bottom:10px;">${action}</div>` +
+    `<div style="font-size:14px; margin-bottom:10px;">${action}</div>` +
     `<div class="risk-gauge">` +
       `<div class="risk-gauge-track">` +
         `<div class="risk-gauge-marker" style="left:${gaugeLeft}%" data-val="${(r12*100).toFixed(1)}%"></div>` +
@@ -920,6 +936,18 @@ function calculate() {
       `</div>` +
     `</div>` +
     divWarning;
+
+  // Zone card (separate from banner) — global stats of the Tern zone
+  const zoneCard = document.getElementById('zoneCard');
+  if (zoneCard) {
+    document.getElementById('zoneLabel').textContent = zoneLabel;
+    document.getElementById('zoneStats').textContent = zoneStats;
+    zoneCard.style.display = 'block';
+    // Color matching the zone
+    const zoneColor = (zone === 'low' ? '#16a34a' : (zone === 'mid' ? '#ca8a04' : '#dc2626'));
+    zoneCard.style.borderLeftColor = zoneColor;
+    document.getElementById('zoneLabel').style.color = zoneColor;
+  }
 
 
   // Display values — show which model variant was actually used
@@ -1000,6 +1028,8 @@ function calculate() {
   updateRankBasedVPN(pipe, r12);
 
   document.getElementById('resultsCard').style.display = 'block';
+  const patPos = document.getElementById('patientPositionCard');
+  if (patPos) patPos.style.display = 'block';
   document.getElementById('kmCard').style.display = 'block';
   // Hide the "À propos du modèle" intro card once the user has run a calculation
   const readmeCard = document.getElementById('readmeCard');
@@ -1312,6 +1342,8 @@ function resetForm() {
   });
   document.getElementById('tep2_deauville').value = '';
   document.getElementById('resultsCard').style.display = 'none';
+  const _zoneC = document.getElementById('zoneCard'); if (_zoneC) _zoneC.style.display = 'none';
+  const _patP  = document.getElementById('patientPositionCard'); if (_patP) _patP.style.display = 'none';
   document.getElementById('kmCard').style.display = 'none';
   document.getElementById('vpnCard').style.display = 'none';
   // Restore the "À propos du modèle" intro card on reset
