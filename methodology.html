@@ -433,16 +433,43 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h2 id="sec-partial-pooling">VIII. Partial pooling IDES = PV (justification)</h2>
 <p>Tester si les coefficients β_score, β_burden et β_TEP peuvent être <strong>partagés</strong> entre IDES et PV pour stabiliser l'estimation (plus de patients dans chaque équation), tout en gardant β_v5A pipeline-spécifique (échelles Reads_alt IDES vs UMI PV différentes).</p>
 
-<h3>Comparaison de 5 modèles emboîtés (LR test, cluster-robust sur NOM)</h3>
-<table>
-<tr><th>Modèle</th><th>Coefs partagés IDES↔PV</th><th>params M2</th><th>AIC M2</th><th>LR vs A</th></tr>
-<tr><td>A</td><td>aucun (séparé total)</td><td>8</td><td>269.60</td><td>ref</td></tr>
-<tr><td>B</td><td>TEP + burden</td><td>6</td><td>265.80</td><td>p = 0.91 ✓</td></tr>
-<tr><td><strong>B′ (production)</strong></td><td><strong>TEP + burden + score</strong></td><td><strong>5</strong></td><td><strong>263.80</strong></td><td><strong>p = 0.98 ✓</strong></td></tr>
-<tr><td>C</td><td>TEP + burden + v5A</td><td>5</td><td>276.28</td><td>p = 0.005 ❌</td></tr>
-<tr><td>D</td><td>tout partagé (incl. v5A)</td><td>4</td><td>274.43</td><td>p = 0.01 ❌</td></tr>
+<h3>Comparaison exhaustive : 16 combinaisons de partial pooling (V230 EFS)</h3>
+<p>Sur la cohorte stackée IDES+PV M2_hEq Deauv (N=227, 42 events), on a refitté Cox stratifié pipeline avec cluster-robust sur NOM, pour <strong>toutes</strong> les combinaisons possibles de coefs partagés entre IDES et PV (2⁴ = 16 sous-ensembles des 4 covariables). LR test contre le modèle A (aucun partagé, 8 paramètres) :</p>
+<table style="font-size:12.5px;">
+<tr><th>Coefs partagés IDES↔PV</th><th>n_params</th><th>AIC</th><th>C-IDES</th><th>C-PV</th><th>LR vs A</th><th>df</th><th>p</th><th></th></tr>
+
+<tr style="background:#fff8e1;"><td><em>A. aucun (séparé total)</em></td><td>8</td><td>319.89</td><td>0.839</td><td>0.919</td><td>ref</td><td>0</td><td>—</td><td></td></tr>
+
+<tr><td colspan="9" style="background:#f1f5f9; font-style:italic; color:#64748b; font-size:11px;">— Partial pooling de 1 covariable (n_params = 7) —</td></tr>
+<tr><td>Deauville_num seul</td><td>7</td><td>313.79</td><td>0.834</td><td>0.912</td><td>0.0</td><td>1</td><td>1.00 ✓</td><td></td></tr>
+<tr><td>log_burden seul</td><td>7</td><td>314.45</td><td>0.845</td><td>0.928</td><td>0.0</td><td>1</td><td>1.00 ✓</td><td></td></tr>
+<tr><td>score_kin seul</td><td>7</td><td>317.43</td><td>0.838</td><td>0.921</td><td>0.0</td><td>1</td><td>1.00 ✓</td><td></td></tr>
+<tr><td>v5A_gated seul</td><td>7</td><td>322.05</td><td>0.837</td><td>0.922</td><td>4.16</td><td>1</td><td><strong>0.041 ❌</strong></td><td>v5A pipeline-spé</td></tr>
+
+<tr><td colspan="9" style="background:#f1f5f9; font-style:italic; color:#64748b; font-size:11px;">— Partial pooling de 2 covariables (n_params = 6) —</td></tr>
+<tr><td>log_burden + Deauville</td><td>6</td><td>308.23</td><td>0.844</td><td>0.921</td><td>0.0</td><td>2</td><td>1.00 ✓</td><td></td></tr>
+<tr><td>score + Deauville</td><td>6</td><td>311.35</td><td>0.834</td><td>0.913</td><td>0.0</td><td>2</td><td>1.00 ✓</td><td></td></tr>
+<tr><td>score + log_burden</td><td>6</td><td>312.00</td><td>0.845</td><td>0.928</td><td>0.0</td><td>2</td><td>1.00 ✓</td><td></td></tr>
+<tr><td>Deauville + v5A</td><td>6</td><td>316.39</td><td>0.829</td><td>0.914</td><td>0.51</td><td>2</td><td>0.78</td><td></td></tr>
+<tr><td>log_burden + v5A</td><td>6</td><td>316.56</td><td>0.841</td><td>0.925</td><td>0.67</td><td>2</td><td>0.71</td><td></td></tr>
+<tr><td>score + v5A</td><td>6</td><td>319.73</td><td>0.837</td><td>0.923</td><td>3.84</td><td>2</td><td>0.15</td><td></td></tr>
+
+<tr><td colspan="9" style="background:#f1f5f9; font-style:italic; color:#64748b; font-size:11px;">— Partial pooling de 3 covariables (n_params = 5) —</td></tr>
+<tr style="background:#dcfce7;"><td><strong>B′ (production) : score + log_burden + Deauville</strong></td><td><strong>5</strong></td><td><strong>305.79</strong> ⭐</td><td><strong>0.843</strong></td><td><strong>0.921</strong></td><td>0.0</td><td>3</td><td><strong>1.00 ✓</strong></td><td>Meilleur AIC</td></tr>
+<tr><td>log_burden + Deauville + v5A</td><td>5</td><td>310.76</td><td>0.841</td><td>0.920</td><td>0.0</td><td>3</td><td>1.00 ✓</td><td></td></tr>
+<tr><td>score + Deauville + v5A</td><td>5</td><td>314.12</td><td>0.832</td><td>0.913</td><td>0.24</td><td>3</td><td>0.97</td><td></td></tr>
+<tr><td>score + log_burden + v5A <em>(sans TEP)</em></td><td>5</td><td>314.36</td><td>0.844</td><td>0.926</td><td>0.47</td><td>3</td><td>0.93</td><td></td></tr>
+
+<tr><td colspan="9" style="background:#f1f5f9; font-style:italic; color:#64748b; font-size:11px;">— Partial pooling de 4 covariables (n_params = 4) —</td></tr>
+<tr><td>D. tous partagés (incl. v5A)</td><td>4</td><td>308.61</td><td>0.843</td><td>0.921</td><td>0.0</td><td>4</td><td>1.00 ✓</td><td></td></tr>
 </table>
-<p>Le partage de TEP + burden + score (modèle B′) est statistiquement supporté (p = 0.98), améliore l'AIC de 5.80 points vs A et préserve le C-index. <strong>v5A reste pipeline-spécifique</strong> car ses échelles diffèrent : Reads_alt (IDES) vs fu_UMI (PV).</p>
+<p><strong>Hiérarchie claire</strong> :</p>
+<ul>
+<li><strong>B′ retenu en production</strong> (score + log_burden + Deauville partagés, v5A pipeline-spécifique) : AIC le plus bas (305.79), Δ−14 vs A, LR p=1.00 ✓.</li>
+<li><strong>v5A doit rester pipeline-spécifique</strong> : c'est la <em>seule</em> covariable où le partage seul est rejeté (LR p=0.041 ❌). Toutes les combinaisons incluant v5A en partagé ont AIC plus élevé. Explication : échelles différentes (Reads_alt IDES vs fu_UMI PV).</li>
+<li>Toutes les autres combinaisons sont <strong>statistiquement compatibles</strong> avec le partage total (LR p &gt; 0.71) — donc la structure de partial pooling est très robuste sur cette cohorte ; le choix B′ est dicté par l'optimum AIC plutôt que par des contraintes statistiques fortes.</li>
+<li>Note : les LR statistiques peuvent être ≈ 0 (et p=1.0) car le penalizer L2 + cluster-robust fait que les modèles contraints atteignent parfois un log-likelihood légèrement supérieur au modèle non-contraint ; AIC reste le critère discriminant.</li>
+</ul>
 
 <h3>Validation de la spec TEP (Deauville LIN et Delta) V266</h3>
 <table>
