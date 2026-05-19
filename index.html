@@ -353,16 +353,23 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
       <div id="localCalibStats" style="margin-top:10px; padding:10px 12px; background:#faf5ff; border-left:3px solid #7c3aed; border-radius:4px; font-size:12px; color:#334155;"></div>
     </div>
 
-    <!-- Encart didactique : pourquoi la depth n'est pas un input du calculateur -->
+    <!-- Encart didactique : pourquoi la couverture moléculaire n'est pas un input du calculateur -->
     <div class="card" id="depthNoteCard">
-      <h2>🔬 Et la profondeur de séquençage ?</h2>
+      <h2>🔬 Et la couverture moléculaire (Σ DEPTH / Σ PCU) ?</h2>
+      <p style="font-size:12px; color:#64748b; line-height:1.5; margin:0 0 10px;">
+        Précision sémantique : on parle bien du <strong>nombre total de molécules analysées</strong>
+        = somme sur la Watch List de la profondeur à chaque variant. Ce n'est pas
+        la profondeur par variant mais le « budget moléculaire » global :
+        Σ DEPTH<sub>IDES</sub> (reads × n_variants) ou Σ PCU<sub>PV</sub>
+        (Position Common UMI × n_variants).
+      </p>
       <p style="font-size:13px; color:#475569; line-height:1.55;">
-        On pourrait s'attendre à ce qu'une depth faible au CXJ1 dégrade la VPN
-        (faux-négatif technique). Empiriquement, dans cette cohorte, <strong>ce n'est pas le
+        On pourrait s'attendre à ce qu'une couverture moléculaire faible au CXJ1 dégrade
+        la VPN (faux-négatif technique). Empiriquement, dans cette cohorte, <strong>ce n'est pas le
         cas</strong> : chez les patients « polished negative » du modèle M1
         (gate qualité IDES ou PV active), la VPN observée à 12 mois est stable autour
-        de <strong>91-93%</strong> sur 4 ordres de grandeur de depth, et la pente
-        VPN(log depth) est <strong>non significative</strong> (p=0.40-0.75 selon variante).
+        de <strong>91-93%</strong> sur 4 ordres de grandeur de Σ DEPTH / Σ PCU, et la pente
+        VPN(log Σ) est <strong>non significative</strong> (p=0.40-0.75 selon variante).
       </p>
       <p style="font-size:13px; color:#475569; line-height:1.55; margin-top:8px;">
         Deux raisons :
@@ -370,15 +377,15 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
       <ol style="font-size:13px; color:#475569; line-height:1.55; margin:6px 0 0 18px; padding:0;">
         <li>Le polish v56 (IDES p-value) / v75 (UMI count) absorbe déjà
             l'information de qualité technique avant calcul du score.</li>
-        <li><strong>Le cfDNA agit comme confondeur</strong> : <em>low depth ↔ low cfDNA ↔ bon pronostic</em>
-            (corrélation log-depth ↔ log-cfDNA<sub>diag</sub> = +0.35, p=0.0004 dans IDES ;
-            +0.26 p=0.04 dans PV). Donc une depth basse n'est pas un mauvais signal —
+        <li><strong>Le cfDNA agit comme confondeur</strong> : <em>low Σ DEPTH ↔ low cfDNA ↔ bon pronostic</em>
+            (corrélation log(Σ DEPTH) ↔ log-cfDNA<sub>diag</sub> = +0.35, p=0.0004 dans IDES ;
+            +0.26 p=0.04 dans PV). Donc une couverture moléculaire basse n'est pas un mauvais signal —
             elle reflète souvent peu de matériel circulant, ce qui est en soi
             un bon prono. Cette compensation est déjà encodée dans le modèle M1/M2 via
             la covariable <code>cfDNA_diag</code>.</li>
       </ol>
       <p style="font-size:12px; color:#64748b; line-height:1.5; margin-top:10px;">
-        Détails : modèle logistique ajusté <code>logit(no event @ 12mo) ~ log(depth) + log(cfDNA_CXJ1) + log(cfDNA_diag)</code>
+        Détails : modèle logistique ajusté <code>logit(no event @ 12mo) ~ log(Σ DEPTH) + log(cfDNA_CXJ1) + log(cfDNA_diag)</code>
         sur la cohorte M1 polished-neg (V15.272-273). Voir
         <a href="methodology.html#vpn-depth" style="color:#1e40af;">méthodologie §8d</a> pour le détail des modèles ajustés.
       </p>

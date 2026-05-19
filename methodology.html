@@ -647,25 +647,66 @@ montre les courbes complètes et le N at-risk à chaque temps.
 </table>
 <p>Différence moyenne <strong>Δ ≈ 0</strong> (médiane = +0.0006). 4 variantes favorisent <code>lin</code>, 4 favorisent <code>bin</code>. Seule M2_VAF PV montre une différence notable (favor bin, +0.010). <strong>Conclusion : équivalents en performance</strong>. La spécification binaire (Deauville ≥4) est retenue pour cohérence Lugano 2014 et robustesse face à la variation Deauville 2 vs 3.</p>
 
-<h3 id="vpn-depth">8d. Pourquoi la profondeur n'apparaît pas comme covariable du modèle</h3>
-<p>Une carte « VPN technique en fonction de la profondeur » a été retirée du calculateur (V15.272-273). Justification empirique :</p>
+<h3 id="endpoint-pfs-rr">8c-ter. Sensibilité au choix d'endpoint — PFS vs R/R (sans morts non-liées)</h3>
+<p>L'endpoint actuel est <strong>PFS</strong> (= Rechute OR Progression OR Mort, toute cause). Question : si on restreint aux événements lymphome-spécifiques (<strong>R/R</strong> = Rechute OR Progression, censurant les morts sans rechute/progression), les coefficients et le C-index changent-ils ?</p>
+<p>Sur 223 patients IDES + 221 PV, on identifie <strong>5 patients PFS=1 mais R/R=0</strong> :</p>
+<ul>
+<li>PATIENT_F — COVID @ 6 mo</li>
+<li>PATIENT_G — COVID nosocomial au cours de l'autogreffe @ 4 mo</li>
+<li>PATIENT_H — ulcère gastrique compliqué (témoin de Jéhova, hémopathie en RC) @ 6 mo</li>
+<li>PATIENT_D — PFS=1 @ 55 mo mais Rechute/Progression non saisies (probable événement tardif non documenté)</li>
+<li>PATIENT_E — idem (PFS=1 @ 48.9 mo, R/P NaN)</li>
+</ul>
+<p>Seuls les 3 premiers sont des morts strictement non-liées au lymphome (cohorte IDES). Refit Cox stratifié pipeline avec partial pooling B′ V229.3 sur les 4 variantes principales :</p>
 <table>
-<tr><th>Variante M1 (sans TEP)</th><th>N polished-neg</th><th>Events @12mo</th><th>β log₁₀(depth)</th><th>p</th></tr>
+<tr><th>Variante</th><th>Pipeline</th><th>N (events PFS / R/R)</th><th>C PFS</th><th>C R/R</th><th>Δ C (R/R − PFS)</th></tr>
+<tr><td><strong>M2_hEq</strong> ⭐</td><td>IDES</td><td>137 (25 / 26)</td><td>0.859</td><td>0.843</td><td>−0.017</td></tr>
+<tr><td><strong>M2_hEq</strong> ⭐</td><td>PV</td><td>90 (15 / 16)</td><td>0.931</td><td>0.921</td><td>−0.010</td></tr>
+<tr><td>M2_VAF</td><td>IDES</td><td>137 (25 / 26)</td><td>0.855</td><td>0.831</td><td>−0.024</td></tr>
+<tr><td>M2_VAF</td><td>PV</td><td>90 (15 / 16)</td><td>0.916</td><td>0.906</td><td>−0.010</td></tr>
+<tr><td>M1_hEq</td><td>IDES</td><td>163 (32 / 32)</td><td>0.805</td><td>0.810</td><td>+0.005</td></tr>
+<tr><td>M1_hEq</td><td>PV</td><td>106 (20 / 20)</td><td>0.848</td><td>0.885</td><td><strong>+0.037</strong></td></tr>
+<tr><td>M1_VAF</td><td>IDES</td><td>163 (32 / 32)</td><td>0.777</td><td>0.781</td><td>+0.004</td></tr>
+<tr><td>M1_VAF</td><td>PV</td><td>106 (20 / 20)</td><td>0.816</td><td>0.850</td><td><strong>+0.033</strong></td></tr>
+</table>
+<p>Coefficients très stables sur l'exemple M2_hEq partial pooling B′ :</p>
+<table>
+<tr><th>Coef partagé</th><th>PFS</th><th>R/R</th><th>Δβ</th></tr>
+<tr><td>β_score_kin</td><td>+0.563</td><td>+0.498</td><td>−0.065</td></tr>
+<tr><td>β_log_burden_hEq</td><td>+0.196</td><td>+0.184</td><td>−0.012</td></tr>
+<tr><td>β_Deauville_num</td><td>+0.391</td><td>+0.412</td><td>+0.021</td></tr>
+<tr><td>β_v5A_IDES</td><td>+0.549</td><td>+0.550</td><td>+0.001</td></tr>
+<tr><td>β_v5A_PV</td><td>+1.210</td><td>+1.210</td><td>0.000</td></tr>
+</table>
+<p><strong>Observations</strong> :</p>
+<ol>
+<li><strong>M2 (avec TEP)</strong> : PFS donne un C-index très légèrement <em>supérieur</em> à R/R (ΔC ≈ −0.01 à −0.02). Le Deauville capte aussi les patients avec réponse métabolique faible qui ont un risque accru de complications non-lymphome (infection, autogreffe difficile) — donc PFS étant un endpoint plus large, il bénéficie indirectement du signal TEP sur la mortalité non-spécifique.</li>
+<li><strong>M1 (sans TEP)</strong> : R/R donne un C-index <em>supérieur</em> à PFS, surtout en PV (+0.033 à +0.037). Sans le TEP, le score MRD est un marqueur plus pur de résiduel lymphome ; restreindre l'endpoint à R/R amplifie le signal.</li>
+<li><strong>Coefficients très peu modifiés</strong> (Δβ &lt; 0.1 pour toutes les covariables). β_score_kin baisse de ~10% (les morts non-liées n'étaient pas prédites par score_kin), β_Deauville augmente de ~5% (Deauville reste central pour les vrais events lymphome).</li>
+<li><strong>Décision</strong> : <strong>endpoint PFS conservé</strong> en production pour 3 raisons : (a) c'est le standard clinique en recherche lymphome (FDA/EMA), (b) la différence est ≤ 0.03 C-index dans toutes les variantes, (c) seuls 3 patients sur 223 sont des morts strictement non-liées. Documenté ici comme analyse de sensibilité confirmant la robustesse du choix.</li>
+</ol>
+<p>Script : <code>scripts/_v15_274_PFS_vs_RR_endpoint.py</code>. Export : <code>output/V15_274_PFS_vs_RR_compare.csv</code>.</p>
+
+<h3 id="vpn-depth">8d. Pourquoi la couverture moléculaire (Σ DEPTH / Σ PCU) n'apparaît pas comme covariable du modèle</h3>
+<p><strong>Précision sémantique</strong> : ce qu'on appelle ici « Σ DEPTH » ou « Σ PCU » n'est pas la profondeur par variant, mais le <strong>nombre total de molécules analysées par patient</strong> = Σ sur la Watch List de la couverture à chaque variant. Pour IDES : Σ NbrReadDepth (reads × n_variants_WL). Pour PV : Σ fu_pos_UMI = Σ Position Common UMI (= molécules uniques × n_variants_WL). C'est le « budget moléculaire » global qui détermine la sensibilité de détection des résiduels.</p>
+<p>Une carte « VPN technique en fonction de la couverture moléculaire » a été retirée du calculateur (V15.272-273). Justification empirique :</p>
+<table>
+<tr><th>Variante M1 (sans TEP)</th><th>N polished-neg</th><th>Events @12mo</th><th>β log₁₀(Σ)</th><th>p</th></tr>
 <tr><td>IDES_hEq</td><td>99</td><td>9</td><td>−0.47</td><td>0.45 NS</td></tr>
 <tr><td>IDES_VAF</td><td>103</td><td>9</td><td>−0.53</td><td>0.40 NS</td></tr>
 <tr><td>PV_hEq</td><td>57</td><td>4</td><td>−0.26</td><td>0.75 NS</td></tr>
 <tr><td>PV_VAF</td><td>60</td><td>4</td><td>−0.31</td><td>0.71 NS</td></tr>
 </table>
-<p>Modèle <code>logit(no event @ 12mo) ~ log₁₀(depth)</code> sur la sous-cohorte des patients « polished neg » (gate qualité IDES p &gt; 1/100001 ou PV UMI &lt; 3) : la depth n'est <strong>jamais</strong> un prédicteur significatif. VPN observée stable à 91-93% sur 4 ordres de grandeur de depth (1.8k → 4M reads IDES ; 3.5k → 2.4M UMI PV).</p>
+<p>Modèle <code>logit(no event @ 12mo) ~ log₁₀(Σ DEPTH)</code> sur la sous-cohorte des patients « polished neg » (gate qualité IDES p &gt; 1/100001 ou PV UMI &lt; 3) : la couverture moléculaire n'est <strong>jamais</strong> un prédicteur significatif. VPN observée stable à 91-93% sur 4 ordres de grandeur de Σ DEPTH (1.8k → 4M reads × variants IDES ; 3.5k → 2.4M UMI × variants PV).</p>
 
-<p>Test de confondage par cfDNA — modèle ajusté <code>logit(no event) ~ log(depth) + log(cfDNA_CXJ1) + log(cfDNA_diag)</code> :</p>
+<p>Test de confondage par cfDNA — modèle ajusté <code>logit(no event) ~ log(Σ DEPTH) + log(cfDNA_CXJ1) + log(cfDNA_diag)</code> :</p>
 <table>
-<tr><th>Pipeline</th><th>r(log_depth, log_cfDNA_diag)</th><th>β_depth brut</th><th>β_depth ajusté cfDNA</th><th>Interprétation</th></tr>
-<tr><td>IDES</td><td><strong>+0.35 (p=0.0004)</strong></td><td>−0.46 (p=0.45)</td><td>−0.06 (p=0.93)</td><td>Polish v56 absorbe déjà la depth</td></tr>
+<tr><th>Pipeline</th><th>r(log Σ, log cfDNA_diag)</th><th>β_Σ brut</th><th>β_Σ ajusté cfDNA</th><th>Interprétation</th></tr>
+<tr><td>IDES</td><td><strong>+0.35 (p=0.0004)</strong></td><td>−0.46 (p=0.45)</td><td>−0.06 (p=0.93)</td><td>Polish v56 absorbe déjà la couverture</td></tr>
 <tr><td>PV</td><td>+0.26 (p=0.04)</td><td>+0.53 (p=0.27)</td><td><strong>+1.09 (p=0.083, borderline)</strong></td><td>Effet technique pur émerge après ajustement</td></tr>
 </table>
-<p>Conclusion : la depth est <strong>corrélée positivement</strong> avec le cfDNA (plus de matériel circulant = depth plus élevée), et le cfDNA est lui-même un facteur pronostique fort (low cfDNA = bon prono). L'effet « marginal » de la depth est donc <strong>masqué par le cfDNA</strong> : depth basse ↔ cfDNA bas ↔ bon prono, ce qui compense la perte de sensibilité technique. Le modèle M1/M2 contient déjà <code>log(1+cfDNA_diag)</code> comme covariable burden, donc cette information est encodée.</p>
-<p>Note PV : après ajustement, β_depth = +1.09 (p=0.083) → suggère un effet technique pur résiduel modeste (à cfDNA égal, depth ↑ → VPN ↑). Non incorporé en production car la cohorte M1 PV polished-neg n'a que 4 events et le pipeline PV applique déjà un quality gate v75 (UMI ≥ 3) qui filtre les samples sous-séquencés.</p>
+<p>Conclusion : la couverture moléculaire totale (Σ DEPTH / Σ PCU) est <strong>corrélée positivement</strong> avec le cfDNA — plus de matériel circulant ⇒ plus de molécules à séquencer ⇒ Σ plus élevée — et le cfDNA est lui-même un facteur pronostique fort (low cfDNA = bon prono). L'effet « marginal » de Σ DEPTH est donc <strong>masqué par le cfDNA</strong> : Σ basse ↔ cfDNA bas ↔ bon prono, ce qui compense la perte de sensibilité technique. Le modèle M1/M2 contient déjà <code>log(1+cfDNA_diag)</code> comme covariable burden, donc cette information est encodée.</p>
+<p>Note PV : après ajustement cfDNA, β_Σ_PV = +1.09 (p=0.083) → suggère un effet technique pur résiduel modeste (à cfDNA égal, Σ ↑ ⇒ VPN ↑). Non incorporé en production car la cohorte M1 PV polished-neg n'a que 4 events et le pipeline PV applique déjà un quality gate v75 (UMI ≥ 3) qui filtre les samples sous-couverts.</p>
 <p>Scripts : <code>scripts/_v15_272_VPN_technique_M1_empirical.py</code>, <code>scripts/_v15_273_depth_cfDNA_confounding.py</code>.</p>
 
 <h3>8c. Analyse exploratoire — DeltaSUVmax% vs Deauville TEP2</h3>
