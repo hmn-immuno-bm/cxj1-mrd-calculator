@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Calculateur MRD ctDNA — V15.102</title>
+<title>Calculateur MRD ctDNA</title>
 <style>
 * { box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -87,14 +87,12 @@ svg { width: 100%; height: 100%; overflow: visible; }
 <body>
 
 <header>
-  <h1>🧬 Calculateur MRD ctDNA — v2 NEW (V15.188)</h1>
-  <div class="subtitle">Modèle Cox v2 : Score mono-exp ctDNA + log(charge baseline) + v5A_gated drivers + TEP2 Deauville (ou variante 2-vars sans TEP via toggle)</div>
-  <div style="margin-top:10px;">
-    <nav class="tabs">
-      <a href="index.html" class="tab tab-active" aria-current="page">📊 Calculateur</a>
-      <a href="methodology.html" class="tab">📚 Méthodologie & validation</a>
-    </nav>
-  </div>
+  <h1>🧬 Calculateur MRD ctDNA</h1>
+  <div class="subtitle">Modèle Cox proportionnel : score mono-exp ctDNA + log(charge baseline) + drivers D11 + TEP Deauville (ou ΔSUVmax, ou modèle sans TEP)</div>
+  <nav class="tabs">
+    <a href="index.html" class="tab tab-active" aria-current="page">📊 Calculateur</a>
+    <a href="methodology.html" class="tab">📚 Méthodologie & validation</a>
+  </nav>
 </header>
 
 <div class="container">
@@ -110,30 +108,14 @@ svg { width: 100%; height: 100%; overflow: visible; }
         <option value="PV">PV (variants phasés)</option>
       </select>
 
-      <h3>1b. Histologie (v2 — choix trajectoire mono-exp)</h3>
+      <h3>1b. Histologie</h3>
       <select id="histo_label">
+        <option value="DLBCL NOS" selected>Non Hodgkin (lymphome B agressif ou indolent)</option>
         <option value="Hodgkin classique">Hodgkin classique</option>
-        <option value="DLBCL NOS" selected>DLBCL (NOS, EBV+, sites immunoprivilégiés, autres)</option>
-        <option value="HGBL">HGBL (High Grade B-cell)</option>
-        <option value="PMBL">PMBL</option>
-        <option value="Burkitt">Burkitt</option>
-        <option value="T/HRBCL">T/HRBCL</option>
-        <option value="LFt">LFt (LF transformé)</option>
-        <option value="LZMt">LZMt (LZM transformé)</option>
-        <option value="LLCt">LLCt</option>
-        <option value="Waldenstromt">Waldenstromt</option>
-        <option value="Poppemat">Poppemat</option>
-        <option value="LF">LF (folliculaire)</option>
-        <option value="LZM">LZM (zone marginale)</option>
-        <option value="MCL">MCL (cellules du manteau)</option>
-        <option value="Hodgkin nodulaire à prédominance lymphocytaire">Hodgkin NLP</option>
-        <option value="Lymphoprolifération B liée à l'EBV">Lymphoprolif. EBV</option>
-        <option value="Autre">Autre</option>
       </select>
       <div class="tip">
-        Choix de la trajectoire bi-exp pour calculer le score :<br>
-        🟢 <strong>Hodgkin classique seul</strong> → trajectoire <code>histo_HODGKIN</code><br>
-        🔵 <strong>Tout le reste</strong> (DLBCL/HGBL/PMBL/Burkitt/transformés/indolents) → trajectoire <code>histo_DLBCL</code>
+        🟢 <strong>Hodgkin classique</strong> → trajectoire de décroissance ctDNA propre au Hodgkin (clairance rapide)<br>
+        🔵 <strong>Non Hodgkin</strong> (DLBCL, HGBL, PMBL, Burkitt, transformés, indolents, NLPHL, EBV+, etc.) → trajectoire DLBCL (clairance plus lente).
       </div>
 
       <h3>2. Délai CXJ1 (jours post C1J1)</h3>
@@ -205,18 +187,19 @@ svg { width: 100%; height: 100%; overflow: visible; }
       </div>
       <div class="row3">
         <div>
-          <label>n variants/doublets positifs sur drivers D11</label>
-          <input type="number" id="n_drv_pos" min="0" value="0">
-        </div>
-        <div>
-          <label>n variants/doublets positifs TOTAL (toutes genes)</label>
+          <label>1. n variants/doublets positifs TOTAL (toutes genes)</label>
           <input type="number" id="n_total_pos" min="0" value="0">
         </div>
         <div>
-          <label>Σ reads (ou UMI) sur drivers positifs</label>
+          <label>2. n variants/doublets positifs sur drivers D11</label>
+          <input type="number" id="n_drv_pos" min="0" value="0">
+        </div>
+        <div>
+          <label>3. Σ reads (ou UMI) sur drivers positifs</label>
           <input type="number" id="sum_reads_drv" min="0" value="0">
         </div>
       </div>
+      <div class="tip">Formule v5A = log(1+Σ reads) × (n_drivers / n_total) × quality_gate.</div>
 
       <h3>6. Profondeur de séquençage (technique → VPN)</h3>
       <label>Depth totale au CXJ1</label>
@@ -241,7 +224,7 @@ svg { width: 100%; height: 100%; overflow: visible; }
         <option value="4">4 (modérément > foie)</option>
         <option value="5">5 (nettement > foie)</option>
       </select>
-      <div class="tip">Deauville 1-5 ordinal — modèle V229.3 partial pooling (β=+0.366, HR=1.44 par unité).</div>
+      <div class="tip">Deauville 1-5 ordinal (HR ≈ 1.44 par unité, Deauville 5 vs 1 ≈ 4.3×).</div>
       <div id="suvmax_block" style="margin-top:12px; padding:10px; background:#fef3c7; border-radius:6px; border-left:3px solid #ed8936; display:none;">
         <div style="font-weight:bold; font-size:13px; color:#92400e; margin-bottom:6px;">⚠️ Fallback DeltaSUVmax (si Deauville indisponible)</div>
         <div class="row">
@@ -254,7 +237,7 @@ svg { width: 100%; height: 100%; overflow: visible; }
             <input type="number" id="suvmax_2" min="0" step="0.1" placeholder="ex: 4.2">
           </div>
         </div>
-        <div class="tip" style="margin-top:6px;">ΔSUVmax% calculé automatiquement = (SUV_2 − SUV_diag) / SUV_diag × 100. Modèle alternatif validé (β=+0.014/%, partial pooling p=0.99).</div>
+        <div class="tip" style="margin-top:6px;">ΔSUVmax% calculé automatiquement = (SUV_2 − SUV_diag) / SUV_diag × 100. Modèle alternatif validé.</div>
       </div>
       <div style="margin-top:8px;">
         <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#666; cursor:pointer;">
@@ -270,22 +253,22 @@ svg { width: 100%; height: 100%; overflow: visible; }
     </div>
 
     <div class="card">
-      <h3>📐 Formules v2 OPTION A (V197)</h3>
+      <h3>📐 Formules du modèle</h3>
       <div class="formula" style="white-space:pre-wrap">
 ctDNA_diag = VAF_diag(%) × cfDNA_diag (hEq)
 ctDNA_CXJ1 = VAF_CXJ1_polish × cfDNA_CXJ1
 ratio = ctDNA_CXJ1 / ctDNA_diag    (clamp 1e-7)
 mono_exp(t, λ) = exp(-λ · t)
-score_kin = log L_bad - log L_good (mono-exp)
+score_kin = log L_bad - log L_good (mono-exp, par histologie)
 
-v5A_gated = log(1 + Σ reads_drv) × (n_drv/n_tot) × quali
+v5A_gated = log(1 + Σ reads_drv) × (n_drv/n_tot) × quality_gate
 
 LP = β_score · score_kin
    + β_burden · log(1 + ctDNA_diag)
    + β_v5 · v5A_gated
-   + β_TEP · TEP_var       [V229.3 : Deauville 1-5 OR ΔSUV% fallback]
+   + β_TEP · TEP_var       (Deauville 1-5 OR ΔSUVmax% fallback OR 0 si pas de TEP)
 
-risque(t) = 1 - S₀(t)^exp(LP)</div>
+risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
     </div>
   </div>
 
@@ -297,7 +280,7 @@ risque(t) = 1 - S₀(t)^exp(LP)</div>
 
       <div class="summary-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
         <div class="summary-box">
-          <div class="summary-box-label">Score (joint bi-exp)</div>
+          <div class="summary-box-label">Score (mono-exp)</div>
           <div class="summary-box-value" id="r_score">--</div>
         </div>
         <div class="summary-box">
@@ -353,36 +336,36 @@ risque(t) = 1 - S₀(t)^exp(LP)</div>
       </p>
 
       <details style="margin-top:14px;">
-        <summary style="cursor:pointer; font-weight:600; font-size:14px; color:#475569;">📊 Performance globale du modèle v2 NEW (référence méthodologique)</summary>
+        <summary style="cursor:pointer; font-weight:600; font-size:14px; color:#475569;">📊 Performance globale du modèle (référence méthodologique)</summary>
         <table style="margin-top:8px;">
-          <thead><tr><th>Métrique</th><th colspan="2">M2 v2 — avec TEP</th><th colspan="2">M1 v2 — sans TEP</th></tr>
+          <thead><tr><th>Métrique</th><th colspan="2">M2 — avec TEP</th><th colspan="2">M1 — sans TEP</th></tr>
                  <tr><th></th><th>IDES</th><th>PV</th><th>IDES</th><th>PV</th></tr></thead>
           <tbody>
-            <tr><td>N cohorte de développement</td><td>134</td><td>88</td><td><strong>158</strong></td><td><strong>103</strong></td></tr>
-            <tr><td>Événements PFS</td><td>24</td><td>15</td><td>30</td><td>20</td></tr>
-            <tr><td>C-index (apparent)</td><td><strong>0.858</strong></td><td><strong>0.928</strong></td><td>0.809</td><td>0.845</td></tr>
-            <tr><td>AIC</td><td>183.4</td><td>87.4</td><td>256.8</td><td>143.8</td></tr>
-            <tr><td>Trajectoire mono-exp</td><td colspan="4">λ par (histologie × responder), Hodgkin classique vs reste→DLBCL — <strong>4 params</strong> (vs 12 en v1)</td></tr>
-            <tr><td>Δ M1 v2 vs M1 v1</td><td colspan="2"></td><td colspan="2"><strong>+0.06 IDES / +0.02 PV</strong> (gain net sans TEP)</td></tr>
+            <tr><td>N cohorte de développement</td><td>136</td><td>91</td><td><strong>162</strong></td><td><strong>108</strong></td></tr>
+            <tr><td>Événements PFS</td><td>25</td><td>16</td><td>32</td><td>22</td></tr>
+            <tr><td>C-index apparent</td><td>0.858</td><td>0.910</td><td>0.804</td><td>0.824</td></tr>
+            <tr><td>C-index optimism-corrected (B=500)</td><td><strong>0.848</strong></td><td><strong>0.891</strong></td><td>0.796</td><td>0.811</td></tr>
+            <tr><td>IC95% bootstrap</td><td>[0.78, 0.94]</td><td>[0.85, 0.98]</td><td>[0.72, 0.88]</td><td>[0.71, 0.93]</td></tr>
+            <tr><td>Trajectoire mono-exp</td><td colspan="4">λ par (histologie × responder), 2 groupes (Hodgkin classique vs Non Hodgkin) — <strong>4 paramètres</strong> totaux</td></tr>
           </tbody>
         </table>
         <p style="font-size:11px; color:#64748b; margin-top:8px; font-style:italic;">
-          M2 v2 est recommandé. Utiliser M1 v2 (case "TEP non dispo") uniquement quand TEP indisponible.
-          Le modèle v2 intègre la charge tumorale baseline (ctDNA_diag) directement dans le score.
+          M2 (avec TEP) est recommandé quand le TEP est disponible. Utiliser M1 uniquement quand le TEP est indisponible.
+          Le modèle intègre la charge tumorale baseline (ctDNA_diag) directement dans le score.
           Ces métriques décrivent la performance GLOBALE et ne correspondent pas au risque individuel du patient.
         </p>
       </details>
     </div>
 
     <div class="card" id="vpnCard" style="display:none;">
-      <h2>🔬 VPN technique (V15.50 LIS + lissage PCHIP V15.121)</h2>
+      <h2>🔬 VPN technique en fonction de la profondeur</h2>
       <p style="font-size:12px; color:#475569;">
-        <strong>Définition stricte (V15.50)</strong> : VPN technique = parmi les patients testés MRD-négatifs,
+        <strong>Définition stricte</strong> : VPN technique = parmi les patients testés MRD-négatifs,
         la fraction qui ne sont PAS faux négatifs au sens technique strict
         (<code>FN_tech = R12+ ET (TEP2+ OU TEP2 NA)</code>).<br>
         <strong>Méthode</strong> : courbe PCHIP (cubic Hermite monotone) passant par <strong>(0, 0)</strong>
         + tous les points LIS strictement monotones empiriques + plateau 100% à depth_min_100.
-        La courbe est monotone croissante stricte et lisse (vs piecewise linéaire qui faisait un escalier).
+        La courbe est monotone croissante stricte et lisse.
       </p>
       <div id="vpnContent"></div>
       <div class="chart-container" id="vpnChart" style="height:320px;"></div>
@@ -398,8 +381,8 @@ risque(t) = 1 - S₀(t)^exp(LP)</div>
       <h2>📈 Survie prédite + Calibration locale</h2>
       <p style="font-size: 12px; color: #475569;">
         Deux courbes superposées :<br>
-        <strong>1️⃣ Noire pleine</strong> = survie prédite par Cox V15.102 pour <strong>ce patient</strong> (S(t)=S₀(t)^exp(LP))<br>
-        <strong>2️⃣ Violette pointillée</strong> = KM observé des patients voisins (KNN <strong>adaptatif</strong> : tous les voisins dans ±1 unité LP, K_min=8, K_max=40 — V208).
+        <strong>1️⃣ Noire pleine</strong> = survie prédite par le modèle Cox pour <strong>ce patient</strong> (S(t)=S₀(t)^exp(LP))<br>
+        <strong>2️⃣ Violette pointillée</strong> = KM observé des patients voisins (KNN <strong>adaptatif</strong> : tous les voisins dans ±1 unité LP, K_min=8, K_max=40).
         L'<strong>IC95% Greenwood</strong> est reporté en chiffres sous le graphe (au lieu d'une bande, pour préserver la lisibilité).<br>
         Si les 2 courbes coïncident → modèle bien calibré pour cette zone de risque.
       </p>
@@ -408,29 +391,30 @@ risque(t) = 1 - S₀(t)^exp(LP)</div>
     </div>
 
     <div class="card" id="readmeCard">
-      <h2>ℹ️ À propos du modèle v2 NEW (V15.188)</h2>
+      <h2>ℹ️ À propos du modèle</h2>
       <p style="font-size: 13px;">
-      <strong>Modèle Cox à 3 variables</strong> entre les pipelines IDES (panel MOABI)
-      et PV (variants phasés), avec trajectoires <strong>mono-exponentielles</strong> sur ctDNA absolu
-      (= VAF × cfDNA, en hEq) par 2 groupes (Hodgkin classique vs reste→DLBCL) :
+      <strong>Modèle Cox proportionnel</strong> partagé entre les pipelines IDES (panel MOABI hybrid-capture)
+      et PV (variants phasés UMI), avec trajectoires <strong>mono-exponentielles</strong> sur ctDNA absolu
+      (= VAF × cfDNA, en hEq) par 2 groupes (Hodgkin classique vs Non Hodgkin) :
       </p>
       <ul style="font-size: 13px; color: #475569;">
         <li><strong>Variable 1 — score mono-exp + charge baseline</strong> :
-        <code>score = log L_bad - log L_good</code> sur le ratio ctDNA_CXJ1/ctDNA_diag avec λ
+        <code>score = log L_bad − log L_good</code> sur le ratio ctDNA_CXJ1/ctDNA_diag avec λ
         spécifique à (histologie × responder), <em>plus</em> le terme <code>log(1 + ctDNA_diag)</code>
-        pour intégrer la charge tumorale baseline directement (sans coefficient de pondération empirique).</li>
+        pour intégrer la charge tumorale baseline directement.</li>
         <li><strong>Variable 2 — v5A_gated drivers</strong> : intensité (log Σ reads) × spécificité
         (n_drv/n_total) × gate qualité patient. Capture le signal MRD résiduel sur les 11 gènes
         oncogéniques driver, en ignorant le bruit IG/SHM.</li>
-        <li><strong>Variable 3 — TEP2_pos</strong> : Deauville ≥ 4 à la TEP interim cycle 2.</li>
+        <li><strong>Variable 3 — TEP interim</strong> : score Deauville (1-5) ou ΔSUVmax% (fallback).</li>
       </ul>
       <p style="font-size: 13px; background: #eff6ff; padding: 8px 12px; border-left: 3px solid #2E75B6;">
-        <strong>v2 vs v1 (V15.130)</strong> :
-        <br>• <strong>Trajectoires mono-exponentielles</strong> (4 params) au lieu de bi-exp (12 params) → 3× plus parcimonieux
-        <br>• <strong>Quantité ctDNA absolue</strong> (VAF × cfDNA) au lieu de VAF % relative
-        <br>• <strong>Dates réelles</strong> Glims pour le délai CXJ1 (au lieu de J21/J42 théoriques)
-        <br>• <strong>Charge baseline intégrée</strong> : <code>+ log(1 + ctDNA_diag)</code> directement
-        <br>• <strong>M1 v2 sans TEP : C-index 0.811</strong> (vs 0.752 v1) — gain net +0.06
+        <strong>Caractéristiques principales</strong> :
+        <br>• <strong>Trajectoires mono-exponentielles</strong> par histologie × responder (4 paramètres totaux)
+        <br>• <strong>ctDNA absolu</strong> (VAF × cfDNA, en équivalents génome haploïde/mL)
+        <br>• <strong>Dates réelles de prélèvement</strong> Glims pour le délai CXJ1
+        <br>• <strong>Charge tumorale baseline intégrée</strong> au modèle
+        <br>• <strong>Partial pooling</strong> des coefficients entre les 2 pipelines (validé statistiquement)
+        <br>• <strong>C-index optimism-corrected</strong> : 0.85 (IDES) / 0.89 (PV) sur la cohorte M2 optimale.
       </p>
       <p style="font-size: 13px;">
         <strong>Gènes drivers D11</strong> : BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53.
@@ -442,8 +426,7 @@ risque(t) = 1 - S₀(t)^exp(LP)</div>
         <br>Si le patient ne passe pas le gate → v5A_gated = 0 ET VAF_CXJ1 = 0 dans le score (donc ctDNA_CXJ1 = 0).
       </p>
       <p style="font-size: 13px;">
-        Coefficients officiels : <code>output/_calculator_data_v2.json</code><br>
-        Documentation : <a href="methodology.html">methodology.html</a> · <a href="README_EN_v2.md">README EN v2</a>
+        Documentation complète : <a href="methodology.html">méthodologie & validation</a>.
       </p>
     </div>
   </div>
@@ -451,7 +434,7 @@ risque(t) = 1 - S₀(t)^exp(LP)</div>
 </div>
 
 <div class="footer">
-  CXJ1 — MRD ctDNA Cox v2 NEW V15.188 | 3-var + mono-exp ctDNA + log(charge baseline) | Drivers D11 | N=134 IDES / N=88 PV
+  CXJ1 — MRD ctDNA · Modèle Cox · score mono-exp ctDNA + charge baseline + drivers D11 + TEP
 </div>
 
 <script>
@@ -912,7 +895,7 @@ function calculate() {
       `</div>`;
   }
   banner.innerHTML =
-    `<div style="font-size:13px; opacity:.8; margin-bottom:8px;">Risque prédit par le modèle Cox V15.102 (PFS)</div>` +
+    `<div style="font-size:13px; opacity:.8; margin-bottom:8px;">Risque prédit par le modèle Cox (PFS)</div>` +
     `<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 10px;">` +
       `<div>` +
         `<div style="font-size:12px; opacity:.75; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">À 12 mois</div>` +
@@ -923,7 +906,7 @@ function calculate() {
         `<div style="font-size:44px; font-weight:700; line-height:1;">${(r24*100).toFixed(1)}%</div>` +
       `</div>` +
     `</div>` +
-    `<div style="font-size:14px; margin-bottom:8px;">Zone : <strong>${zoneLabel}</strong> <span style="opacity:.7;">(seuils 10%/40% — meilleure séparation adjacente, V15.150)</span></div>` +
+    `<div style="font-size:14px; margin-bottom:8px;">Zone : <strong>${zoneLabel}</strong> <span style="opacity:.7;">(seuils 10% / 40%)</span></div>` +
     `<div style="font-size:13px; margin-bottom:10px;">${action}</div>` +
     `<div class="risk-gauge">` +
       `<div class="risk-gauge-track">` +
