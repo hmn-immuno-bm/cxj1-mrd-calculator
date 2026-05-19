@@ -689,6 +689,16 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <h3>8. Robustesse du score_kin (vs slope individuel BLUP)</h3>
 <p>Une approche joint longitudinal-survival two-stage (mixed-effects LMM extrayant un slope individuel par BLUP, puis Cox sur ce slope) a été testée comme alternative à <code>score_kin</code>. <strong>Bootstrap optimism-corrected (B=200) : V229.1 score_kin C=0.791 vs BLUP candidate C=0.777 (Δ=−0.014)</strong>. Le score_kin résumé (4 trajectoires moyennes par histo×responder) est plus robuste car moins de paramètres individuels à estimer sur cohorte limitée.</p>
 
+<h3>9. Test de l'hypothèse PH (Grambsch-Therneau)</h3>
+<p>Le modèle Cox suppose que les hazard ratios entre patients restent constants dans le temps. Le test de Grambsch-Therneau vérifie cette hypothèse pour chaque covariable :</p>
+<table>
+<tr><th>Covariable</th><th>p-value (transform=rank)</th><th>p-value (transform=log)</th><th>Verdict</th></tr>
+<tr><td><code>score_kin</code></td><td>0.184</td><td>0.205</td><td>✅ Pas de violation</td></tr>
+<tr><td><code>log_burden_hEq</code></td><td>0.691</td><td>0.859</td><td>✅ Pas de violation</td></tr>
+<tr><td><code>TEP2_pos</code></td><td>0.586</td><td>0.473</td><td>✅ Pas de violation</td></tr>
+</table>
+<p>Toutes les p &gt; 0.18 → <strong>aucune violation de l'hypothèse PH détectée</strong>. Confirmation supplémentaire : ajouter l'interaction <code>score_kin × log(t)</code> au Cox donne β = +0.025 (p = 0.78 NS) et ΔC-index = +0.001 (négligeable). Les HR estimés sont valides sur tout l'horizon 0-36 mois, justifiant la projection de S₀(12) et S₀(24) sans correction temps-dépendante.</p>
+
 </div>
 
 <!-- ────────────────────────────────────────────────────── -->
