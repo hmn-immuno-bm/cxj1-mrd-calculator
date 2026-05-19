@@ -805,29 +805,30 @@ function calculate(doScroll) {
   }
   const r12 = risk(12), r24 = risk(24);
 
-  // Classification 3-zones CLINIQUES (split V15.150 Tern 10/40)
-  // Seuils 10% et 40% CALIBRÉS pour MAXIMISER la séparation pairwise des 3 courbes KM
-  // (gain de visibilité Low/Mid vs ancien 20/50 — N_min=9, min χ²_pair=7.1)
+  // Classification 3-zones CLINIQUES (Tern 5/35, V15.284 V230)
+  // Seuils 5% et 35% recalibrés sur cohorte V230 EFS : maximisent la séparation
+  // Faible/Modéré (χ²_pair=4.10 IDES / 5.00 PV) tout en gardant Élevé bien marqué
+  // (N=20 IDES EFS@24=21%, N=9 PV EFS@24=0%).
   let zone, zoneLabel, zoneCSS, action;
   // 'action' = phrase courte affichée dans le bandeau résultat
   // 'zoneStats' = stat globale de la zone, affichée dans la carte "Zone Tern" ci-dessous
   let zoneStats;
-  if (r12 <= 0.10) {
+  if (r12 <= 0.05) {
     zone = 'low';  zoneLabel = 'FAIBLE'; zoneCSS = 'low';
     action = 'Surveillance standard.';
-    zoneStats = 'Dans la cohorte d\'entraînement (N=103 IDES / N=69 PV), EFS@12mo ≈ 94-97% et EFS@24mo ≈ 94-97% (courbe plate, peu d\'évènements tardifs).';
-  } else if (r12 <= 0.40) {
+    zoneStats = 'Dans la cohorte d\'entraînement (N=40 IDES / N=43 PV), EFS@12mo ≈ 97.5-97.7% et EFS@24mo ≈ 97.5-97.7% (courbe quasi-plate, 1 seul événement par pipeline).';
+  } else if (r12 <= 0.35) {
     zone = 'mid';  zoneLabel = 'MODÉRÉ'; zoneCSS = 'mid';
     action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière).';
-    zoneStats = 'Dans la cohorte d\'entraînement (N=18 IDES / N=13 PV), EFS@12mo ≈ 71-84% — gap visible vs Faible (~20pt). EFS@24mo descend à 54-71% (évènements tardifs).';
+    zoneStats = 'Dans la cohorte d\'entraînement (N=76 IDES / N=39 PV), EFS@12mo ≈ 88-91% et EFS@24mo ≈ 80-85% — gap nette vs Faible (>13pt à 24mo).';
   } else {
     zone = 'high'; zoneLabel = 'ÉLEVÉ'; zoneCSS = 'high';
     action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai).';
-    zoneStats = 'Dans la cohorte d\'entraînement (N=22 IDES / N=9 PV), EFS@12mo ≈ 0-50% (PV : 0%, IDES : 50%) et EFS@24mo ≈ 0% — rechute quasi-systématique.';
+    zoneStats = 'Dans la cohorte d\'entraînement (N=20 IDES / N=9 PV), EFS@12mo ≈ 0-31% (PV : 0%, IDES : 31%) et EFS@24mo ≈ 0-21% — rechute quasi-systématique.';
   }
 
   // (groupe binaire conservé pour référence, non utilisé dans drawKM nouvelle version)
-  const grpKey = (r12 > 0.40) ? 'high' : 'low';
+  const grpKey = (r12 > 0.35) ? 'high' : 'low';
 
   // ─── Calibration locale KNN adaptatif V208 (radius 1.0 + K_min 8 + K_max 40) ───
   const _neighbors = knn(pipe, lp);
@@ -869,8 +870,8 @@ function calculate(doScroll) {
         `<div class="risk-gauge-marker" style="left:${gaugeLeft}%" data-val="${(r12*100).toFixed(1)}%"></div>` +
       `</div>` +
       `<div class="risk-gauge-labels">` +
-        `<span>0%</span><span style="position:absolute; left:10%; transform:translateX(-50%);">10%</span>` +
-        `<span style="position:absolute; left:40%; transform:translateX(-50%);">40%</span>` +
+        `<span>0%</span><span style="position:absolute; left:5%; transform:translateX(-50%);">5%</span>` +
+        `<span style="position:absolute; left:35%; transform:translateX(-50%);">35%</span>` +
         `<span>100%</span>` +
       `</div>` +
     `</div>` +
@@ -983,10 +984,10 @@ function drawKM(pipe, lp) {
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
 
   // Zone colorées HORIZONTALES (risque) : à 12mo
-  // Calcule les survies du patient qui correspondent aux seuils Risque 10% et 40% (V15.150 Tern 10/40)
+  // Calcule les survies du patient qui correspondent aux seuils Risque 5% et 35% (V15.284 Tern 5/35)
   // Y-axis is survival (S), high S = low risk → vert en haut
-  const sBoundLow  = 0.90; // S=90% correspond à 10% risk (borne low/mid)
-  const sBoundHigh = 0.60; // S=60% correspond à 40% risk (borne mid/high)
+  const sBoundLow  = 0.95; // S=95% correspond à 5% risk (borne low/mid)
+  const sBoundHigh = 0.65; // S=65% correspond à 35% risk (borne mid/high)
   // Fond zones (très clair)
   svg += `<rect x="${mL}" y="${y(1)}"  width="${W-mL-mR}" height="${y(sBoundLow)-y(1)}" fill="#dcfce7" opacity="0.4"/>`;
   svg += `<rect x="${mL}" y="${y(sBoundLow)}" width="${W-mL-mR}" height="${y(sBoundHigh)-y(sBoundLow)}" fill="#fef3c7" opacity="0.4"/>`;
@@ -1057,9 +1058,9 @@ function drawKM(pipe, lp) {
   // Légende HORS zone de tracé (à droite). Positionnée à x=W-mR+10 = 695, y=mT+10 = 35.
   const legX = W - mR + 10;  // 695
   svg += `<g transform="translate(${legX}, ${mT+10})">`;
-  svg += `<rect x="0" y="0" width="14" height="10" fill="#dcfce7" opacity="0.7"/><text x="20" y="9" font-size="11" fill="#334155">Zone Faible (&lt;10%)</text>`;
-  svg += `<rect x="0" y="18" width="14" height="10" fill="#fef3c7" opacity="0.7"/><text x="20" y="27" font-size="11" fill="#334155">Zone Modéré (10-40%)</text>`;
-  svg += `<rect x="0" y="36" width="14" height="10" fill="#fee2e2" opacity="0.7"/><text x="20" y="45" font-size="11" fill="#334155">Zone Élevé (&gt;40%)</text>`;
+  svg += `<rect x="0" y="0" width="14" height="10" fill="#dcfce7" opacity="0.7"/><text x="20" y="9" font-size="11" fill="#334155">Zone Faible (≤5%)</text>`;
+  svg += `<rect x="0" y="18" width="14" height="10" fill="#fef3c7" opacity="0.7"/><text x="20" y="27" font-size="11" fill="#334155">Zone Modéré (5-35%)</text>`;
+  svg += `<rect x="0" y="36" width="14" height="10" fill="#fee2e2" opacity="0.7"/><text x="20" y="45" font-size="11" fill="#334155">Zone Élevé (&gt;35%)</text>`;
   svg += `<line x1="0" y1="62" x2="14" y2="62" stroke="#0f172a" stroke-width="3"/><text x="20" y="66" font-size="11" fill="#334155" font-weight="600">Survie prédite</text><text x="20" y="78" font-size="10" fill="#64748b">(Cox individuel)</text>`;
   svg += `<line x1="0" y1="98" x2="14" y2="98" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="5,3"/><text x="20" y="102" font-size="11" fill="#334155" font-weight="600">Patients similaires</text><text x="20" y="114" font-size="10" fill="#64748b">(KNN observé, KM)</text>`;
   svg += `</g>`;
