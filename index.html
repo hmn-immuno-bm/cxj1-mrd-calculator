@@ -930,11 +930,11 @@ function calculate() {
   else if (useDelta && delta_suv_val !== null) tepDisplay = 'ΔSUVmax';
   else tepDisplay = 'Deauville';
   document.getElementById('r_tep').textContent = tepDisplay;
-  // V5A status: badge removed, status text now appears directly in r_v5 box.
-  // Color the r_v5 box value to reflect the activation state.
+  // V5A status: 'Activé' uses default text color (same as other boxes).
+  // 'Désactivé' is colored red as a discreet alert that the quality_gate failed.
   const r_v5_el = document.getElementById('r_v5');
   if (quali === 1) {
-    r_v5_el.style.color = '#15803d';
+    r_v5_el.style.color = '';  // inherit default summary-box-value color
     r_v5_el.title = (pipe === 'IDES'
       ? 'IDES p-value ≤ 1/100001 → quali=1, v5A est utilisé dans le LP.'
       : 'PV : nbr ≥ 3 ET Σ UMI ≥ 3 → quali=1, v5A est utilisé dans le LP.');
