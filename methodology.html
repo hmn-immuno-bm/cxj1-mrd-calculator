@@ -689,7 +689,45 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <h3>8. Robustesse du score_kin (vs slope individuel BLUP)</h3>
 <p>Une approche joint longitudinal-survival two-stage (mixed-effects LMM extrayant un slope individuel par BLUP, puis Cox sur ce slope) a été testée comme alternative à <code>score_kin</code>. <strong>Bootstrap optimism-corrected (B=200) : V229.1 score_kin C=0.791 vs BLUP candidate C=0.777 (Δ=−0.014)</strong>. Le score_kin résumé (4 trajectoires moyennes par histo×responder) est plus robuste car moins de paramètres individuels à estimer sur cohorte limitée.</p>
 
-<h3>9. Test de l'hypothèse PH (Grambsch-Therneau)</h3>
+<h3>8b. Bootstrap V229.1 — C-index optimism-corrected + IC95% (B=500)</h3>
+<p>Pour les 8 variantes de production, bootstrap Harrell complet sur la cohorte V229.1 :</p>
+<table>
+<tr><th>Variante</th><th>N (events)</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95%</th></tr>
+<tr><td><strong>M2_hEq IDES</strong> ⭐</td><td>162 (32)</td><td>0.814</td><td>+0.006</td><td><strong>0.807</strong></td><td>[0.733, 0.892]</td></tr>
+<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.804</td><td>+0.006</td><td>0.797</td><td>[0.720, 0.891]</td></tr>
+<tr><td>M2_VAF IDES</td><td>162 (32)</td><td>0.783</td><td>+0.012</td><td>0.771</td><td>[0.700, 0.877]</td></tr>
+<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.771</td><td>+0.005</td><td>0.766</td><td>[0.662, 0.867]</td></tr>
+<tr><td><strong>M2_hEq PV</strong> ⭐</td><td>89 (15)</td><td>0.913</td><td>+0.017</td><td><strong>0.896</strong></td><td>[0.835, 0.986]</td></tr>
+<tr><td>M1_hEq PV</td><td>108 (22)</td><td>0.824</td><td>+0.011</td><td>0.813</td><td>[0.717, 0.912]</td></tr>
+<tr><td>M2_VAF PV</td><td>89 (15)</td><td>0.884</td><td>+0.015</td><td>0.869</td><td>[0.781, 0.988]</td></tr>
+<tr><td>M1_VAF PV</td><td>108 (22)</td><td>0.795</td><td>+0.018</td><td>0.778</td><td>[0.682, 0.927]</td></tr>
+</table>
+<p class="muted">Optimism très faible (max +0.018, médiane ~0.012) confirme bonne généralisation. Les valeurs C-corrected à reporter en publication. Note : les N ici incluent les patients avec TEP imputé à 0 (Deauville manquant), légèrement plus que les cohortes de production strictes (M2_hEq IDES N=136 vs 162 ici). Les valeurs prod (sans imputation) sont C_apparent = 0.851/0.893 pour IDES/PV.</p>
+
+<h3>9. CONSORT flow diagram</h3>
+<p>Diagramme de flux des inclusions (V229.1) avec exclusions par pipeline et variante :</p>
+<div class="center">
+<img class="figure" src="figs/CONSORT_flow.png" alt="CONSORT flow" style="max-width: 90%;">
+<p class="muted">Note : N=224 patients screenés. M1 = sans TEP requis ; M2 ⭐ = avec TEP (configuration optimale). KINZELIN (DLBCL primitif SNC) avec TEP « Non fait » est classé par défaut TEP− dans M2_hEq ; idéalement à router vers M1_hEq.</p>
+</div>
+
+<h3>10. Caractéristiques baseline (Table 1)</h3>
+<p>Caractéristiques de la cohorte M2_hEq IDES (N=136), ventilées par responder et histologie :</p>
+<div class="center">
+<img class="figure" src="figs/Table1_cohort.png" alt="Table 1" style="max-width: 100%;">
+<p class="muted"><a href="figs/Table1_cohort.csv">Télécharger Table 1 (CSV)</a></p>
+</div>
+
+<h3>11. TRIPOD+AI checklist</h3>
+<p>Le modèle V229.1 suit la checklist <strong>TRIPOD+AI 2024</strong> (Collins et al., BMJ 2024) pour le reporting des modèles de prédiction clinique :</p>
+<ul>
+<li><strong>20/30 items ✅ fully reported</strong> : internal validation rigoureuse (bootstrap optimism, PH test, calibration multi-stratum, DCA, NRI/IDI), open science, code transparency</li>
+<li>6/30 items ⚠️ partial (manuscrit final)</li>
+<li>4/30 items ❌ pendants : PPI, funding, COI, external validation (en cours)</li>
+</ul>
+<p>📄 <a href="TRIPOD_AI_checklist.md">Voir checklist complète (Markdown)</a></p>
+
+<h3>12. Test de l'hypothèse PH (Grambsch-Therneau)</h3>
 <p>Le modèle Cox suppose que les hazard ratios entre patients restent constants dans le temps. Le test de Grambsch-Therneau vérifie cette hypothèse pour chaque covariable :</p>
 <table>
 <tr><th>Covariable</th><th>p-value (transform=rank)</th><th>p-value (transform=log)</th><th>Verdict</th></tr>
