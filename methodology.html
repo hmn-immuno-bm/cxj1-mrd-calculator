@@ -704,6 +704,67 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 </table>
 <p class="muted">Optimism très faible (max +0.019, médiane ~0.010) confirme bonne généralisation. Les valeurs C-corrected sont à reporter en publication. <strong>Note pré-analytique importante</strong> : les 36 patients avec TEP2 « Non fait » ou Deauville manquant (33 « Non fait » + 3 autres : PATIENT_S/GOSSE TEP fait mais Deauville non renseigné, DIEP statut absent) sont exclus de M2 (avec TEP) mais inclus dans M1 (sans TEP). Cela explique les N=136 vs 162 (IDES) et 91 vs 108 (PV) selon la variante.</p>
 
+<h3>8b-V229.3. Deauville LINÉAIRE + fallback DeltaSUVmax (production actuelle)</h3>
+<div class="note" style="border-color:#16a34a;background:#ecfdf5;">
+<strong>V229.3 (2026-05-19) — Mise à jour production.</strong> Le modèle est passé de Deauville BINAIRE (≥4) à Deauville LINÉAIRE (1-5 ordinal), avec ajout d'un fallback DeltaSUVmax% pour les patients sans Deauville interprété mais avec SUVmax disponibles.
+</div>
+
+<h4>Validation partial pooling IDES = PV (V266, LR test)</h4>
+<table>
+<tr><th>Spec TEP</th><th>Variante</th><th>β_IDES</th><th>β_PV</th><th>β_pooled (production)</th><th>LR p</th></tr>
+<tr><td rowspan="2"><strong>Deauville_lin</strong></td><td>hEq</td><td>+0.361</td><td>+0.378</td><td><strong>+0.366</strong></td><td><strong>p=0.91</strong> ✅</td></tr>
+<tr><td>VAF</td><td>+0.330</td><td>+0.343</td><td><strong>+0.334</strong></td><td><strong>p=0.93</strong> ✅</td></tr>
+<tr><td rowspan="2"><strong>DeltaSUV%</strong></td><td>hEq</td><td>+0.0144</td><td>+0.0143</td><td><strong>+0.0144</strong></td><td><strong>p=0.99</strong> ✅✅</td></tr>
+<tr><td>VAF</td><td>+0.0140</td><td>+0.0135</td><td><strong>+0.0139</strong></td><td><strong>p=0.94</strong> ✅</td></tr>
+</table>
+<p>Cohérence exceptionnelle pour DeltaSUV (β identique à la 4e décimale entre IDES et PV). Partial pooling B′ totalement justifié pour les 2 spécifications.</p>
+
+<h4>Coefficients V229.3 production (6 variantes hEq + équivalents VAF)</h4>
+<table>
+<tr><th>Variante</th><th>N (evt) IDES</th><th>N (evt) PV</th><th>β_score</th><th>β_burden</th><th>β_TEP</th><th>β_v5A IDES</th><th>β_v5A PV</th></tr>
+<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>136 (25)</td><td>91 (16)</td><td>+0.422</td><td>+0.300</td><td><strong>+0.366</strong>/unité Deauv</td><td>+0.578</td><td>+1.360</td></tr>
+<tr><td><strong>M2_hEq Delta</strong></td><td>118 (24)</td><td>79 (15)</td><td>+0.364</td><td>+0.278</td><td><strong>+0.0144</strong>/% Δ</td><td>+0.515</td><td>+1.330</td></tr>
+<tr><td>M1_hEq</td><td>162 (32)</td><td>108 (22)</td><td>+0.440</td><td>+0.293</td><td>—</td><td>+0.452</td><td>+1.021</td></tr>
+<tr><td>M2_VAF Deauv</td><td>136 (25)</td><td>91 (16)</td><td>+0.387</td><td>+0.450</td><td>+0.334/unité Deauv</td><td>+0.566</td><td>+1.354</td></tr>
+<tr><td>M2_VAF Delta</td><td>118 (24)</td><td>79 (15)</td><td>+0.312</td><td>+0.426</td><td>+0.0144/% Δ</td><td>+0.515</td><td>+1.318</td></tr>
+<tr><td>M1_VAF</td><td>162 (32)</td><td>108 (22)</td><td>+0.413</td><td>+0.442</td><td>—</td><td>+0.434</td><td>+1.023</td></tr>
+</table>
+
+<h4>Interprétation clinique</h4>
+<ul>
+<li><strong>HR par unité Deauville</strong> = exp(0.366) = <strong>1.44</strong>. Deauville 4 vs 3 ⇒ +44% de hazard. Deauville 5 vs 1 ⇒ HR = 4.33.</li>
+<li><strong>HR par 10% de DeltaSUV</strong> = exp(0.144) = <strong>1.155</strong>. ΔSUV −50% vs −95% (45% écart) ⇒ HR = 1.91.</li>
+<li><strong>Sensibilité Deauville 1→5</strong> (patient neutre, score=0, log_burden=9, v5A=0) : r12 = 3.2% / 4.6% / 6.6% / 9.4% / 13.2% — progression douce monotone (vs V229.1 binaire qui sautait 6.6% → 13% entre Deauville 3 et 4).</li>
+<li><strong>Discrimination intra-Deauville=4</strong> : pour un patient avec Deauville=4, ΔSUV=−85% (bonne réponse) donne r12 ≈ 6%, alors que ΔSUV=−40% (réponse insuffisante) donne r12 ≈ 12% — utile en zone ambiguë.</li>
+</ul>
+
+<h4>UX du calculateur web V229.3</h4>
+<p>Le calculateur bascule automatiquement entre 6 variantes selon les inputs cliniques :</p>
+<ul>
+<li><strong>Deauville renseigné</strong> (dropdown 1-5) → <code>M2_*_Deauv</code> (variante principale)</li>
+<li><strong>Pas de Deauville mais SUVmax_diag + SUVmax_2 renseignés</strong> (cocher fallback) → <code>M2_*_Delta</code> (Δ% calculé automatiquement)</li>
+<li><strong>TEP non disponible</strong> (checkbox) → <code>M1_*</code> (modèle sans TEP)</li>
+<li>+ toggle hEq / VAF selon disponibilité du Qubit cfDNA</li>
+</ul>
+
+<h4>Bootstrap V229.3 (B=500, Harrell optimism-corrected)</h4>
+<table>
+<tr><th>Variante</th><th>N (events)</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95%</th></tr>
+<tr><td><strong>M2_hEq Deauv IDES</strong> ⭐</td><td>136 (25)</td><td>0.858</td><td>+0.010</td><td><strong>0.848</strong></td><td>[0.78, 0.94]</td></tr>
+<tr><td><strong>M2_hEq Deauv PV</strong> ⭐</td><td>91 (16)</td><td>0.910</td><td>+0.018</td><td><strong>0.891</strong></td><td>[0.85, 0.98]</td></tr>
+<tr><td>M2_hEq Delta IDES</td><td>118 (24)</td><td>0.843</td><td>+0.009</td><td>0.834</td><td>[0.75, 0.92]</td></tr>
+<tr><td>M2_hEq Delta PV</td><td>79 (15)</td><td>0.894</td><td>+0.023</td><td>0.871</td><td>[0.81, 0.98]</td></tr>
+<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.804</td><td>+0.007</td><td>0.796</td><td>[0.72, 0.88]</td></tr>
+<tr><td>M1_hEq PV</td><td>108 (22)</td><td>0.824</td><td>+0.013</td><td>0.811</td><td>[0.71, 0.93]</td></tr>
+<tr><td>M2_VAF Deauv IDES</td><td>136 (25)</td><td>0.846</td><td>+0.015</td><td>0.831</td><td>[0.77, 0.93]</td></tr>
+<tr><td>M2_VAF Deauv PV</td><td>91 (16)</td><td>0.881</td><td>+0.021</td><td>0.860</td><td>[0.80, 0.98]</td></tr>
+<tr><td>M2_VAF Delta IDES</td><td>118 (24)</td><td>0.833</td><td>+0.011</td><td>0.822</td><td>[0.75, 0.92]</td></tr>
+<tr><td>M2_VAF Delta PV</td><td>79 (15)</td><td>0.880</td><td>+0.013</td><td>0.866</td><td>[0.78, 0.97]</td></tr>
+<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.771</td><td>+0.006</td><td>0.765</td><td>[0.66, 0.87]</td></tr>
+<tr><td>M1_VAF PV</td><td>108 (22)</td><td>0.796</td><td>+0.020</td><td>0.776</td><td>[0.70, 0.91]</td></tr>
+</table>
+<p><strong>Optimism très faible</strong> (max +0.023, médiane +0.013) → modèles robustes. <strong>Δ V229.1 → V229.3</strong> : M2_hEq IDES C_corr passe de 0.845 à <strong>0.848</strong> (+0.003), PV maintenu à <strong>0.891</strong>. La spécification linéaire est statistiquement équivalente à la binaire, avec l'avantage d'une interprétation plus fine (différenciation Deauville 2 vs 3, 4 vs 5).</p>
+
 <h3>8b-bis. MICE sensitivity analysis</h3>
 <p>Le modèle V229.1 utilise une analyse <strong>complete-case</strong> pour chacune des 4 variantes (M2/M1 × hEq/VAF), routant les patients selon leur pattern de missingness. Sensitivity analysis MICE (Multiple Imputation by Chained Equations, m=20) pour vérifier robustesse :</p>
 <table>
