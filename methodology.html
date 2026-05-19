@@ -73,13 +73,30 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 <!-- Table of Contents -->
 <div class="card" id="toc">
 <h2>📑 Table des matières</h2>
+<style>
+  /* Romanian numerals at chapter level, Arabic at sub-chapter level */
+  ol.toc-roman { list-style: none; counter-reset: roman-counter; padding-left:0; }
+  ol.toc-roman > li { counter-increment: roman-counter; padding-left: 2.4em; position: relative; margin: 4px 0; }
+  ol.toc-roman > li::before {
+    content: counter(roman-counter, upper-roman) ".";
+    position: absolute; left: 0; width: 2em; text-align: right;
+    font-weight: 700; color: #1e40af; padding-right: 0.4em;
+  }
+  ol.toc-arabic { list-style: none; counter-reset: arabic-counter; margin: 6px 0 8px 0.5em; padding-left: 0; }
+  ol.toc-arabic > li { counter-increment: arabic-counter; padding-left: 2.6em; position: relative; margin: 2px 0; }
+  ol.toc-arabic > li::before {
+    content: counter(roman-counter, upper-roman) "." counter(arabic-counter) ".";
+    position: absolute; left: 0; width: 2.2em; text-align: right;
+    color: #64748b; font-weight: 500; padding-right: 0.4em; font-size: 0.92em;
+  }
+</style>
 <div style="columns:2; column-gap:30px;">
-<ol style="margin:0; padding-left:18px; font-size:13.5px; line-height:1.7;">
+<ol class="toc-roman" style="font-size:13.5px; line-height:1.7;">
   <li><a href="#sec-objectif">Objectif clinique & endpoint EFS</a></li>
   <li><a href="#sec-inputs">Variables d'entrée</a></li>
   <li><a href="#sec-formules">Synthèse des formules</a></li>
   <li><a href="#sec-modele">Structure du modèle Cox</a>
-    <ol style="font-size:12.5px;">
+    <ol class="toc-arabic" style="font-size:12.5px;">
       <li><a href="#sec-traj">Trajectoires mono-exponentielles</a></li>
       <li><a href="#sec-score-kin">Score cinétique</a></li>
       <li><a href="#sec-burden">Charge tumorale baseline</a></li>
@@ -95,7 +112,7 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
   <li><a href="#sec-tern">Stratification clinique Tern 10/40</a></li>
   <li><a href="#sec-calib-locale">Calibration locale (KNN adaptatif)</a></li>
   <li><a href="#sec-validation">Validation interne</a>
-    <ol style="font-size:12.5px;">
+    <ol class="toc-arabic" style="font-size:12.5px;">
       <li><a href="#sec-bootstrap">Bootstrap C-index optimism-corrigé</a></li>
       <li><a href="#sec-linearite">Linéarité du LP</a></li>
       <li><a href="#sec-ph">Hypothèse PH (Grambsch-Therneau)</a></li>
@@ -111,9 +128,16 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
       <li><a href="#sec-score-vs-blup">score_kin vs BLUP</a></li>
       <li><a href="#sec-competing">Risque compétitif (mort)</a></li>
       <li><a href="#vpn-depth">Couverture moléculaire — pourquoi pas covariable</a></li>
+      <li><a href="#sec-deltasuv-explo">DeltaSUVmax% vs Deauville — exploratoire</a></li>
     </ol>
   </li>
-  <li><a href="#sec-cohorte">Cohorte d'entraînement (CONSORT + Table 1)</a></li>
+  <li><a href="#sec-cohorte">Cohorte d'entraînement</a>
+    <ol class="toc-arabic" style="font-size:12.5px;">
+      <li><a href="#sec-consort">CONSORT (flow d'inclusion)</a></li>
+      <li><a href="#sec-table1">Table 1 (baseline)</a></li>
+      <li><a href="#sec-atypiques">Patients atypiques</a></li>
+    </ol>
+  </li>
   <li><a href="#sec-techniques">Notes techniques</a></li>
   <li><a href="#sec-tripod">TRIPOD+AI checklist</a></li>
   <li><a href="#sec-limites">Limites & disclaimer</a></li>
@@ -124,13 +148,13 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 
 <!-- ════════════ SECTION 1-3 : VUE D'ENSEMBLE ════════════ -->
 <div class="card">
-<h2 id="sec-objectif">1. Objectif clinique & endpoint EFS</h2>
+<h2 id="sec-objectif">I. Objectif clinique & endpoint EFS</h2>
 <p>Prédire la probabilité d'événement (<strong>EFS = Event-Free Survival</strong> = rechute ou progression ; les morts non-lymphome sont censurées) à 12 et 24 mois chez les patients atteints de lymphome B agressif (DLBCL, HGBL, PMBL, Burkitt, transformés) ou de Hodgkin classique, à partir d'une évaluation MRD ctDNA mi-traitement (point <strong>CXJ1</strong>, typiquement après cycle 2 ou 3 de chimio-immunothérapie de première ligne).</p>
 <div class="note" style="background:#dcfce7; border-color:#16a34a; margin:12px 0; font-size:13px;">
-<strong>📌 V230 (mai 2026)</strong> — Passage de l'endpoint <strong>PFS</strong> (toute cause) à <strong>EFS</strong>. Les 3 morts strictement non-lymphome (2 COVID + 1 ulcère hémorragique chez témoin de Jéhova) sont désormais censurées, pas comptées comme événement. Architecture inchangée (Deauville LINÉAIRE 1-5 + DeltaSUV fallback, partial pooling B′ IDES=PV). Justification empirique : <a href="#sec-endpoint">§12.10</a> (sensibilité PFS vs R/R).
+<strong>📌 V230 (mai 2026)</strong> — Passage de l'endpoint <strong>PFS</strong> (toute cause) à <strong>EFS</strong>. Les 3 morts strictement non-lymphome (2 COVID + 1 ulcère hémorragique chez témoin de Jéhova) sont désormais censurées, pas comptées comme événement. Architecture inchangée (Deauville LINÉAIRE 1-5 + DeltaSUV fallback, partial pooling B′ IDES=PV). Justification empirique : <a href="#sec-endpoint">§XI.10</a> (sensibilité PFS vs R/R).
 </div>
 
-<h2 id="sec-inputs">2. Variables d'entrée du calculateur</h2>
+<h2 id="sec-inputs">II. Variables d'entrée du calculateur</h2>
 <ul>
   <li><strong>VAF moyenne au diagnostic et au CXJ1</strong> (par pipeline de séquençage)</li>
   <li><strong>Concentration cfDNA plasmatique</strong> au diagnostic et au CXJ1 (optionnelle ; bascule auto en mode VAF % seule si absente)</li>
@@ -144,8 +168,8 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 
 <!-- ════════════ SECTION 3 : SYNTHÈSE FORMULES ════════════ -->
 <div class="card">
-<h2 id="sec-formules">3. Synthèse des formules</h2>
-<p>Récapitulatif compact des étapes de calcul du risque <code>r(t)</code> pour un patient. Notations détaillées en <a href="#sec-modele">section 4</a>.</p>
+<h2 id="sec-formules">III. Synthèse des formules</h2>
+<p>Récapitulatif compact des étapes de calcul du risque <code>r(t)</code> pour un patient. Notations détaillées en <a href="#sec-modele">§IV</a>.</p>
 <div class="formula" style="white-space:pre-wrap; padding:14px; background:#f8fafc; border-left:4px solid #1e40af;">
 <strong>Burden au diagnostic</strong>
 ctDNA_diag = VAF_diag(%) × cfDNA_diag      (hEq, ng·% par mL)
@@ -174,9 +198,9 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>      avec S₀ stratifiée pipeline IDES/PV
 
 <!-- ════════════ SECTION 4 : STRUCTURE DÉTAILLÉE ════════════ -->
 <div class="card">
-<h2 id="sec-modele">4. Structure du modèle Cox (détail)</h2>
+<h2 id="sec-modele">IV. Structure du modèle Cox (détail)</h2>
 
-<h3 id="sec-traj">4.1 Trajectoires de décroissance ctDNA (mono-exponentielle)</h3>
+<h3 id="sec-traj">IV.1 Trajectoires de décroissance ctDNA (mono-exponentielle)</h3>
 <p>Pour chaque histologie (Hodgkin / DLBCL), deux trajectoires sont fittées sur la cohorte d'entraînement :</p>
 <ul>
   <li><strong>good responder</strong> : pas d'événement EFS dans les 12 mois</li>
@@ -185,9 +209,9 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>      avec S₀ stratifiée pipeline IDES/PV
 <div class="formula">
 mono_exp(t, λ) = exp(−λ · t)    avec t = délai réel C1J1 → CXJ1 (jours)
 </div>
-<p>Les paramètres λ sont fittés par minimisation des moindres carrés en log-ratio (algorithme <code>differential_evolution</code>, scipy). Valeurs en <a href="#sec-traj-fitted">section 7</a>.</p>
+<p>Les paramètres λ sont fittés par minimisation des moindres carrés en log-ratio (algorithme <code>differential_evolution</code>, scipy). Valeurs en <a href="#sec-traj-fitted">§VII</a>.</p>
 
-<h3 id="sec-score-kin">4.2 Score cinétique</h3>
+<h3 id="sec-score-kin">IV.2 Score cinétique</h3>
 <p>Le score mesure la log-vraisemblance Gaussienne du ratio observé sous chacune des deux trajectoires, pour l'histologie du patient :</p>
 <div class="formula">
 ratio_obs = ctDNA_CXJ1 / ctDNA_diag  (= VAF_CXJ1 / VAF_diag en mode VAF, clamp à 1e-7)<br>
@@ -197,13 +221,13 @@ log L_bad  = − (log ratio_obs − log mono_exp(t, λ_bad))² / (2σ²)<br>
 </div>
 <p>Score positif → ratio plus proche du <em>bad responder</em> (mauvais pronostic) ; négatif → <em>good responder</em>. La variance σ² est aussi fittée par strate histologique.</p>
 
-<h3 id="sec-burden">4.3 Charge tumorale baseline (burden)</h3>
+<h3 id="sec-burden">IV.3 Charge tumorale baseline (burden)</h3>
 <div class="formula">
 log_burden = log(1 + ctDNA_diag)   (mode hEq, ctDNA en hEq/mL)<br>
             ou log(1 + VAF_diag)    (mode VAF, VAF en %)
 </div>
 
-<h3 id="sec-v5a">4.4 Signal driver oncogénique au CXJ1 (v5A_gated)</h3>
+<h3 id="sec-v5a">IV.4 Signal driver oncogénique au CXJ1 (v5A_gated)</h3>
 <p>Mesure le signal résiduel sur les 11 gènes drivers <strong>D11 = BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53</strong> :</p>
 <div class="formula">
 v5A = log(1 + Σ Reads_alt sur drivers D11) × (n_drv⁺ / n_total⁺)<br>
@@ -216,7 +240,7 @@ v5A = log(1 + Σ Reads_alt sur drivers D11) × (n_drv⁺ / n_total⁺)<br>
 </ul>
 <p>Si <code>quali = 0</code> (« polish v56/v75 actif ») : v5A_gated = 0 ET VAF_CXJ1 est forcée à 0 dans le calcul du ratio.</p>
 
-<h3 id="sec-tep-var">4.5 Composante TEP (3 variantes mutuellement exclusives)</h3>
+<h3 id="sec-tep-var">IV.5 Composante TEP (3 variantes mutuellement exclusives)</h3>
 <p>L'évaluation métabolique TEP interim est incorporée via 3 spécifications selon les données disponibles :</p>
 <table>
 <tr><th>Variante</th><th>Specification TEP</th><th>Codage</th><th>HR par unité</th></tr>
@@ -224,21 +248,21 @@ v5A = log(1 + Σ Reads_alt sur drivers D11) × (n_drv⁺ / n_total⁺)<br>
 <tr><td>M2_*_Delta</td><td>ΔSUVmax% continu (fallback)</td><td>DeltaSUV = (SUVmax_2 − SUVmax_diag)/SUVmax_diag × 100</td><td>exp(0.0134) par % = <strong>1.014</strong></td></tr>
 <tr><td>M1_*</td><td>Pas de TEP</td><td>terme β_TEP absent du LP</td><td>—</td></tr>
 </table>
-<p>Le calculateur web bascule automatiquement entre les 3 spécifications selon les inputs. Validation du choix linéaire vs binaire : <a href="#sec-deauv-binlin">§12.12</a>.</p>
+<p>Le calculateur web bascule automatiquement entre les 3 spécifications selon les inputs. Validation du choix linéaire vs binaire : <a href="#sec-deauv-binlin">§XI.12</a>.</p>
 
-<h3 id="sec-lp">4.6 Linear Predictor & risque prédit</h3>
+<h3 id="sec-lp">IV.6 Linear Predictor & risque prédit</h3>
 <div class="formula">
 LP_raw = β_score · score_kin + β_burden · log_burden + β_v5A · v5A_gated [+ β_TEP · TEP_var]<br>
 LP = LP_raw − LP_offset             ← <strong>centrage cohorte (essentiel)</strong><br>
 S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou PV)<br>
 <strong>r(t) = 1 − S(t | x)</strong>
 </div>
-<p class="muted">Le <code>LP_offset = β·X̄</code> est calculé sur la moyenne des covariables de la cohorte de chaque variante × pipeline. La librairie lifelines stocke <code>baseline_survival_</code> au mean des covariables (pas à X=0), donc le centrage est indispensable pour cohérence JS ⇔ Python (cf. <a href="#sec-techniques">§14</a>).</p>
+<p class="muted">Le <code>LP_offset = β·X̄</code> est calculé sur la moyenne des covariables de la cohorte de chaque variante × pipeline. La librairie lifelines stocke <code>baseline_survival_</code> au mean des covariables (pas à X=0), donc le centrage est indispensable pour cohérence JS ⇔ Python (cf. <a href="#sec-techniques">§XIII</a>).</p>
 </div>
 
 <!-- ════════════ SECTION 5 : LES 6 VARIANTES V230 ════════════ -->
 <div class="card">
-<h2 id="sec-variantes">5. Les 6 variantes V230</h2>
+<h2 id="sec-variantes">V. Les 6 variantes V230</h2>
 <p>Le calculateur web bascule automatiquement entre 6 variantes selon la disponibilité des données cliniques :</p>
 <table>
 <tr><th>Variante</th><th>Quantification</th><th>TEP</th><th>IDES N (evt)</th><th>C-IDES</th><th>PV N (evt)</th><th>C-PV</th></tr>
@@ -249,7 +273,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <tr><td>M2_VAF Delta</td><td>VAF % seule</td><td>ΔSUVmax% (fallback)</td><td>118 (25)</td><td>0.816</td><td>79 (15)</td><td>0.843</td></tr>
 <tr><td>M1_VAF</td><td>VAF % seule</td><td>— absent</td><td>162 (32)</td><td>0.780</td><td>108 (21)</td><td>0.808</td></tr>
 </table>
-<p>⭐ = configuration optimale (toutes les données disponibles). Bootstrap optimism-corrigé en <a href="#sec-bootstrap">§12.1</a>.</p>
+<p>⭐ = configuration optimale (toutes les données disponibles). Bootstrap optimism-corrigé en <a href="#sec-bootstrap">§XI.1</a>.</p>
 
 <div class="note">
 <strong>Coûts mesurés (Δ C-index, M2_hEq vs alternatives)</strong> :
@@ -277,8 +301,8 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <!-- ════════════ SECTION 6 : COEFFICIENTS V230 ════════════ -->
 <div class="card">
-<h2 id="sec-coefs-v230">6. Coefficients V230 (production déployée)</h2>
-<p>Fit Cox stratifié pipeline (cluster-robust sur NOM, penalizer L2 = 0.05), endpoint EFS, structure <strong>partial pooling B′</strong> : β_score, β_burden, β_TEP partagés entre IDES et PV ; β_v5A pipeline-spécifique. Validation du partial pooling en <a href="#sec-partial-pooling">§8</a>.</p>
+<h2 id="sec-coefs-v230">VI. Coefficients V230 (production déployée)</h2>
+<p>Fit Cox stratifié pipeline (cluster-robust sur NOM, penalizer L2 = 0.05), endpoint EFS, structure <strong>partial pooling B′</strong> : β_score, β_burden, β_TEP partagés entre IDES et PV ; β_v5A pipeline-spécifique. Validation du partial pooling en <a href="#sec-partial-pooling">§VIII</a>.</p>
 
 <div class="variant-grid">
 
@@ -371,7 +395,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <!-- ════════════ SECTION 7 : TRAJECTOIRES V230 ════════════ -->
 <div class="card">
-<h2 id="sec-traj-fitted">7. Trajectoires fittées (λ par strate)</h2>
+<h2 id="sec-traj-fitted">VII. Trajectoires fittées (λ par strate)</h2>
 <p>Quatre paramètres λ par mode (hEq ou VAF) × pipeline : 2 histologies × 2 statuts responder = 4 trajectoires. Fittage par <code>differential_evolution</code> sur log-ratio observé vs prédit.</p>
 
 <h3>Mode hEq (ratio ctDNA absolu = VAF × cfDNA)</h3>
@@ -406,7 +430,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <!-- ════════════ SECTION 8 : PARTIAL POOLING ════════════ -->
 <div class="card">
-<h2 id="sec-partial-pooling">8. Partial pooling IDES = PV (justification)</h2>
+<h2 id="sec-partial-pooling">VIII. Partial pooling IDES = PV (justification)</h2>
 <p>Tester si les coefficients β_score, β_burden et β_TEP peuvent être <strong>partagés</strong> entre IDES et PV pour stabiliser l'estimation (plus de patients dans chaque équation), tout en gardant β_v5A pipeline-spécifique (échelles Reads_alt IDES vs UMI PV différentes).</p>
 
 <h3>Comparaison de 5 modèles emboîtés (LR test, cluster-robust sur NOM)</h3>
@@ -433,7 +457,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <!-- ════════════ SECTION 9 : STRATIFICATION TERN ════════════ -->
 <div class="card">
-<h2 id="sec-tern">9. Stratification clinique Tern 10/40</h2>
+<h2 id="sec-tern">IX. Stratification clinique Tern 10/40</h2>
 <p>Trois zones de risque basées sur la probabilité prédite d'événement à 12 mois (r12) :</p>
 <table>
 <tr><th>Zone</th><th>Plage r12</th><th>Conduite suggérée</th></tr>
@@ -487,7 +511,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <!-- ════════════ SECTION 10 : CALIBRATION LOCALE ════════════ -->
 <div class="card">
-<h2 id="sec-calib-locale">10. Calibration locale (KNN adaptatif)</h2>
+<h2 id="sec-calib-locale">X. Calibration locale (KNN adaptatif)</h2>
 <p>Le calculateur affiche systématiquement, à côté de la prédiction Cox, une <strong>estimation observationnelle KM</strong> calculée sur les patients de la cohorte les plus proches en LP du patient testé. Cette estimation sert de garde-fou contre l'extrapolation du Cox dans les zones de risque éparses.</p>
 
 <h3>Stratégie KNN adaptative (validée empiriquement)</h3>
@@ -511,10 +535,10 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <!-- ════════════ SECTION 11 : VALIDATION INTERNE ════════════ -->
 <div class="card">
-<h2 id="sec-validation">11. Validation interne</h2>
+<h2 id="sec-validation">XI. Validation interne</h2>
 <p>Battery de tests internes du modèle Cox V230. Tous les bootstraps utilisent la méthode Harrell (B=500, optimism-corrected sur tirages avec remise) sauf indication contraire.</p>
 
-<h3 id="sec-bootstrap">11.1 Bootstrap C-index optimism-corrigé (Harrell, B=500)</h3>
+<h3 id="sec-bootstrap">XI.1 Bootstrap C-index optimism-corrigé (Harrell, B=500)</h3>
 <p>Pour les 6 variantes V230, bootstrap complet sur la cohorte d'entraînement (endpoint EFS, partial pooling B′ refitté à chaque tirage) :</p>
 <table>
 <tr><th>Variante</th><th>N (events)</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95% (percentile)</th></tr>
@@ -531,9 +555,9 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.780</td><td>+0.008</td><td>0.772</td><td>[0.67, 0.87]</td></tr>
 <tr><td>M1_VAF PV</td><td>108 (21)</td><td>0.808</td><td>+0.020</td><td>0.788</td><td>[0.70, 0.91]</td></tr>
 </table>
-<p class="muted"><strong>Optimism très faible</strong> (max +0.023, médiane +0.014) → bonne généralisation. Δ V229.3 PFS → V230 EFS : M2_hEq IDES C_corr 0.848 → 0.837 (−0.011), PV 0.891 → 0.869 (−0.022). Cette légère baisse est attendue : EFS exclut 3 morts non-lymphome bien prédites par TEP, donc plus difficile à discriminer (cf. <a href="#sec-endpoint">§11.10</a>).</p>
+<p class="muted"><strong>Optimism très faible</strong> (max +0.023, médiane +0.014) → bonne généralisation. Δ V229.3 PFS → V230 EFS : M2_hEq IDES C_corr 0.848 → 0.837 (−0.011), PV 0.891 → 0.869 (−0.022). Cette légère baisse est attendue : EFS exclut 3 morts non-lymphome bien prédites par TEP, donc plus difficile à discriminer (cf. <a href="#sec-endpoint">§XI.10</a>).</p>
 
-<h3 id="sec-linearite">11.2 Linéarité du LP (martingale + splines RCS)</h3>
+<h3 id="sec-linearite">XI.2 Linéarité du LP (martingale + splines RCS)</h3>
 <table>
 <tr><th>Test</th><th>Résultat</th><th>Verdict</th></tr>
 <tr><td>Martingale residuals lowess vs log_burden</td><td>Amplitude = 0.13 (&lt; 0.3)</td><td>✓ Pattern plat</td></tr>
@@ -542,7 +566,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 </table>
 <p>Le modèle linéaire généralise mieux que le spline car le spline avait 3× plus d'optimism (overfit confirmé sur ~25 events). Pas d'évidence de non-linéarité.</p>
 
-<h3 id="sec-ph">11.3 Hypothèse des hazards proportionnels (Grambsch-Therneau)</h3>
+<h3 id="sec-ph">XI.3 Hypothèse des hazards proportionnels (Grambsch-Therneau)</h3>
 <table>
 <tr><th>Covariable</th><th>p-value (rank)</th><th>p-value (log)</th><th>Verdict</th></tr>
 <tr><td><code>score_kin</code></td><td>0.184</td><td>0.205</td><td>✓ Pas de violation</td></tr>
@@ -552,7 +576,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 </table>
 <p>Toutes les p &gt; 0.18 → <strong>aucune violation PH</strong>. Confirmation supplémentaire : l'interaction <code>score_kin × log(t)</code> ajoutée au Cox donne β = +0.025 (p = 0.78 NS) et ΔC = +0.001 (négligeable). Les HR sont valides sur 0-36 mois, justifiant la projection de S₀(12) et S₀(24) sans correction temps-dépendante.</p>
 
-<h3 id="sec-calib">11.4 Calibration (globale + sous-groupes)</h3>
+<h3 id="sec-calib">XI.4 Calibration (globale + sous-groupes)</h3>
 <p>Le prédicteur Cox V230 est calibré sur toute la gamme des risques [0, 60%] — pas de sur/sous-estimation systématique. IC95% Greenwood par bin (5 bins équi-effectifs).</p>
 <div class="center">
 <img class="figure" src="figs/Calibration_M2_hEq.png" alt="Calibration plot M2_hEq" style="max-width: 95%;">
@@ -563,14 +587,14 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <img class="figure" src="figs/Calibration_subgroup.png" alt="Calibration par sous-groupe" style="max-width: 95%;">
 </div>
 
-<h3 id="sec-dca">11.5 Decision Curve Analysis (DCA) — net benefit clinique</h3>
+<h3 id="sec-dca">XI.5 Decision Curve Analysis (DCA) — net benefit clinique</h3>
 <p>Le modèle a un <strong>net benefit positif</strong> sur l'intervalle de seuils [5%, 50%], dépassant les stratégies « traiter tous » et « ne traiter personne ». La décision basée sur le calculateur évite plus de récidives qu'elle ne génère de surtraitements inutiles.</p>
 <div class="center">
 <img class="figure" src="figs/DCA_M2_hEq.png" alt="Decision Curve Analysis @ 12mo" style="max-width: 95%;">
 <p class="muted">DCA à 12 mois pour IDES (gauche) et PV (droite) M2_hEq. La courbe bleue domine les stratégies par défaut.</p>
 </div>
 
-<h3 id="sec-nri">11.6 Reclassification index (NRI / IDI) vs TEP seul</h3>
+<h3 id="sec-nri">XI.6 Reclassification index (NRI / IDI) vs TEP seul</h3>
 <p>Comparaison de la classification Tern (Faible/Modéré/Élevé) obtenue avec le modèle complet vs Cox TEP seul (baseline clinique, version V229.1 référencée) :</p>
 <table>
 <tr><th>Métrique</th><th>Valeur</th><th>Interprétation</th></tr>
@@ -581,7 +605,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 </table>
 <p>Sur 163 patients, le TEP seul classait <strong>tous</strong> les patients en zone « Faible » (r12 médian 0.14, max 0.31). Le modèle MRD complet redistribue <strong>58 patients (35%) en zones Modéré ou Élevé</strong>, dont 17 events futurs correctement identifiés — invisibles avec TEP seul.</p>
 
-<h3 id="sec-forest">11.7 Forest plot par sous-groupe (4 covariables)</h3>
+<h3 id="sec-forest">XI.7 Forest plot par sous-groupe (4 covariables)</h3>
 <p>HR par 1 SD de chaque covariable Cox dans les sous-groupes cliniques (Hodgkin/DLBCL, Stade I-II/III-IV, Age &lt;60/≥60). On vérifie qu'aucune covariable n'a un effet inversé ou massivement différent dans un sous-groupe.</p>
 <table>
 <tr><th>Covariable</th><th>Overall (N=137)</th><th>Hodgkin</th><th>DLBCL</th><th>Stade I-II</th><th>Stade III-IV</th><th>Age &lt;60</th><th>Age ≥60</th></tr>
@@ -601,7 +625,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p class="muted">Forest plots HR par 1-SD, calculés par refit Cox dans chaque sous-groupe (penalizer=0.05). Barres = IC95% Wald. La SD utilisée pour normaliser HR est calculée par sous-groupe → comparable entre lignes.</p>
 </div>
 
-<h3 id="sec-time-c">11.8 C-index temps-dépendant C(t)</h3>
+<h3 id="sec-time-c">XI.8 C-index temps-dépendant C(t)</h3>
 <p>La discrimination du modèle est stable de 6 à 36 mois :</p>
 <table>
 <tr><th>Time</th><th>C(t) IDES M2_hEq</th><th>C(t) PV M2_hEq</th></tr>
@@ -615,7 +639,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <img class="figure" src="figs/Time_C_index.png" alt="Time-dependent C-index" style="max-width: 80%;">
 </div>
 
-<h3 id="sec-mice">11.9 MICE sensitivity analysis</h3>
+<h3 id="sec-mice">XI.9 MICE sensitivity analysis</h3>
 <p>Le modèle utilise une analyse <strong>complete-case</strong> pour chaque variante, routant les patients selon leur pattern de missingness. Sensitivity analysis MICE (Multiple Imputation by Chained Equations, m=20) pour vérifier la robustesse :</p>
 <table>
 <tr><th>Covariable M2_hEq IDES</th><th>Complete-case (N=136)</th><th>MICE (N=162, m=20)</th><th>Δβ</th><th>FMI</th></tr>
@@ -627,7 +651,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 </table>
 <p><strong>Interprétation</strong> : 3 covariables sur 4 sont stables (FMI &lt; 0.02 = négligeable). Le β_TEP atténué sous MICE (FMI = 0.087, encore acceptable &lt; 10%) reflète probablement un pattern <strong>MNAR</strong> : les patients avec TEP « Non fait » ont des caractéristiques cliniques particulières (formes indolentes, contre-indications). L'<strong>architecture multi-variantes</strong> (router ces patients vers M1 plutôt qu'imputer) reste la solution principale. MICE confirme que les conclusions sont robustes au pattern de missingness.</p>
 
-<h3 id="sec-endpoint">11.10 Choix d'endpoint : PFS → EFS (justification V230)</h3>
+<h3 id="sec-endpoint">XI.10 Choix d'endpoint : PFS → EFS (justification V230)</h3>
 <p>L'endpoint historique V229.x était <strong>PFS</strong> (= Rechute OR Progression OR Mort toute cause). Question : si on restreint aux événements lymphome-spécifiques (R/R = Rechute OR Progression, censurant les morts sans rechute/progression), les coefficients et la performance changent-ils ?</p>
 <p>Sur 223 patients IDES + 221 PV, on identifie <strong>5 patients PFS=1 mais R/R=0</strong>, deux situations distinctes :</p>
 <p><strong>(a) 3 morts strictement non-lymphome</strong> (perte d'événement R/R justifiée) :</p>
@@ -664,11 +688,11 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 </ul>
 
 <div class="note" style="background:#dcfce7; border-color:#16a34a;">
-<strong>Décision V230 (mai 2026)</strong> : <strong>endpoint EFS adopté en production</strong>. Justification : (1) les 3 morts non-lymphome ne reflètent pas un échec thérapeutique et leur inclusion dilue le signal MRD ; (2) l'écart de C-index est ≤ 0.03 dans toutes les variantes ; (3) seul l'endpoint change, l'architecture reste identique (Deauville LINÉAIRE + DeltaSUV fallback + partial pooling B′). Coefficients V230 refittés exposés en <a href="#sec-coefs-v230">§6</a>.
+<strong>Décision V230 (mai 2026)</strong> : <strong>endpoint EFS adopté en production</strong>. Justification : (1) les 3 morts non-lymphome ne reflètent pas un échec thérapeutique et leur inclusion dilue le signal MRD ; (2) l'écart de C-index est ≤ 0.03 dans toutes les variantes ; (3) seul l'endpoint change, l'architecture reste identique (Deauville LINÉAIRE + DeltaSUV fallback + partial pooling B′). Coefficients V230 refittés exposés en <a href="#sec-coefs-v230">§VI</a>.
 </div>
 <p class="muted">Script : <code>scripts/_v15_274_PFS_vs_RR_endpoint.py</code> + <code>_v15_278_refit_V230_EFS_endpoint.py</code>.</p>
 
-<h3 id="sec-c2c3">11.11 Sensibilité C2 vs C3 (bi-tp)</h3>
+<h3 id="sec-c2c3">XI.11 Sensibilité C2 vs C3 (bi-tp)</h3>
 <p>Pour les patients ayant 2 prélèvements CXJ1 (C2J1 et C3J1, N=24 IDES bi-tp), la valeur retenue par défaut est <strong>C2 (priorité au plus précoce)</strong>. Comparaison de 4 stratégies sur M2_hEq IDES (bootstrap optimism-corrected B=200) :</p>
 <table>
 <tr><th>Stratégie</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95%</th></tr>
@@ -687,7 +711,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 </ul>
 <p class="muted">Interprétation : la mono-exp est une approximation utile pour le score Cox, mais la cohorte des bi-tp est probablement biaisée vers les patients pour lesquels le clinicien avait souhaité un suivi C3 supplémentaire (cas suspect à C2). À reproduire sur cohorte externe.</p>
 
-<h3 id="sec-deauv-binlin">11.12 Deauville binaire vs linéaire — bootstrap B=500</h3>
+<h3 id="sec-deauv-binlin">XI.12 Deauville binaire vs linéaire — bootstrap B=500</h3>
 <p>Test : Deauville binaire (≥4 vs &lt;4) ou Deauville linéaire (ordinal 1-5) ? Bootstrap optimism-corrected B=500 sur les 8 variantes V229.x :</p>
 <table>
 <tr><th>Variante</th><th>N (ev)</th><th>bin C_corr</th><th>lin C_corr</th><th>Δ (lin − bin)</th></tr>
@@ -702,13 +726,13 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 </table>
 <p>Différence moyenne <strong>Δ ≈ 0</strong> (médiane = +0.0006). 4 variantes favorisent <code>lin</code>, 4 favorisent <code>bin</code>. <strong>Équivalents en performance</strong>. La spécification <strong>linéaire est retenue V229.3/V230</strong> pour son interprétation plus fine (différentiation Deauville 2 vs 3, 4 vs 5) et discrimination dans la zone Deauville=4 ambiguë.</p>
 
-<h3 id="sec-score-vs-blup">11.13 Robustesse du score_kin vs slope individuel BLUP</h3>
+<h3 id="sec-score-vs-blup">XI.13 Robustesse du score_kin vs slope individuel BLUP</h3>
 <p>Une approche joint longitudinal-survival two-stage (mixed-effects LMM extrayant un slope individuel par BLUP, puis Cox sur ce slope) a été testée comme alternative à <code>score_kin</code>. <strong>Bootstrap optimism-corrected (B=200) : score_kin C=0.791 vs BLUP C=0.777 (Δ=−0.014)</strong>. Le score_kin résumé (4 trajectoires moyennes par histo×responder) est plus robuste car moins de paramètres individuels à estimer sur cohorte limitée.</p>
 
-<h3 id="sec-competing">11.14 Risque compétitif (mort sans progression)</h3>
-<p>Sur N=223 patients clinique, on observe <strong>1 seul décès sans progression préalable</strong> au sens strict (Aalen-Johansen CIF à 12mo : progression 0.225, décès pur 0.005). Le risque compétitif « décès » est négligeable (&lt;0.5%) et ne nécessite pas une approche Fine-Gray distincte du Cox composite. L'endpoint EFS V230 censure explicitement ces cas (cf. <a href="#sec-endpoint">§11.10</a>).</p>
+<h3 id="sec-competing">XI.14 Risque compétitif (mort sans progression)</h3>
+<p>Sur N=223 patients clinique, on observe <strong>1 seul décès sans progression préalable</strong> au sens strict (Aalen-Johansen CIF à 12mo : progression 0.225, décès pur 0.005). Le risque compétitif « décès » est négligeable (&lt;0.5%) et ne nécessite pas une approche Fine-Gray distincte du Cox composite. L'endpoint EFS V230 censure explicitement ces cas (cf. <a href="#sec-endpoint">§XI.10</a>).</p>
 
-<h3 id="vpn-depth">11.15 Couverture moléculaire (Σ DEPTH / Σ PCU) — pourquoi pas covariable</h3>
+<h3 id="vpn-depth">XI.15 Couverture moléculaire (Σ DEPTH / Σ PCU) — pourquoi pas covariable</h3>
 <p><strong>Précision sémantique</strong> : ce qu'on appelle ici « Σ DEPTH » ou « Σ PCU » n'est pas la profondeur par variant, mais le <strong>nombre total de molécules analysées par patient</strong> = Σ sur la Watch List de la couverture à chaque variant. Pour IDES : Σ NbrReadDepth (reads × n_variants_WL). Pour PV : Σ fu_pos_UMI = Σ Position Common UMI. C'est le « budget moléculaire » global qui détermine la sensibilité de détection des résiduels.</p>
 <p>La carte « VPN technique en fonction de la couverture moléculaire » a été retirée du calculateur (V15.272-273). Justification empirique :</p>
 <table>
@@ -729,7 +753,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p>Conclusion : la couverture moléculaire totale est <strong>corrélée positivement avec le cfDNA</strong> — plus de matériel circulant ⇒ plus de molécules à séquencer. Le cfDNA étant lui-même un facteur pronostique fort (low cfDNA = bon prono), l'effet « marginal » de Σ DEPTH est <strong>masqué par le cfDNA</strong> dans l'analyse non ajustée : Σ basse ↔ cfDNA bas ↔ bon prono, ce qui compense la perte de sensibilité technique. Le modèle M1/M2 contient déjà <code>log(1+cfDNA_diag)</code> comme covariable burden, donc cette information est encodée.</p>
 <p class="muted">Scripts : <code>_v15_272_VPN_technique_M1_empirical.py</code>, <code>_v15_273_depth_cfDNA_confounding.py</code>.</p>
 
-<h3 id="sec-deltasuv-explo">11.16 DeltaSUVmax% vs Deauville TEP2 — analyse exploratoire</h3>
+<h3 id="sec-deltasuv-explo">XI.16 DeltaSUVmax% vs Deauville TEP2 — analyse exploratoire</h3>
 <p>Le Deauville TEP2 (ordinal 1-5) est le standard clinique. Question : le DeltaSUVmax% (continu, baisse relative du SUVmax diag→TEP2) apporterait-il de l'info supplémentaire ?</p>
 <table>
 <tr><th>Modèle (cohorte N=117, ev=23)</th><th>C-index</th><th>β_Deauville</th><th>β_DeltaSUV</th><th>LR vs baseline</th></tr>
@@ -742,9 +766,9 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <!-- ════════════ SECTION 12 : COHORTE D'ENTRAÎNEMENT ════════════ -->
 <div class="card">
-<h2 id="sec-cohorte">12. Cohorte d'entraînement</h2>
+<h2 id="sec-cohorte">XII. Cohorte d'entraînement</h2>
 
-<h3 id="sec-consort">12.1 Diagramme CONSORT (flow d'inclusion)</h3>
+<h3 id="sec-consort">XII.1 Diagramme CONSORT (flow d'inclusion)</h3>
 <p>Flow d'inclusion des patients V230 — endpoint EFS, avec exclusions par pipeline et variante :</p>
 <div class="center">
 <svg viewBox="0 0 760 540" style="max-width:100%; height:auto; background:#fafbfc; border:1px solid #e2e8f0; border-radius:6px;">
@@ -873,7 +897,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p class="muted">Vectoriel SVG — Cohorte M2_hEq Deauv optimal (⭐) V230 EFS : IDES 136 patients (26 events), PV 91 (16). M1 (sans TEP) inclut +26 IDES et +17 PV ayant le statut TEP « Non fait », routés automatiquement par le calculateur.</p>
 </div>
 
-<h3 id="sec-table1">12.2 Caractéristiques baseline (Table 1)</h3>
+<h3 id="sec-table1">XII.2 Caractéristiques baseline (Table 1)</h3>
 <p>Caractéristiques de la cohorte M2_hEq IDES (N=137), ventilées par responder et histologie :</p>
 <table style="font-size:13px;">
 <thead>
@@ -918,37 +942,37 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 </table>
 <p class="muted">Table HTML — entièrement vectorielle, accessible (lecteurs d'écran), copiable. Données brutes : <a href="figs/Table1_cohort.csv">CSV</a>.</p>
 
-<h3 id="sec-atypiques">12.3 Patients atypiques documentés</h3>
+<h3 id="sec-atypiques">XII.3 Patients atypiques documentés</h3>
 <p>Quelques patients méritent une mention spécifique pour la traçabilité de la cohorte :</p>
 <ul>
 <li><strong>KINZELIN</strong> — DLBCL réfractaire (progression à 2 mo, décès à 4 mo), TEP « Non fait » → routé en M1.</li>
 <li><strong>PHETMANY</strong> — échec d'extraction cfDNA et <code>numero_run_diag = 'non_sequence?'</code> → exclu (VAF_diag indétectable).</li>
 <li><strong>PATIENT_L</strong> (Hodgkin, 2BEACOPP+4ABVD) — étiqueté C3J1 mais délai 98 j post-C1J1 ; probablement C4J1 (cycles longs). Bon répondeur clinique (Deauville 2, EFS=0 @ 34mo) — impact production minimal (VAF_CXJ1=0, polish actif).</li>
 <li><strong>PATIENT_M</strong> (DLBCL Poppemat, 6RCHOP) — étiqueté C3J1 mais délai <strong>105 j = exactement C6J1</strong> (6×21j). Sample probablement post-fin de traitement, mal étiqueté. Éligible M1_hEq, r12 prédit ~20% (zone Modéré), EFS=0 @ 23mo confirmé.</li>
-<li><strong>PATIENT_D, PATIENT_E</strong> — vivants, perdus de vue tardivement, PFS=1 mal encodé dans la base (cf. <a href="#sec-endpoint">§11.10</a>). Exclus des cohortes V230 par VAF_diag=NaN.</li>
+<li><strong>PATIENT_D, PATIENT_E</strong> — vivants, perdus de vue tardivement, PFS=1 mal encodé dans la base (cf. <a href="#sec-endpoint">§XI.10</a>). Exclus des cohortes V230 par VAF_diag=NaN.</li>
 </ul>
 </div>
 
 <!-- ════════════ SECTION 13 : NOTES TECHNIQUES ════════════ -->
 <div class="card">
-<h2 id="sec-techniques">13. Notes techniques</h2>
+<h2 id="sec-techniques">XIII. Notes techniques</h2>
 
-<h3>13.1 Centrage du LP (LP_offset)</h3>
+<h3>XIII.1 Centrage du LP (LP_offset)</h3>
 <p>La librairie <code>lifelines</code> (Python) stocke <code>baseline_survival_</code> au <strong>mean des covariables</strong> de la cohorte d'entraînement, et non à X=0. Pour appliquer correctement <code>S(t|x) = S₀(t)^exp(LP)</code>, il faut soustraire <code>β·X̄</code> au LP brut. Chaque modèle stocke donc son <strong>LP_offset</strong> dans le JSON et le calculateur JS l'applique automatiquement. Sans ce centrage, le risque prédit serait systématiquement surévalué.</p>
 
-<h3>13.2 Régularisation L2</h3>
+<h3>XIII.2 Régularisation L2</h3>
 <p>Tous les modèles Cox utilisent une pénalisation L2 (Ridge) avec λ=0.05 pour assurer la stabilité numérique avec des événements rares (~25 events par variante M2).</p>
 
-<h3>13.3 Cohérence JS ⇔ Python</h3>
+<h3>XIII.3 Cohérence JS ⇔ Python</h3>
 <p>Le calculateur JS reproduit exactement les prédictions de <code>lifelines.predict_survival_function</code> (erreur max &lt; 1e-6 sur la cohorte).</p>
 
-<h3>13.4 Confidentialité des données</h3>
+<h3>XIII.4 Confidentialité des données</h3>
 <p>Aucune donnée patient n'est transmise au serveur. Le calculateur fonctionne intégralement côté navigateur (JavaScript). Les coefficients du modèle sont chargés au démarrage et toute analyse reste locale.</p>
 </div>
 
 <!-- ════════════ SECTION 14 : TRIPOD+AI ════════════ -->
 <div class="card">
-<h2 id="sec-tripod">14. TRIPOD+AI checklist</h2>
+<h2 id="sec-tripod">XIV. TRIPOD+AI checklist</h2>
 <p>Le modèle suit la checklist <strong>TRIPOD+AI 2024</strong> (Collins et al., BMJ 2024) pour le reporting des modèles de prédiction clinique :</p>
 <ul>
 <li><strong>20/30 items ✓ fully reported</strong> : validation interne rigoureuse (bootstrap optimism, PH test, calibration multi-stratum, DCA, NRI/IDI, MICE), open science, code transparency</li>
@@ -960,7 +984,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <!-- ════════════ SECTION 15 : LIMITES & DISCLAIMER ════════════ -->
 <div class="card">
-<h2 id="sec-limites">15. Limites & disclaimer</h2>
+<h2 id="sec-limites">XV. Limites & disclaimer</h2>
 <div class="warning">
 <p>Le calculateur est un <strong>prototype de recherche</strong>. Il n'est pas validé pour la prise en charge clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante d'un médecin hématologue qualifié.</p>
 <p>La calibration aux extrêmes de risque (r12 &gt; 60% ou ctDNA_diag &lt; 500 hEq/mL) est limitée par la taille de la cohorte de développement. Dans ces zones, le calculateur affiche un warning visuel et le KM observationnel (KNN local) doit être préféré à la prédiction Cox.</p>
@@ -970,7 +994,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <!-- ────────────────────────────────────────────────────── -->
 <div class="card">
-<h2 id="sec-citation">16. Citation</h2>
+<h2 id="sec-citation">XVI. Citation</h2>
 <p style="background:#f8fafc; padding:14px; border-left:4px solid #94a3b8;">
 Calculateur MRD CXJ1 — Cox proportional hazards models for ctDNA MRD in adult B-cell and Hodgkin lymphomas after mid-treatment timepoint. Partial pooling between IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines. Mono-exponential decay trajectories per histology × responder strata. Integrated baseline tumor burden term.<br>
 Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), 2026.
