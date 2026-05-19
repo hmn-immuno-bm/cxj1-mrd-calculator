@@ -345,26 +345,6 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
         Le patient appartient aux DEUX groupes car sa valeur est son propre seuil.
       </p>
 
-      <details style="margin-top:14px;">
-        <summary style="cursor:pointer; font-weight:600; font-size:14px; color:#475569;">📊 Performance globale du modèle (référence méthodologique)</summary>
-        <table style="margin-top:8px;">
-          <thead><tr><th>Métrique</th><th colspan="2">M2 — avec TEP</th><th colspan="2">M1 — sans TEP</th></tr>
-                 <tr><th></th><th>IDES</th><th>PV</th><th>IDES</th><th>PV</th></tr></thead>
-          <tbody>
-            <tr><td>N cohorte de développement</td><td>136</td><td>91</td><td><strong>162</strong></td><td><strong>108</strong></td></tr>
-            <tr><td>Événements PFS</td><td>25</td><td>16</td><td>32</td><td>22</td></tr>
-            <tr><td>C-index apparent</td><td>0.858</td><td>0.910</td><td>0.804</td><td>0.824</td></tr>
-            <tr><td>C-index optimism-corrected (B=500)</td><td><strong>0.848</strong></td><td><strong>0.891</strong></td><td>0.796</td><td>0.811</td></tr>
-            <tr><td>IC95% bootstrap</td><td>[0.78, 0.94]</td><td>[0.85, 0.98]</td><td>[0.72, 0.88]</td><td>[0.71, 0.93]</td></tr>
-            <tr><td>Trajectoire mono-exp</td><td colspan="4">λ par (histologie × responder), 2 groupes (Hodgkin classique vs Non Hodgkin) — <strong>4 paramètres</strong> totaux</td></tr>
-          </tbody>
-        </table>
-        <p style="font-size:11px; color:#64748b; margin-top:8px; font-style:italic;">
-          M2 (avec TEP) est recommandé quand le TEP est disponible. Utiliser M1 uniquement quand le TEP est indisponible.
-          Le modèle intègre la charge tumorale baseline (ctDNA_diag) directement dans le score.
-          Ces métriques décrivent la performance GLOBALE et ne correspondent pas au risque individuel du patient.
-        </p>
-      </details>
     </div>
 
     <div class="card" id="vpnCard" style="display:none;">
