@@ -294,7 +294,7 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
           <div class="summary-box-value" id="r_quant" style="font-size:16px;">--</div>
         </div>
         <div class="summary-box">
-          <div class="summary-box-label">Drivers v5A <span id="r_v5_status" style="font-size:11px; padding:2px 6px; border-radius:3px; margin-left:4px;"></span></div>
+          <div class="summary-box-label">Drivers v5A</div>
           <div class="summary-box-value" id="r_v5" style="font-size:16px;">--</div>
         </div>
         <div class="summary-box">
@@ -899,7 +899,7 @@ function calculate() {
       `</div>` +
       `<div>` +
         `<div style="font-size:12px; opacity:.75; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px;">À 24 mois</div>` +
-        `<div style="font-size:44px; font-weight:700; line-height:1;">${(r24*100).toFixed(1)}%</div>` +
+        `<div style="font-size:34px; font-weight:700; line-height:1; opacity:.92;">${(r24*100).toFixed(1)}%</div>` +
       `</div>` +
     `</div>` +
     `<div style="font-size:14px; margin-bottom:10px;">${action}</div>` +
@@ -922,30 +922,25 @@ function calculate() {
   // Display values — show which model variant was actually used
   // 1) Quantification : hEq (avec cfDNA Qubit) ou VAF (sans Qubit)
   document.getElementById('r_quant').textContent = CALC_NO_QUBIT ? 'VAF % seule' : 'hEq (VAF × cfDNA)';
-  // 2) v5A_gated : score brut + statut activé/désactivé (via badge à droite du label)
-  document.getElementById('r_v5').textContent = v5A_gated.toFixed(3);
-  // 3) TEP : source réelle (Deauville, ΔSUV, ou aucun)
+  // 2) Drivers v5A : juste "Activé" ou "Désactivé" (statut binaire)
+  document.getElementById('r_v5').textContent = (quali === 1) ? 'Activé' : 'Désactivé';
+  // 3) TEP : juste le type de source (Deauville / ΔSUV / aucun)
   let tepDisplay;
-  if (noTep) tepDisplay = 'Non utilisé (M1)';
-  else if (useDelta && delta_suv_val !== null) tepDisplay = 'ΔSUVmax ' + delta_suv_val.toFixed(0) + '%';
-  else tepDisplay = 'Deauville ' + (tep2_deauv_val !== null ? tep2_deauv_val : '?');
+  if (noTep) tepDisplay = 'Non utilisé';
+  else if (useDelta && delta_suv_val !== null) tepDisplay = 'ΔSUVmax';
+  else tepDisplay = 'Deauville';
   document.getElementById('r_tep').textContent = tepDisplay;
-  // V207 — Indicateur visuel du statut v5A (quali gate)
-  const v5StatusEl = document.getElementById('r_v5_status');
+  // V5A status: badge removed, status text now appears directly in r_v5 box.
+  // Color the r_v5 box value to reflect the activation state.
+  const r_v5_el = document.getElementById('r_v5');
   if (quali === 1) {
-    v5StatusEl.textContent = '✓ ACTIVÉ';
-    v5StatusEl.style.background = '#dcfce7';
-    v5StatusEl.style.color = '#15803d';
-    v5StatusEl.style.border = '1px solid #86efac';
-    v5StatusEl.title = (pipe === 'IDES'
+    r_v5_el.style.color = '#15803d';
+    r_v5_el.title = (pipe === 'IDES'
       ? 'IDES p-value ≤ 1/100001 → quali=1, v5A est utilisé dans le LP.'
       : 'PV : nbr ≥ 3 ET Σ UMI ≥ 3 → quali=1, v5A est utilisé dans le LP.');
   } else {
-    v5StatusEl.textContent = '✗ DÉSACTIVÉ';
-    v5StatusEl.style.background = '#fee2e2';
-    v5StatusEl.style.color = '#991b1b';
-    v5StatusEl.style.border = '1px solid #fca5a5';
-    v5StatusEl.title = (pipe === 'IDES'
+    r_v5_el.style.color = '#991b1b';
+    r_v5_el.title = (pipe === 'IDES'
       ? 'IDES p-value > 1/100001 → quali=0 : v5A_gated forcé à 0, VAF_CXJ1 forcée à 0 dans le score. Le signal MRD au CXJ1 est ignoré.'
       : 'PV : nbr < 3 OU Σ UMI < 3 → quali=0 : v5A_gated forcé à 0, VAF_CXJ1 forcée à 0. Le signal MRD au CXJ1 est ignoré.');
   }
