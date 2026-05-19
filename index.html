@@ -1517,8 +1517,82 @@ function exportPDF() {
   }, 300);
 }
 
-// Init
+// ═══════════════════════════════════════════════════════════════
+// PERSISTENCE — sauvegarde/restauration des inputs via localStorage
+// pour préserver l'état entre les navigations Calculateur ↔ Méthodologie
+// ═══════════════════════════════════════════════════════════════
+const STORAGE_KEY = 'cxj1_calc_state_v1';
+const PERSIST_IDS = [
+  'pipeline','histo_label','delai_jours','vaf_diag','vaf_cxj1',
+  'qubit_unavailable','cfdna_diag','cfdna_cxj1',
+  'pvalue_ides','nbr_pv','sum_umi',
+  'n_total_pos','n_drv_pos','sum_reads_drv',
+  'depth_input','tep_unavailable','tep2_deauville',
+  'use_suvmax_fallback','suvmax_diag','suvmax_2',
+];
+function saveCalcState() {
+  try {
+    const state = {};
+    for (const id of PERSIST_IDS) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      if (el.type === 'checkbox') state[id] = el.checked;
+      else state[id] = el.value;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) { /* localStorage disabled (private mode) → no-op */ }
+}
+function restoreCalcState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const state = JSON.parse(raw);
+    let restored = 0;
+    for (const id of PERSIST_IDS) {
+      const el = document.getElementById(id);
+      if (!el || !(id in state)) continue;
+      if (el.type === 'checkbox') el.checked = !!state[id];
+      else el.value = state[id];
+      restored++;
+    }
+    return restored > 0;
+  } catch (e) { return false; }
+}
+function clearCalcState() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+}
+// Attach change listeners to all persisted inputs
+function _attachPersistenceListeners() {
+  for (const id of PERSIST_IDS) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.addEventListener('change', saveCalcState);
+    el.addEventListener('input', saveCalcState);
+  }
+}
+
+// Init — restore state then run togglePipeline (which depends on pipeline value)
+const _restored = restoreCalcState();
 togglePipeline();
+// If restored, sync UI toggles (TEP / Qubit / SUVmax fallback) with their checkbox states
+if (_restored) {
+  if (typeof onTepToggle === 'function' && document.getElementById('tep_unavailable')) onTepToggle();
+  if (typeof onQubitToggle === 'function' && document.getElementById('qubit_unavailable')) onQubitToggle();
+  if (typeof toggleSUVMaxBlock === 'function' && document.getElementById('use_suvmax_fallback')) toggleSUVMaxBlock();
+  // Auto-run calculate() if VAF_diag and CXJ1 + cfDNA seem valid → restore the result panel too
+  const vd = parseFloat(document.getElementById('vaf_diag').value);
+  if (vd > 0) {
+    setTimeout(() => { try { calculate(); } catch (e) { /* silent — user re-clicks */ } }, 50);
+  }
+}
+_attachPersistenceListeners();
+
+// Override resetForm to also clear the persisted state
+const _origResetForm = (typeof resetForm === 'function') ? resetForm : null;
+window.resetForm = function() {
+  clearCalcState();
+  if (_origResetForm) _origResetForm();
+};
 </script>
 
 </body>
