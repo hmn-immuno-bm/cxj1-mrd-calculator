@@ -709,7 +709,11 @@ function wilsonCI(k, n) {
   const halfwidth = z * Math.sqrt(p*(1-p)/n + z*z/(4*n*n)) / denom;
   return [Math.max(0, center - halfwidth), Math.min(1, center + halfwidth)];
 }
-function calculate() {
+function calculate(doScroll) {
+  // doScroll: si true (par défaut quand le bouton est cliqué manuellement), on défile
+  // vers la carte des résultats à la fin. À false lors des appels auto (restore
+  // localStorage, exportPDF, sensitivityAnalysis) pour éviter le scroll parasite.
+  if (typeof doScroll === 'undefined') doScroll = true;
   const pipe = document.getElementById('pipeline').value;
   const dt   = parseFloat(document.getElementById('delai_jours').value) || 0;
   const vd   = parseFloat(document.getElementById('vaf_diag').value) || 0;
@@ -958,14 +962,20 @@ function calculate() {
   const _kmCard = document.getElementById('kmCard'); if (_kmCard) _kmCard.style.display = 'block';
   drawKM(pipe, lp);
   // drawVPNDepth removed (V15.272-273) — depth is not a marginal predictor of VPN once cfDNA is in the model
-  window.scrollTo({ top: document.getElementById('resultsCard').offsetTop - 20, behavior: 'smooth' });
+  // Scroll vers la carte des résultats seulement si le calcul a été déclenché par l'utilisateur
+  // (bouton Calculer). Pas de scroll si appel auto (restore localStorage, exportPDF, sensitivity).
+  if (doScroll) {
+    window.scrollTo({ top: document.getElementById('resultsCard').offsetTop - 20, behavior: 'smooth' });
+  }
 }
 
 function drawKM(pipe, lp) {
   // Courbe de survie INDIVIDUELLE : S(t) = S0(t)^exp(LP)
   // Sélectionne le bon modèle (M2 avec TEP ou M1 sans TEP) selon le toggle global
   const m = CALC_NO_TEP ? MODELS_NO_TEP[pipe] : MODELS[pipe];
-  const W = 700, H = 320, mL = 55, mR = 15, mT = 25, mB = 45;
+  // SVG élargi pour accueillir la légende À DROITE hors zone de tracé.
+  // Zone curves : x ∈ [mL, mR_curves] (largeur 630). Légende : x ∈ [mR_curves+15, W-5].
+  const W = 870, H = 320, mL = 55, mR = 185, mT = 25, mB = 45;
   const x = (t) => mL + (W - mL - mR) * t/36;
   const y = (s) => mT + (H - mT - mB) * (1 - s);
   const expLP = Math.exp(lp);
@@ -1044,13 +1054,14 @@ function drawKM(pipe, lp) {
     svg += `<circle cx="${x(t)}" cy="${y(s)}" r="4" fill="#7c3aed" stroke="white" stroke-width="1.5"/>`;
   });
 
-  // Légende (4 lignes)
-  svg += `<g transform="translate(${mL+10}, ${mT+6})">`;
-  svg += `<rect x="0" y="0" width="14" height="10" fill="#dcfce7" opacity="0.6"/><text x="20" y="9" font-size="10" fill="#334155">Zone Faible (&lt;10%)</text>`;
-  svg += `<rect x="0" y="14" width="14" height="10" fill="#fef3c7" opacity="0.6"/><text x="20" y="23" font-size="10" fill="#334155">Zone Modéré (10-40%)</text>`;
-  svg += `<rect x="0" y="28" width="14" height="10" fill="#fee2e2" opacity="0.6"/><text x="20" y="37" font-size="10" fill="#334155">Zone Élevé (&gt;40%)</text>`;
-  svg += `<line x1="0" y1="49" x2="14" y2="49" stroke="#0f172a" stroke-width="3"/><text x="20" y="53" font-size="10" fill="#334155" font-weight="600">Survie prédite (Cox V15.102)</text>`;
-  svg += `<line x1="0" y1="64" x2="14" y2="64" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="5,3"/><text x="20" y="68" font-size="10" fill="#334155" font-weight="600">Patients SIMILAIRES en LP (KM observé)</text>`;
+  // Légende HORS zone de tracé (à droite). Positionnée à x=W-mR+10 = 695, y=mT+10 = 35.
+  const legX = W - mR + 10;  // 695
+  svg += `<g transform="translate(${legX}, ${mT+10})">`;
+  svg += `<rect x="0" y="0" width="14" height="10" fill="#dcfce7" opacity="0.7"/><text x="20" y="9" font-size="11" fill="#334155">Zone Faible (&lt;10%)</text>`;
+  svg += `<rect x="0" y="18" width="14" height="10" fill="#fef3c7" opacity="0.7"/><text x="20" y="27" font-size="11" fill="#334155">Zone Modéré (10-40%)</text>`;
+  svg += `<rect x="0" y="36" width="14" height="10" fill="#fee2e2" opacity="0.7"/><text x="20" y="45" font-size="11" fill="#334155">Zone Élevé (&gt;40%)</text>`;
+  svg += `<line x1="0" y1="62" x2="14" y2="62" stroke="#0f172a" stroke-width="3"/><text x="20" y="66" font-size="11" fill="#334155" font-weight="600">Survie prédite</text><text x="20" y="78" font-size="10" fill="#64748b">(Cox individuel)</text>`;
+  svg += `<line x1="0" y1="98" x2="14" y2="98" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="5,3"/><text x="20" y="102" font-size="11" fill="#334155" font-weight="600">Patients similaires</text><text x="20" y="114" font-size="10" fill="#64748b">(KNN observé, KM)</text>`;
   svg += `</g>`;
 
   svg += `</svg>`;
@@ -1114,8 +1125,8 @@ function sensitivityAnalysis() {
     alert("Renseignez d'abord VAF_diag et cfDNA_diag pour l'analyse de sensibilité.");
     return;
   }
-  // Run calculate first to populate window._scoreDetails etc.
-  calculate();
+  // Run calculate first to populate window._scoreDetails etc. (no scroll, on est en analyse)
+  calculate(false);
 
   // Save current values
   const orig = {
@@ -1145,9 +1156,9 @@ function sensitivityAnalysis() {
     document.getElementById('vaf_cxj1').value = sc.vc;
     document.getElementById('cfdna_diag').value = sc.cd;
     document.getElementById('cfdna_cxj1').value = sc.cc;
-    // Compute silently (without rerendering DOM)
+    // Compute silently (without rerendering DOM, sans scroll)
     try {
-      calculate();
+      calculate(false);
       // r12 is displayed in the banner — parse it
       const banner = document.getElementById('riskBanner').textContent;
       const m = banner.match(/(\d+\.?\d*)%/);
@@ -1163,7 +1174,7 @@ function sensitivityAnalysis() {
   document.getElementById('vaf_cxj1').value = orig.vc;
   document.getElementById('cfdna_diag').value = orig.cd;
   document.getElementById('cfdna_cxj1').value = orig.cc;
-  calculate();
+  calculate(false);  // recalcul final de restauration, sans scroll
 
   // Display in a proper HTML modal (lisible + copiable)
   const ref_r12 = results[0].r12;
@@ -1319,19 +1330,19 @@ function sensitivityAnalysis() {
 // PDF EXPORT — minimal jsPDF-like via window.print (saves to PDF)
 // ═══════════════════════════════════════════════════════════════
 function exportPDF() {
-  // Run calculate to ensure result panel populated
-  calculate();
+  // Run calculate to ensure result panel populated, SANS scroll parasite
+  calculate(false);
   // Use browser print → save as PDF
-  const cards = document.querySelectorAll('.card');
-  // Hide input panel temporarily
   const containers = document.querySelectorAll('.container > div');
   if (containers.length >= 2) {
-    containers[0].style.display = 'none';  // input panel
+    containers[0].style.display = 'none';  // hide input panel during print
   }
+  // Remonter en haut avant impression pour éviter blanc en tête de page
+  window.scrollTo(0, 0);
   setTimeout(() => {
     window.print();
-    if (containers.length >= 2) containers[0].style.display = '';  // restore
-  }, 300);
+    if (containers.length >= 2) containers[0].style.display = '';  // restore input panel
+  }, 400);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1397,9 +1408,10 @@ if (_restored) {
   if (typeof onQubitToggle === 'function' && document.getElementById('qubit_unavailable')) onQubitToggle();
   if (typeof toggleSUVMaxBlock === 'function' && document.getElementById('use_suvmax_fallback')) toggleSUVMaxBlock();
   // Auto-run calculate() if VAF_diag and CXJ1 + cfDNA seem valid → restore the result panel too
+  // SANS scroll (sinon la page descend toute seule à chaque retour sur l'onglet Calculateur).
   const vd = parseFloat(document.getElementById('vaf_diag').value);
   if (vd > 0) {
-    setTimeout(() => { try { calculate(); } catch (e) { /* silent — user re-clicks */ } }, 50);
+    setTimeout(() => { try { calculate(false); } catch (e) { /* silent — user re-clicks */ } }, 50);
   }
 }
 _attachPersistenceListeners();
