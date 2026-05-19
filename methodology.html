@@ -118,7 +118,7 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
       <li><a href="#sec-ph">Hypothèse PH (Grambsch-Therneau)</a></li>
       <li><a href="#sec-calib">Calibration globale & sous-groupes</a></li>
       <li><a href="#sec-dca">Decision Curve Analysis</a></li>
-      <li><a href="#sec-nri">NRI / IDI vs TEP seul</a></li>
+      <li><a href="#sec-nri">MRD vs TEP seul (C-index + NRI/IDI)</a></li>
       <li><a href="#sec-forest">Forest plot par sous-groupe</a></li>
       <li><a href="#sec-time-c">C-index temps-dépendant</a></li>
       <li><a href="#sec-mice">MICE sensitivity</a></li>
@@ -285,19 +285,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 </ul>
 </div>
 
-<h3>🩻 Comparaison MRD vs TEP seul (baseline clinique, V229.1 référence)</h3>
-<p>Pour situer la valeur ajoutée de la MRD, un Cox univarié <em>TEP seul</em> a été fitté sur l'union IDES + PV (patient overlap 99%) :</p>
-<table>
-<tr><th>Modèle</th><th>Covariables</th><th>N</th><th>events</th><th>C-index (IDES / PV)</th></tr>
-<tr><td>🩻 TEP seul (baseline clinique)</td><td>1 (TEP2_pos binaire)</td><td>183</td><td>34</td><td><strong>0.646</strong> (pooled)</td></tr>
-<tr><td>🧬 M1_hEq (MRD seule, sans TEP)</td><td>3 (score, burden, v5A)</td><td>162 / 108</td><td>32 / 21</td><td><strong>0.813 / 0.853</strong></td></tr>
-<tr><td>🩻🧬 M2_hEq Deauv (MRD + TEP)</td><td>4</td><td>136 / 91</td><td>26 / 16</td><td><strong>0.847 / 0.887</strong></td></tr>
-</table>
-<ul>
-<li>Apport <strong>MRD ajoutée au TEP</strong> : ΔC ≈ +0.20 (énorme amélioration)</li>
-<li>Apport <strong>TEP ajouté à la MRD</strong> : ΔC ≈ +0.03 à +0.04 (amélioration modérée)</li>
-</ul>
-<p class="muted">⇒ La MRD ctDNA est le marqueur pronostique dominant ; le TEP conserve une valeur incrémentale combinée mais ne peut pas s'y substituer.</p>
+<p class="muted" style="margin-top:14px;">→ Pour la comparaison MRD vs TEP seul (baseline clinique), Δ C-index et NRI/IDI : voir <a href="#sec-nri">§XI.6 Reclassification</a>.</p>
 </div>
 
 <!-- ════════════ SECTION 6 : COEFFICIENTS V230 ════════════ -->
@@ -763,8 +751,24 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p class="muted">DCA à 12 mois pour IDES (gauche) et PV (droite) M2_hEq. La courbe bleue domine les stratégies par défaut.</p>
 </div>
 
-<h3 id="sec-nri">XI.6 Reclassification index (NRI / IDI) vs TEP seul</h3>
-<p>Comparaison de la classification Tern (Faible/Modéré/Élevé) obtenue avec le modèle complet vs Cox TEP seul (baseline clinique, version V229.1 référencée) :</p>
+<h3 id="sec-nri">XI.6 Comparaison MRD vs TEP seul (C-index, NRI / IDI)</h3>
+<p>Pour situer la valeur ajoutée de la MRD ctDNA face à la référence clinique (TEP interim seul), trois niveaux de modèles ont été comparés sur l'union IDES + PV (patient overlap 99%) :</p>
+
+<h4>1) C-index par niveau de modèle</h4>
+<table>
+<tr><th>Modèle</th><th>Covariables</th><th>N (events)</th><th>C-index (IDES / PV)</th></tr>
+<tr><td>🩻 <strong>TEP seul</strong> (baseline clinique)</td><td>1 (TEP2_pos binaire)</td><td>183 (34)</td><td><strong>0.646</strong> (pooled)</td></tr>
+<tr><td>🧬 <strong>M1_hEq</strong> (MRD seule, sans TEP)</td><td>3 (score, burden, v5A)</td><td>162 / 108 (32 / 21)</td><td><strong>0.813 / 0.853</strong></td></tr>
+<tr><td>🩻🧬 <strong>M2_hEq Deauv</strong> ⭐ (MRD + TEP)</td><td>4 (score, burden, v5A, Deauville)</td><td>136 / 91 (26 / 16)</td><td><strong>0.847 / 0.887</strong></td></tr>
+</table>
+<ul>
+<li>Apport <strong>MRD ajoutée au TEP</strong> : ΔC-index ≈ <strong>+0.20</strong> (énorme amélioration)</li>
+<li>Apport <strong>TEP ajouté à la MRD</strong> : ΔC-index ≈ <strong>+0.03 à +0.04</strong> (amélioration modérée)</li>
+</ul>
+<p class="muted">⇒ La MRD ctDNA est le marqueur pronostique dominant ; le TEP conserve une valeur incrémentale combinée mais ne peut pas s'y substituer.</p>
+
+<h4>2) Reclassification (NRI / IDI)</h4>
+<p>Comparaison de la classification Tern (Faible/Modéré/Élevé) du modèle complet vs Cox TEP seul :</p>
 <table>
 <tr><th>Métrique</th><th>Valeur</th><th>Interprétation</th></tr>
 <tr><td>C-index TEP seul</td><td>0.635</td><td>Référence clinique</td></tr>
@@ -772,7 +776,8 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <tr><td>NRI continu</td><td><strong>+0.559</strong></td><td>Net reclassification améliorée</td></tr>
 <tr><td>IDI</td><td>+0.061</td><td>Integrated discrimination améliorée</td></tr>
 </table>
-<p>Sur 163 patients, le TEP seul classait <strong>tous</strong> les patients en zone « Faible » (r12 médian 0.14, max 0.31). Le modèle MRD complet redistribue <strong>58 patients (35%) en zones Modéré ou Élevé</strong>, dont 17 events futurs correctement identifiés — invisibles avec TEP seul.</p>
+<p>Sur 163 patients, le TEP seul classait <strong>tous</strong> les patients en zone Faible (r12 médian 0.14, max 0.31, Tern 10/40 historique). Le modèle MRD complet redistribue <strong>58 patients (35%) en zones Modéré ou Élevé</strong>, dont <strong>17 events futurs correctement identifiés</strong> — invisibles avec TEP seul.</p>
+<p class="muted">NRI/IDI fittés en V229.1 (cohorte de référence) avec endpoint PFS. Sous V230 EFS, les ordres de grandeur sont préservés mais les chiffres exacts diffèrent légèrement (refit à venir).</p>
 
 <h3 id="sec-forest">XI.7 Forest plot par sous-groupe (4 covariables)</h3>
 <p>HR par 1 SD de chaque covariable Cox dans les sous-groupes cliniques (Hodgkin/DLBCL, Stade I-II/III-IV, Age &lt;60/≥60). On vérifie qu'aucune covariable n'a un effet inversé ou massivement différent dans un sous-groupe.</p>
