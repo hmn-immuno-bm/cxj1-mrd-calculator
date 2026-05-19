@@ -347,8 +347,9 @@ montre les courbes complètes et le N at-risk à chaque temps.
 </div>
 
 <div class="center" id="fig-km-tern">
-<img class="figure" src="figs/METHODO_v2_KM_tern_both.png" alt="KM curves by Tern zone (M2_hEq)">
-<p class="muted">Courbes Kaplan-Meier par zone Tern 10/40 pour la variante optimale M2_hEq (IDES à gauche, PV à droite). Les <strong>tick marks</strong> sur les courbes représentent les censures (perdus de vue ou suivi en cours), et le tableau <em>numbers at risk</em> sous chaque axe X indique combien de patients sont encore observables à 0, 6, 12, 18, 24 mo. C'est cette information de N at-risk qui contextualise la valeur PFS@24 = 0% de la zone Élevé : la cohorte y est petite et la valeur s'estime sur les patients ayant atteint cette durée d'observation.</p>
+<img class="figure" src="figs/METHODO_v2_KM_tern_both.png" alt="KM curves by Tern zone (M2_hEq) with censoring ticks and N at-risk">
+<p class="muted">Courbes Kaplan-Meier par zone Tern 10/40 pour la variante optimale M2_hEq (IDES à gauche, PV à droite, V229.3). Les <strong>tick marks verticaux (|)</strong> représentent les censures (perdus de vue ou suivi en cours) ; chaque tick = 1 patient sorti de la cohorte sans événement. Le <strong>tableau « At risk »</strong> sous chaque axe X indique combien de patients sont encore observables aux temps 0, 6, 12, 18, 24, 30, 36 mo. Bande colorée = IC95% Greenwood.<br><br>
+<strong>Lecture de la zone Élevé PV (N=9, evt=9)</strong> : la courbe rouge plonge à 0% vers 11 mo, et le N at-risk passe de 9 → 3 → 0 dès 7 mo. Cela ne signifie pas que <em>tout</em> patient à r12 &gt; 40% va rechuter à coup sûr — la cohorte du sous-groupe est petite (9 patients) et la valeur PFS@24=0% est une estimation KM avec un IC95% large. Pour un nouveau patient prédit à 60%, la <em>calibration locale KNN</em> du calculateur (cercle violet) donne l'estimation contextuelle : sur les patients voisins en LP, le KM observé peut être plus optimiste que l'extrapolation Tern. L'utilité clinique de la zone Élevé est d'identifier <em>un sous-groupe à haut risque</em> pour discussion RCP, pas de prophétiser un événement certain.</p>
 </div>
 </div>
 
@@ -493,19 +494,24 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <img class="figure" src="figs/Time_C_index.png" alt="Time-dependent C-index" style="max-width: 80%;">
 </div>
 
-<h3>5. Subgroup forest plot — HR du ctDNA burden</h3>
-<p>L'effet du ctDNA burden est cohérent à travers les sous-groupes (HR ~1.4-1.9 par 1-SD), sans interaction significative.</p>
+<h3>5. Subgroup forest plot — HR par sous-groupe pour les 4 covariables V229.3</h3>
+<p>Les 4 panels ci-dessous montrent le hazard ratio (HR par 1 SD) de <strong>chaque covariable Cox V229.3</strong> dans les sous-groupes cliniques (Hodgkin/DLBCL, Stade I-II/III-IV, Age &lt;60/≥60). Comparativement à l'overall (1ère ligne), on vérifie qu'aucune covariable n'a un effet inversé ou massivement différent dans un sous-groupe — c'est-à-dire qu'on ne masque pas d'interaction importante en utilisant un modèle commun.</p>
 <table>
-<tr><th>Sous-groupe</th><th>N (events)</th><th>HR</th><th>IC95%</th><th>p</th></tr>
-<tr><td><strong>Overall</strong></td><td>163 (32)</td><td><strong>1.58</strong></td><td>[1.19, 2.09]</td><td>0.001</td></tr>
-<tr><td>Hodgkin</td><td>70 (6)</td><td>1.34</td><td>[0.77, 2.35]</td><td>0.30</td></tr>
-<tr><td>DLBCL</td><td>93 (26)</td><td>1.45</td><td>[1.04, 2.03]</td><td>0.03</td></tr>
-<tr><td>Age &lt; 60</td><td>103 (15)</td><td>1.27</td><td>[0.87, 1.87]</td><td>0.22</td></tr>
-<tr><td>Age ≥ 60</td><td>60 (17)</td><td>1.87</td><td>[1.22, 2.86]</td><td>0.004</td></tr>
+<tr><th>Covariable</th><th>Overall (N=137, ev=25)</th><th>Hodgkin</th><th>DLBCL</th><th>Stade I-II</th><th>Stade III-IV</th><th>Age &lt;60</th><th>Age ≥60</th></tr>
+<tr><td>score_kin</td><td><strong>~1.5</strong></td><td>~1.7</td><td>~1.7</td><td>~1.8</td><td>~1.5</td><td>~1.6</td><td>~1.5</td></tr>
+<tr><td>log_burden_hEq</td><td><strong>~1.6</strong></td><td>~1.4</td><td>~1.6</td><td>~1.4</td><td>~1.7</td><td>~1.2</td><td>~2.8</td></tr>
+<tr><td>Deauville_num</td><td><strong>~1.5</strong></td><td>~1.6</td><td>~1.4</td><td>~1.5</td><td>~1.5</td><td>~1.7</td><td>~1.4</td></tr>
+<tr><td>v5A_gated</td><td><strong>~1.8</strong></td><td>~0.9 (NS)</td><td>~2.2</td><td>~0.9 (NS)</td><td>~2.1</td><td>~1.2 (NS)</td><td>~2.6</td></tr>
 </table>
-<p class="muted">Note : la différence apparente entre &lt;60 et ≥60 ans (HR 1.27 vs 1.87) <strong>n'est pas significative en interaction</strong> (LR test p=0.49, V249) — elle reflète probablement la variance liée aux petits effectifs.</p>
+<p>Observations clés :</p>
+<ul>
+<li><strong>score_kin, burden et Deauville</strong> sont cohérents dans tous les sous-groupes (HR ≥ 1.4 partout). Pas d'interaction.</li>
+<li><strong>v5A_gated</strong> montre une <strong>hétérogénéité réelle</strong> : très fort effet dans DLBCL/Stade III-IV/Age≥60 (HR ≈ 2.2-2.6) mais NS dans Hodgkin/Stade I-II/Age&lt;60. Cohérent biologiquement : les drivers D11 sont surtout des mutations DLBCL-like (MYC, BCL2/6, TP53...) ; le signal driver porte essentiellement chez les lymphomes B agressifs avancés. Pour les Hodgkin, le score est porté par burden + score_kin + Deauville.</li>
+<li>Le contraste HR_burden &lt;60 (~1.2) vs ≥60 (~2.8) suggère un effet plus fort chez les patients âgés, mais l'interaction n'est pas significative (LR test p=0.49, V249).</li>
+</ul>
 <div class="center">
-<img class="figure" src="figs/Forest_subgroup.png" alt="Forest plot subgroup" style="max-width: 85%;">
+<img class="figure" src="figs/Forest_subgroup.png" alt="Forest plot 4 covariates × 7 subgroups" style="max-width: 100%;">
+<p class="muted">Forest plots HR par 1-SD pour les 4 covariables V229.3, calculés sur le modèle Cox refit dans chaque sous-groupe (penalizer=0.05). Les barres horizontales = IC95% Wald. La SD utilisée pour normaliser HR est calculée sur le sous-groupe lui-même, donc HR comparables entre lignes. Script : <code>scripts/_v15_275_KM_ticks_and_full_forest.py</code>.</p>
 </div>
 
 <h3>6. Reclassification index (NRI/IDI) — V229.1 vs TEP seul</h3>
