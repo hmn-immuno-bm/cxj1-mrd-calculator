@@ -980,18 +980,40 @@ function calculate() {
   const tbody = document.getElementById('lpBreakdown');
   const c1 = m.coefs.score * (isNaN(score) ? 0 : score);
   const c2 = m.coefs.v5 * v5A_gated;
-  const c3 = noTep ? 0 : (m.coefs.tep2 * tep2_pos);
+  // V229.3 : TEP term uses Deauville_num OR DeltaSUV depending on model variant
+  let c3 = 0, tepLabel = 'TEP', tepBetaVal = 0, tepBetaStr = '—', tepHRStr = '—', tepVarStr = '—';
+  if (!noTep) {
+    if (m.coefs.deauville !== undefined) {
+      tepLabel = 'Deauville (1-5)';
+      tepBetaVal = m.coefs.deauville;
+      tepVarStr = (tep2_deauv_val !== null && tep2_deauv_val !== undefined) ? tep2_deauv_val.toString() : '—';
+      c3 = tepBetaVal * (tep2_deauv_val || 0);
+    } else if (m.coefs.delta !== undefined) {
+      tepLabel = 'ΔSUVmax %';
+      tepBetaVal = m.coefs.delta;
+      tepVarStr = (delta_suv_val !== null && delta_suv_val !== undefined) ? delta_suv_val.toFixed(1) + '%' : '—';
+      c3 = tepBetaVal * (delta_suv_val || 0);
+    } else if (m.coefs.tep2 !== undefined) {
+      // legacy V229.1 binary
+      tepLabel = 'TEP2_pos (binaire)';
+      tepBetaVal = m.coefs.tep2;
+      tepVarStr = String(tep2_pos);
+      c3 = tepBetaVal * tep2_pos;
+    }
+    tepBetaStr = tepBetaVal.toFixed(3);
+    tepHRStr = Math.exp(tepBetaVal).toFixed(2);
+  }
   // V207 — Coloration ligne v5A si désactivé (quali=0)
   const v5RowStyle = (quali === 0) ? ' style="background:#fef2f2;color:#991b1b;"' : '';
   const v5Note = (quali === 0) ? ' <span style="font-size:11px;color:#dc2626;">(désactivé : quali=0)</span>' : '';
   let bkRows = `
-    <tr><td>score (joint)</td><td>${isNaN(score) ? '--' : score.toFixed(3)}</td><td>${m.coefs.score.toFixed(3)}</td><td>${m.HR.score.toFixed(2)}</td><td>${c1.toFixed(3)}</td></tr>
+    <tr><td>score (mono-exp)</td><td>${isNaN(score) ? '--' : score.toFixed(3)}</td><td>${m.coefs.score.toFixed(3)}</td><td>${m.HR.score.toFixed(2)}</td><td>${c1.toFixed(3)}</td></tr>
     <tr${v5RowStyle}><td>v5A_gated${v5Note}</td><td>${v5A_gated.toFixed(3)}</td><td>${m.coefs.v5.toFixed(3)}</td><td>${m.HR.v5.toFixed(2)}</td><td>${c2.toFixed(3)}</td></tr>
   `;
   if (!noTep) {
-    bkRows += `<tr><td>TEP2_pos</td><td>${tep2_pos}</td><td>${m.coefs.tep2.toFixed(3)}</td><td>${m.HR.tep2.toFixed(2)}</td><td>${c3.toFixed(3)}</td></tr>`;
+    bkRows += `<tr><td>${tepLabel}</td><td>${tepVarStr}</td><td>${tepBetaStr}</td><td>${tepHRStr}</td><td>${c3.toFixed(3)}</td></tr>`;
   } else {
-    bkRows += `<tr style="color:#94a3b8;font-style:italic;"><td colspan="5" style="text-align:center;">TEP2 non utilisé (modèle M1 : C-index ${m.C_index.toFixed(3)}, N=${m.N}, evt=${m.events})</td></tr>`;
+    bkRows += `<tr style="color:#94a3b8;font-style:italic;"><td colspan="5" style="text-align:center;">TEP non utilisé (modèle M1 : C-index ${m.C_index.toFixed(3)}, N=${m.N}, evt=${m.events})</td></tr>`;
   }
   bkRows += `<tr style="background:#f8fafc;font-weight:600;"><td colspan="4">LP total ${noTep ? '(M1, 2 vars)' : '(M2, 3 vars)'}</td><td>${lp.toFixed(3)}</td></tr>`;
   tbody.innerHTML = bkRows;
