@@ -310,15 +310,6 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
       </table>
     </div>
 
-    <!-- ZONE TERN (séparée du bandeau résultat) — stats GLOBALES de la zone -->
-    <div class="card" id="zoneCard" style="display:none; border-left:5px solid #ca8a04;">
-      <h2>🎯 Zone Tern : <span id="zoneLabel">--</span> <span style="font-size:13px; color:#64748b; font-weight:400;">(seuils 10% / 40%)</span></h2>
-      <p id="zoneStats" style="font-size:13px; color:#334155; margin:6px 0 0;">--</p>
-      <p style="font-size:11px; color:#64748b; font-style:italic; margin-top:8px;">
-        Ces chiffres sont des moyennes GLOBALES sur tous les patients d'entraînement classés dans cette zone. Pour la prédiction <strong>spécifique au patient</strong>, voir la calibration locale (KNN voisinage) plus bas.
-      </p>
-    </div>
-
     <!-- POSITION DU PATIENT — VPN/VPP observées à 12 mois sur cohorte ordonnée par r12 -->
     <div class="card" id="patientPositionCard" style="display:none;">
       <h2>📍 Position du patient dans la cohorte (VPN et VPP observées à 12 mois)</h2>
@@ -352,19 +343,6 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
         <strong>supérieur ou égal</strong> au vôtre, <span id="grp_ge_v12_inline">--</span> ont rechuté à 12 mois (VPP)."
         Le patient appartient aux DEUX groupes car sa valeur est son propre seuil.
       </p>
-    </div>
-
-    <div class="card" id="kmCard" style="display:none;">
-      <h2>📈 Survie prédite + Calibration locale</h2>
-      <p style="font-size: 12px; color: #475569;">
-        Deux courbes superposées :<br>
-        <strong>1️⃣ Noire pleine</strong> = survie prédite par le modèle Cox pour <strong>ce patient</strong> (S(t)=S₀(t)^exp(LP))<br>
-        <strong>2️⃣ Violette pointillée</strong> = KM observé des patients voisins (KNN <strong>adaptatif</strong> : tous les voisins dans ±1 unité LP, K_min=8, K_max=40).
-        L'<strong>IC95% Greenwood</strong> est reporté en chiffres sous le graphe (au lieu d'une bande, pour préserver la lisibilité).<br>
-        Si les 2 courbes coïncident → modèle bien calibré pour cette zone de risque.
-      </p>
-      <div class="chart-container" id="kmChart" style="height:340px;"></div>
-      <div id="localCalibStats" style="margin-top:10px; padding:10px 12px; background:#faf5ff; border-left:3px solid #7c3aed; border-radius:4px; font-size:12px; color:#334155;"></div>
     </div>
 
     <!-- VPN technique en fonction de la profondeur — affiché en bas (info technique) -->
@@ -937,17 +915,8 @@ function calculate() {
     `</div>` +
     divWarning;
 
-  // Zone card (separate from banner) — global stats of the Tern zone
-  const zoneCard = document.getElementById('zoneCard');
-  if (zoneCard) {
-    document.getElementById('zoneLabel').textContent = zoneLabel;
-    document.getElementById('zoneStats').textContent = zoneStats;
-    zoneCard.style.display = 'block';
-    // Color matching the zone
-    const zoneColor = (zone === 'low' ? '#16a34a' : (zone === 'mid' ? '#ca8a04' : '#dc2626'));
-    zoneCard.style.borderLeftColor = zoneColor;
-    document.getElementById('zoneLabel').style.color = zoneColor;
-  }
+  // zoneCard removed from UI: the gauge colors + r12/r24 in the banner are sufficient.
+  // (The KM with the 3 colored zones is documented in the Methodology tab.)
 
 
   // Display values — show which model variant was actually used
@@ -1030,11 +999,11 @@ function calculate() {
   document.getElementById('resultsCard').style.display = 'block';
   const patPos = document.getElementById('patientPositionCard');
   if (patPos) patPos.style.display = 'block';
-  document.getElementById('kmCard').style.display = 'block';
+  // kmCard removed — KM curves are documented in the Methodology tab
   // Hide the "À propos du modèle" intro card once the user has run a calculation
   const readmeCard = document.getElementById('readmeCard');
   if (readmeCard) readmeCard.style.display = 'none';
-  drawKM(pipe, lp);
+  // drawKM(pipe, lp); // kmCard removed from calculator UI — KM is in methodology only
   drawVPNDepth(pipe);
   window.scrollTo({ top: document.getElementById('resultsCard').offsetTop - 20, behavior: 'smooth' });
 }
@@ -1342,9 +1311,8 @@ function resetForm() {
   });
   document.getElementById('tep2_deauville').value = '';
   document.getElementById('resultsCard').style.display = 'none';
-  const _zoneC = document.getElementById('zoneCard'); if (_zoneC) _zoneC.style.display = 'none';
   const _patP  = document.getElementById('patientPositionCard'); if (_patP) _patP.style.display = 'none';
-  document.getElementById('kmCard').style.display = 'none';
+  // kmCard, zoneCard removed from UI
   document.getElementById('vpnCard').style.display = 'none';
   // Restore the "À propos du modèle" intro card on reset
   const readmeCard = document.getElementById('readmeCard');
