@@ -861,13 +861,13 @@ function calculate() {
   let zone, zoneLabel, zoneCSS, action;
   if (r12 <= 0.10) {
     zone = 'low';  zoneLabel = 'FAIBLE'; zoneCSS = 'low';
-    action = 'Surveillance standard. Dans la cohorte de calibration (N=103 IDES / N=69 PV), PFS@12mo ≈ 94-97% et PFS@24mo ≈ 94-97% (courbe plate, peu d\'évènements tardifs).';
+    action = 'Surveillance standard. Statistique GLOBALE de la zone Faible dans la cohorte d\'entraînement (N=103 IDES / N=69 PV) : PFS@12 ≈ 94-97% et PFS@24 ≈ 94-97% (peu d\'évènements). Pour la prédiction spécifique à ce patient, voir la calibration locale (KNN voisinage) ci-dessous.';
   } else if (r12 <= 0.40) {
     zone = 'mid';  zoneLabel = 'MODÉRÉ'; zoneCSS = 'mid';
-    action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière). Dans la cohorte (N=18 IDES / N=13 PV), PFS@12mo ≈ 71-84% — gap visible vs Low (~20pt). PFS@24mo descend à 54-71% (événements tardifs).';
+    action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière). Statistique GLOBALE de la zone Modéré dans la cohorte d\'entraînement (N=18 IDES / N=13 PV) : PFS@12 ≈ 71-84%, PFS@24 ≈ 54-71%. Pour la prédiction spécifique à ce patient, voir la calibration locale (KNN voisinage) ci-dessous.';
   } else {
     zone = 'high'; zoneLabel = 'ÉLEVÉ'; zoneCSS = 'high';
-    action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai). Dans la cohorte (N=22 IDES / N=9 PV), PFS@12mo ≈ 0-50% (PV : 0%, IDES : 50%) et PFS@24mo ≈ 0% — rechute quasi-systématique.';
+    action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai). Statistique GLOBALE de la zone Élevé dans la cohorte d\'entraînement (N=22 IDES / N=9 PV) : PFS@12 ≈ 0-50%, PFS@24 ≈ 0%. Pour la prédiction spécifique à ce patient, voir la calibration locale (KNN voisinage) ci-dessous.';
   }
 
   // (groupe binaire conservé pour référence, non utilisé dans drawKM nouvelle version)
@@ -1001,6 +1001,9 @@ function calculate() {
 
   document.getElementById('resultsCard').style.display = 'block';
   document.getElementById('kmCard').style.display = 'block';
+  // Hide the "À propos du modèle" intro card once the user has run a calculation
+  const readmeCard = document.getElementById('readmeCard');
+  if (readmeCard) readmeCard.style.display = 'none';
   drawKM(pipe, lp);
   drawVPNDepth(pipe);
   window.scrollTo({ top: document.getElementById('resultsCard').offsetTop - 20, behavior: 'smooth' });
@@ -1311,6 +1314,9 @@ function resetForm() {
   document.getElementById('resultsCard').style.display = 'none';
   document.getElementById('kmCard').style.display = 'none';
   document.getElementById('vpnCard').style.display = 'none';
+  // Restore the "À propos du modèle" intro card on reset
+  const readmeCard = document.getElementById('readmeCard');
+  if (readmeCard) readmeCard.style.display = 'block';
 }
 
 // ═══════════════════════════════════════════════════════════════
