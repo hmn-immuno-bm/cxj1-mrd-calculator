@@ -704,6 +704,18 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 </table>
 <p class="muted">Optimism très faible (max +0.019, médiane ~0.010) confirme bonne généralisation. Les valeurs C-corrected sont à reporter en publication. <strong>Note pré-analytique importante</strong> : les 36 patients avec TEP2 « Non fait » ou Deauville manquant (33 « Non fait » + 3 autres : PATIENT_S/GOSSE TEP fait mais Deauville non renseigné, DIEP statut absent) sont exclus de M2 (avec TEP) mais inclus dans M1 (sans TEP). Cela explique les N=136 vs 162 (IDES) et 91 vs 108 (PV) selon la variante.</p>
 
+<h3>8b-bis. MICE sensitivity analysis</h3>
+<p>Le modèle V229.1 utilise une analyse <strong>complete-case</strong> pour chacune des 4 variantes (M2/M1 × hEq/VAF), routant les patients selon leur pattern de missingness. Sensitivity analysis MICE (Multiple Imputation by Chained Equations, m=20) pour vérifier robustesse :</p>
+<table>
+<tr><th>Covariable M2_hEq IDES</th><th>Complete-case (N=136)</th><th>MICE (N=162, m=20)</th><th>Δβ</th><th>FMI</th></tr>
+<tr><td>β_score_kin</td><td>+0.423 ± 0.184</td><td>+0.408 ± 0.166</td><td>−0.015</td><td>0.006 ✅</td></tr>
+<tr><td>β_log_burden_hEq</td><td>+0.272 ± 0.115</td><td>+0.314 ± 0.095</td><td>+0.042</td><td>0.006 ✅</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.551 ± 0.123</td><td>+0.443 ± 0.114</td><td>−0.108</td><td>0.018 ✅</td></tr>
+<tr><td>β_TEP2_pos</td><td>+0.935 ± 0.368</td><td>+0.761 ± 0.340</td><td>−0.174</td><td><strong>0.087</strong> ⚠️</td></tr>
+<tr><td><strong>C-index</strong></td><td>0.854</td><td>0.816</td><td>−0.038</td><td>—</td></tr>
+</table>
+<p><strong>Interprétation</strong> : 3 covariables sur 4 stables (FMI &lt; 0.02 = négligeable). Le β_TEP atténué sous MICE (FMI = 0.087, encore acceptable &lt; 10%) reflète probablement un pattern <strong>MNAR</strong> (Missing Not At Random) : les patients avec TEP « Non fait » ont probablement des caractéristiques cliniques particulières (formes indolentes, contre-indications). L'<strong>architecture multi-variantes du modèle</strong> (router ces patients vers M1 plutôt qu'imputer) reste la solution principale. MICE confirme que les conclusions principales (signes et significativité de score_kin, burden, v5A) sont robustes au pattern de missingness.</p>
+
 <h3>8c. Analyse exploratoire — DeltaSUVmax% vs Deauville TEP2</h3>
 <p>Le Deauville TEP2 (binaire ≥4) est le standard clinique. Question : le DeltaSUVmax% (continu, baisse relative du SUVmax diag→TEP2) apporterait-il de l'info supplémentaire ?</p>
 <table>
