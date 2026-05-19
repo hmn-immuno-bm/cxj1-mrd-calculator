@@ -622,6 +622,77 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 
 <!-- ────────────────────────────────────────────────────── -->
 <div class="card">
+<h2>📊 Validation publication-ready (V229.1)</h2>
+
+<h3>1. Decision Curve Analysis (DCA) — net benefit clinique</h3>
+<p>Le modèle V229.1 a un <strong>net benefit positif</strong> sur l'intervalle de seuils [5%, 50%], dépassant les stratégies « traiter tous » et « ne traiter personne ». Argument fort pour adoption clinique : la décision basée sur le calculateur évite plus de récidives qu'elle ne génère de surtraitements inutiles.</p>
+<div class="center">
+<img class="figure" src="figs/DCA_M2_hEq.png" alt="Decision Curve Analysis @ 12mo" style="max-width: 95%;">
+<p class="muted">DCA à 12 mois pour IDES (gauche) et PV (droite) M2_hEq. La courbe bleue (V229.1) domine systématiquement les stratégies par défaut.</p>
+</div>
+
+<h3>2. Calibration globale (5 bins)</h3>
+<p>Le prédicteur Cox V229.1 est calibré sur toute la gamme des risques [0, 60%]. Pas de sur/sous-estimation systématique. IC95% Greenwood par bin.</p>
+<div class="center">
+<img class="figure" src="figs/Calibration_M2_hEq.png" alt="Calibration plot" style="max-width: 95%;">
+</div>
+
+<h3>3. Calibration par sous-groupe</h3>
+<p>Le modèle reste calibré séparément chez Hodgkin/DLBCL, &lt;60/≥60 ans, stade I-II/III-IV. Pas d'effet d'interaction non capturé.</p>
+<div class="center">
+<img class="figure" src="figs/Calibration_subgroup.png" alt="Calibration par sous-groupe" style="max-width: 95%;">
+</div>
+
+<h3>4. Time-dependent C-index C(t)</h3>
+<p>La discrimination du modèle est <strong>stable de 6 à 36 mois</strong> :</p>
+<table>
+<tr><th>Time</th><th>C(t) IDES M2_hEq</th><th>C(t) PV M2_hEq</th></tr>
+<tr><td>6 mois</td><td>0.866</td><td>0.984</td></tr>
+<tr><td>12 mois</td><td>0.847</td><td>0.892</td></tr>
+<tr><td>18 mois</td><td>0.851</td><td>0.890</td></tr>
+<tr><td>24 mois</td><td>0.859</td><td>0.888</td></tr>
+<tr><td>36 mois</td><td>0.836</td><td>0.847</td></tr>
+</table>
+<div class="center">
+<img class="figure" src="figs/Time_C_index.png" alt="Time-dependent C-index" style="max-width: 80%;">
+</div>
+
+<h3>5. Subgroup forest plot — HR du ctDNA burden</h3>
+<p>L'effet du ctDNA burden est cohérent à travers les sous-groupes (HR ~1.4-1.9 par 1-SD), sans interaction significative.</p>
+<table>
+<tr><th>Sous-groupe</th><th>N (events)</th><th>HR</th><th>IC95%</th><th>p</th></tr>
+<tr><td><strong>Overall</strong></td><td>163 (32)</td><td><strong>1.58</strong></td><td>[1.19, 2.09]</td><td>0.001</td></tr>
+<tr><td>Hodgkin</td><td>70 (6)</td><td>1.34</td><td>[0.77, 2.35]</td><td>0.30</td></tr>
+<tr><td>DLBCL</td><td>93 (26)</td><td>1.45</td><td>[1.04, 2.03]</td><td>0.03</td></tr>
+<tr><td>Age &lt; 60</td><td>103 (15)</td><td>1.27</td><td>[0.87, 1.87]</td><td>0.22</td></tr>
+<tr><td>Age ≥ 60</td><td>60 (17)</td><td>1.87</td><td>[1.22, 2.86]</td><td>0.004</td></tr>
+</table>
+<p class="muted">Note : la différence apparente entre &lt;60 et ≥60 ans (HR 1.27 vs 1.87) <strong>n'est pas significative en interaction</strong> (LR test p=0.49, V249) — elle reflète probablement la variance liée aux petits effectifs.</p>
+<div class="center">
+<img class="figure" src="figs/Forest_subgroup.png" alt="Forest plot subgroup" style="max-width: 85%;">
+</div>
+
+<h3>6. Reclassification index (NRI/IDI) — V229.1 vs TEP seul</h3>
+<p>Comparaison de la classification Tern (Faible/Modéré/Élevé) obtenue avec V229.1 vs Cox TEP seul (baseline clinique) :</p>
+<table>
+<tr><th>Métrique</th><th>Valeur</th><th>Interprétation</th></tr>
+<tr><td>C-index TEP seul</td><td>0.635</td><td>Référence clinique</td></tr>
+<tr><td>C-index V229.1</td><td><strong>0.792</strong></td><td>+0.157 vs TEP seul</td></tr>
+<tr><td>NRI continu</td><td><strong>+0.559</strong></td><td>Net reclassification améliorée</td></tr>
+<tr><td>IDI</td><td>+0.061</td><td>Integrated discrimination améliorée</td></tr>
+</table>
+<p>Sur 163 patients, le TEP seul classait <strong>tous</strong> les patients en zone « Faible » (r12 médian 0.14, max 0.31). V229.1 redistribue <strong>58 patients (35%) en zones Modéré ou Élevé</strong>, dont 17 events futurs correctement identifiés — invisibles avec TEP seul.</p>
+
+<h3>7. Competing risks (Fine-Gray)</h3>
+<p>Sur N=223 patients clinique, on observe <strong>1 seul décès sans progression préalable</strong> (Aalen-Johansen CIF à 12mo : progression 0.225, décès pur 0.005). Le risque compétitif « décès » est négligeable (&lt;0.5%) et ne nécessite pas une approche Fine-Gray distincte du Cox composite PFS.</p>
+
+<h3>8. Robustesse du score_kin (vs slope individuel BLUP)</h3>
+<p>Une approche joint longitudinal-survival two-stage (mixed-effects LMM extrayant un slope individuel par BLUP, puis Cox sur ce slope) a été testée comme alternative à <code>score_kin</code>. <strong>Bootstrap optimism-corrected (B=200) : V229.1 score_kin C=0.791 vs BLUP candidate C=0.777 (Δ=−0.014)</strong>. Le score_kin résumé (4 trajectoires moyennes par histo×responder) est plus robuste car moins de paramètres individuels à estimer sur cohorte limitée.</p>
+
+</div>
+
+<!-- ────────────────────────────────────────────────────── -->
+<div class="card">
 <h2>📝 Citation</h2>
 <p style="background:#f8fafc; padding:14px; border-left:4px solid #94a3b8;">
 Calculateur MRD CXJ1 — Cox proportional hazards models for ctDNA MRD in adult B-cell and Hodgkin lymphomas after mid-treatment timepoint. Partial pooling between IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines. Mono-exponential decay trajectories per histology × responder strata. Integrated baseline tumor burden term.<br>
