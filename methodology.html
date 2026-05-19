@@ -716,6 +716,21 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 </table>
 <p><strong>Interprétation</strong> : 3 covariables sur 4 stables (FMI &lt; 0.02 = négligeable). Le β_TEP atténué sous MICE (FMI = 0.087, encore acceptable &lt; 10%) reflète probablement un pattern <strong>MNAR</strong> (Missing Not At Random) : les patients avec TEP « Non fait » ont probablement des caractéristiques cliniques particulières (formes indolentes, contre-indications). L'<strong>architecture multi-variantes du modèle</strong> (router ces patients vers M1 plutôt qu'imputer) reste la solution principale. MICE confirme que les conclusions principales (signes et significativité de score_kin, burden, v5A) sont robustes au pattern de missingness.</p>
 
+<h3>8c-bis. Deauville binaire vs linéaire — bootstrap B=500 sur 8 variantes</h3>
+<p>Test rigoureux : faut-il préférer Deauville binaire (≥4 vs &lt;4) ou Deauville linéaire (ordinal 1-5) ? Bootstrap optimism-corrected B=500 sur les 8 variantes :</p>
+<table>
+<tr><th>Variante</th><th>N (ev)</th><th>bin C_corr (V229.1)</th><th>lin C_corr</th><th>Δ (lin − bin)</th></tr>
+<tr><td><strong>M2_hEq IDES</strong> ⭐</td><td>136 (25)</td><td>0.845</td><td>0.849</td><td>+0.004 ≈</td></tr>
+<tr><td><strong>M2_hEq PV</strong> ⭐</td><td>91 (16)</td><td><strong>0.892</strong></td><td>0.890</td><td>−0.002 ≈</td></tr>
+<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.796</td><td>0.799</td><td>+0.003 ≈</td></tr>
+<tr><td>M1_hEq PV</td><td>108 (22)</td><td>0.810</td><td>0.811</td><td>+0.001 ≈</td></tr>
+<tr><td>M2_VAF IDES</td><td>136 (25)</td><td>0.835</td><td>0.834</td><td>−0.001 ≈</td></tr>
+<tr><td>M2_VAF PV</td><td>91 (16)</td><td><strong>0.868</strong></td><td>0.859</td><td>−0.010 ⬇</td></tr>
+<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.763</td><td>0.764</td><td>+0.001 ≈</td></tr>
+<tr><td>M1_VAF PV</td><td>108 (22)</td><td>0.777</td><td>0.775</td><td>−0.003 ≈</td></tr>
+</table>
+<p>Différence moyenne <strong>Δ ≈ 0</strong> (médiane = +0.0006). 4 variantes favorisent <code>lin</code>, 4 favorisent <code>bin</code>. Seule M2_VAF PV montre une différence notable (favor bin, +0.010). <strong>Conclusion : équivalents en performance</strong>. La spécification binaire (Deauville ≥4) est retenue pour cohérence Lugano 2014 et robustesse face à la variation Deauville 2 vs 3.</p>
+
 <h3>8c. Analyse exploratoire — DeltaSUVmax% vs Deauville TEP2</h3>
 <p>Le Deauville TEP2 (binaire ≥4) est le standard clinique. Question : le DeltaSUVmax% (continu, baisse relative du SUVmax diag→TEP2) apporterait-il de l'info supplémentaire ?</p>
 <table>
