@@ -101,6 +101,26 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 <div class="card">
 <h2>📐 Structure du modèle</h2>
 
+<h3 id="formules-synthese">0. Synthèse des formules (vue d'ensemble)</h3>
+<p>Récapitulatif compact des étapes de calcul du risque <code>r12</code> pour un patient :</p>
+<div class="formula" style="white-space:pre-wrap; padding:14px; background:#f8fafc; border-left:4px solid #1e40af;">
+ctDNA_diag = VAF_diag(%) × cfDNA_diag (hEq)
+ctDNA_CXJ1 = VAF_CXJ1_polish × cfDNA_CXJ1
+ratio = ctDNA_CXJ1 / ctDNA_diag    (clamp 1e-7)
+mono_exp(t, λ) = exp(-λ · t)
+score_kin = log L_bad - log L_good (mono-exp, par histologie)
+
+v5A_gated = log(1 + Σ reads_drv) × (n_drv/n_tot) × quality_gate
+
+LP = β_score · score_kin
+   + β_burden · log(1 + ctDNA_diag)
+   + β_v5 · v5A_gated
+   + β_TEP · TEP_var       (Deauville 1-5 OR ΔSUVmax% fallback OR 0 si pas de TEP)
+
+risque(t) = 1 - S₀(t)^exp(LP - LP_offset)
+</div>
+<p class="muted">Le détail de chaque composant est dans les sections suivantes (trajectoire mono-exp, score cinétique, v5A drivers, LP centré, etc.).</p>
+
 <h3>1. Trajectoire de décroissance ctDNA (mono-exponentielle)</h3>
 <p>Pour chaque histologie (Hodgkin / DLBCL), deux trajectoires sont fittées : <strong>good responder</strong> (EFS sans événement &gt;12 mois) et <strong>bad responder</strong> (événement ≤12 mois) :</p>
 <div class="formula">

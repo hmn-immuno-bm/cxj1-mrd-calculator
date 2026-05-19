@@ -257,24 +257,7 @@ svg { width: 100%; height: 100%; overflow: visible; }
       <button class="btn btn-2" style="background:#16a34a;" onclick="exportPDF()">📄 Export PDF du résultat</button>
     </div>
 
-    <div class="card">
-      <h3>📐 Formules du modèle</h3>
-      <div class="formula" style="white-space:pre-wrap">
-ctDNA_diag = VAF_diag(%) × cfDNA_diag (hEq)
-ctDNA_CXJ1 = VAF_CXJ1_polish × cfDNA_CXJ1
-ratio = ctDNA_CXJ1 / ctDNA_diag    (clamp 1e-7)
-mono_exp(t, λ) = exp(-λ · t)
-score_kin = log L_bad - log L_good (mono-exp, par histologie)
-
-v5A_gated = log(1 + Σ reads_drv) × (n_drv/n_tot) × quality_gate
-
-LP = β_score · score_kin
-   + β_burden · log(1 + ctDNA_diag)
-   + β_v5 · v5A_gated
-   + β_TEP · TEP_var       (Deauville 1-5 OR ΔSUVmax% fallback OR 0 si pas de TEP)
-
-risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
-    </div>
+    <!-- Carte 📐 Formules du modèle déplacée vers methodology.html §0bis -->
   </div>
 
   <!-- ═════ RESULTS PANEL ═════ -->
@@ -354,42 +337,7 @@ risque(t) = 1 - S₀(t)^exp(LP - LP_offset)</div>
     </div>
 
     <!-- Encart didactique : pourquoi la couverture moléculaire n'est pas un input du calculateur -->
-    <div class="card" id="depthNoteCard">
-      <h2>🔬 Et la couverture moléculaire (Σ DEPTH / Σ PCU) ?</h2>
-      <p style="font-size:12px; color:#64748b; line-height:1.5; margin:0 0 10px;">
-        Précision sémantique : on parle bien du <strong>nombre total de molécules analysées</strong>
-        = somme sur la Watch List de la profondeur à chaque variant. Ce n'est pas
-        la profondeur par variant mais le « budget moléculaire » global :
-        Σ DEPTH<sub>IDES</sub> (reads × n_variants) ou Σ PCU<sub>PV</sub>
-        (Position Common UMI × n_variants).
-      </p>
-      <p style="font-size:13px; color:#475569; line-height:1.55;">
-        On pourrait s'attendre à ce qu'une couverture moléculaire faible au CXJ1 dégrade
-        la VPN (faux-négatif technique). Empiriquement, dans cette cohorte, <strong>ce n'est pas le
-        cas</strong> : chez les patients « polished negative » du modèle M1
-        (gate qualité IDES ou PV active), la VPN observée à 12 mois est stable autour
-        de <strong>91-93%</strong> sur 4 ordres de grandeur de Σ DEPTH / Σ PCU, et la pente
-        VPN(log Σ) est <strong>non significative</strong> (p=0.40-0.75 selon variante).
-      </p>
-      <p style="font-size:13px; color:#475569; line-height:1.55; margin-top:8px;">
-        Deux raisons :
-      </p>
-      <ol style="font-size:13px; color:#475569; line-height:1.55; margin:6px 0 0 18px; padding:0;">
-        <li>Le polish v56 (IDES p-value) / v75 (UMI count) absorbe déjà
-            l'information de qualité technique avant calcul du score.</li>
-        <li><strong>Le cfDNA agit comme confondeur</strong> : <em>low Σ DEPTH ↔ low cfDNA ↔ bon pronostic</em>
-            (corrélation log(Σ DEPTH) ↔ log-cfDNA<sub>diag</sub> = +0.35, p=0.0004 dans IDES ;
-            +0.26 p=0.04 dans PV). Donc une couverture moléculaire basse n'est pas un mauvais signal —
-            elle reflète souvent peu de matériel circulant, ce qui est en soi
-            un bon prono. Cette compensation est déjà encodée dans le modèle M1/M2 via
-            la covariable <code>cfDNA_diag</code>.</li>
-      </ol>
-      <p style="font-size:12px; color:#64748b; line-height:1.5; margin-top:10px;">
-        Détails : modèle logistique ajusté <code>logit(no event @ 12mo) ~ log(Σ DEPTH) + log(cfDNA_CXJ1) + log(cfDNA_diag)</code>
-        sur la cohorte M1 polished-neg (V15.272-273). Voir
-        <a href="methodology.html#vpn-depth" style="color:#1e40af;">méthodologie §8d</a> pour le détail des modèles ajustés.
-      </p>
-    </div>
+    <!-- Carte 🔬 Couverture moléculaire déplacée vers methodology.html §8d (V230) -->
 
     <div class="card" id="readmeCard">
       <h2>ℹ️ À propos du modèle</h2>
@@ -1232,22 +1180,15 @@ function sensitivityAnalysis() {
     { label: 'Tous combinés ±10%', minus: findResult('All −10% combined'), plus: findResult('All +10% combined') },
   ];
 
-  // Pour chaque groupe : conserver les 2 deltas SIGNÉS (asymétrie préservée)
-  // delta_minus = r12(input -10%) − ref ; delta_plus = r12(input +10%) − ref
-  // Les 2 ne sont pas forcément symétriques (LP non-linéaire en log).
+  // Pour chaque groupe (hors référence) : delta = r12(+10%) − r12(−10%) (étalement)
   for (const g of grouped) {
     if (g.isRef) {
-      g.lo = ref_r12; g.hi = ref_r12;
-      g.deltaMinus = 0; g.deltaPlus = 0; g.maxAbsDelta = 0;
+      g.delta_range = 0; g.maxAbsDelta = 0;
     } else if (g.minus !== null && g.plus !== null) {
-      g.lo = Math.min(g.minus, g.plus);
-      g.hi = Math.max(g.minus, g.plus);
-      g.deltaMinus = g.minus - ref_r12;   // signé
-      g.deltaPlus  = g.plus  - ref_r12;   // signé
-      g.maxAbsDelta = Math.max(Math.abs(g.deltaMinus), Math.abs(g.deltaPlus));
+      g.delta_range = g.plus - g.minus;   // étalement signé entre +10% et −10%
+      g.maxAbsDelta = Math.abs(g.delta_range);
     } else {
-      g.lo = null; g.hi = null;
-      g.deltaMinus = null; g.deltaPlus = null; g.maxAbsDelta = null;
+      g.delta_range = null; g.maxAbsDelta = null;
     }
   }
 
@@ -1264,47 +1205,50 @@ function sensitivityAnalysis() {
     return a < 0.5 ? '#16a34a' : (a < 2 ? '#ca8a04' : '#dc2626');
   }
 
-  // Build HTML rows (4 colonnes : Variable / r12 −10% / r12 +10% / Δ−10% & Δ+10%)
+  // Build HTML rows (5 colonnes : Variable / r12 −10% / ma valeur / r12 +10% / Δ)
   let rows = '';
   for (const g of grouped) {
     const is_ref = !!g.isRef;
     if (is_ref) {
+      // Ligne référence : juste la valeur centrale en évidence
+      const refStr = ref_r12 !== null ? ref_r12.toFixed(2)+'%' : '—';
       rows += `<tr style="background:#f1f5f9;font-weight:600;">
         <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;">${g.label}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;" colspan="3">${ref_r12 !== null ? ref_r12.toFixed(2)+'%' : '—'} (référence)</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;color:#64748b;">—</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:13px;color:#1e40af;">${refStr}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;color:#64748b;">—</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;color:#64748b;">—</td>
       </tr>`;
       continue;
     }
     const r_minus = g.minus !== null ? g.minus.toFixed(2)+'%' : '—';
     const r_plus  = g.plus  !== null ? g.plus.toFixed(2)+'%'  : '—';
+    const ma_val  = ref_r12 !== null ? ref_r12.toFixed(2)+'%' : '—';
     rows += `<tr>
       <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;">${g.label}</td>
       <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:12px;">${r_minus}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:12px;color:#1e40af;">${ma_val}</td>
       <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:12px;">${r_plus}</td>
-      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:12px;">
-        <span style="color:${colorDelta(g.deltaMinus)};font-weight:600;">${fmtDelta(g.deltaMinus)}</span>
-        <span style="color:#cbd5e1;">/</span>
-        <span style="color:${colorDelta(g.deltaPlus)};font-weight:600;">${fmtDelta(g.deltaPlus)}</span>
-      </td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:12px;color:${colorDelta(g.delta_range)};font-weight:600;">${fmtDelta(g.delta_range)}</td>
     </tr>`;
   }
 
-  // Plain text version for clipboard copy (préserve l'asymétrie)
+  // Plain text version for clipboard copy
   const lines = ['Analyse de sensibilité ±10% — r12 prédit', ''];
-  lines.push('Variable'.padEnd(22) + 'r12 −10%'.padStart(10) + '  ' + 'r12 +10%'.padStart(10) + '  ' + 'Δ−10%'.padStart(10) + '  ' + 'Δ+10%'.padStart(10));
-  lines.push('-'.repeat(70));
-  if (ref_r12 !== null) lines.push('Référence'.padEnd(22) + (ref_r12.toFixed(2)+'%').padStart(10) + '  (référence)');
+  lines.push('Variable'.padEnd(22) + 'r12 −10%'.padStart(10) + '  ' + 'ma valeur'.padStart(10) + '  ' + 'r12 +10%'.padStart(10) + '  ' + 'Δ(+10%-(-10%))'.padStart(16));
+  lines.push('-'.repeat(78));
+  const refStr = ref_r12 !== null ? (ref_r12.toFixed(2)+'%') : '-';
+  if (ref_r12 !== null) lines.push('Référence'.padEnd(22) + '-'.padStart(10) + '  ' + refStr.padStart(10) + '  ' + '-'.padStart(10) + '  ' + '-'.padStart(16));
   for (const g of grouped) {
     if (g.isRef) continue;
     const rm = g.minus !== null ? (g.minus.toFixed(2)+'%') : '-';
     const rp = g.plus  !== null ? (g.plus .toFixed(2)+'%') : '-';
-    const dm = g.deltaMinus !== null ? fmtDelta(g.deltaMinus) : '-';
-    const dp = g.deltaPlus  !== null ? fmtDelta(g.deltaPlus)  : '-';
-    lines.push(g.label.padEnd(22) + rm.padStart(10) + '  ' + rp.padStart(10) + '  ' + dm.padStart(10) + '  ' + dp.padStart(10));
+    const dr = g.delta_range !== null ? fmtDelta(g.delta_range) : '-';
+    lines.push(g.label.padEnd(22) + rm.padStart(10) + '  ' + refStr.padStart(10) + '  ' + rp.padStart(10) + '  ' + dr.padStart(16));
   }
   // Max |Δ| across non-ref groups (≈ amplitude pire-cas)
   const maxAmp = Math.max(...grouped.filter(g => !g.isRef && g.maxAbsDelta !== null).map(g => g.maxAbsDelta));
-  if (isFinite(maxAmp)) lines.push('', 'Amplitude max (worst-case ±10%) : ' + maxAmp.toFixed(2) + ' pt');
+  if (isFinite(maxAmp)) lines.push('', 'Amplitude max Δ(+10% - (-10%)) : ' + maxAmp.toFixed(2) + ' pt');
   const plain_text = lines.join('\n');
 
   // Modal markup
@@ -1320,13 +1264,14 @@ function sensitivityAnalysis() {
         <button onclick="document.getElementById('sensitivity_modal').remove();" style="background:transparent; border:none; font-size:22px; cursor:pointer; color:#64748b; padding:0 4px; line-height:1;">×</button>
       </div>
       <div style="padding:14px 20px;">
-        <p style="margin:0 0 12px; font-size:13px; color:#475569;">Variation ±10% de chaque input. Les <strong>2 deltas signés</strong> (Δ−10% et Δ+10%) sont reportés séparément car le LP n'est pas exactement symétrique en log (un input ×0.9 ne donne pas l'opposé de ×1.1).${isFinite(maxAmp) ? ' <strong>Amplitude max globale = '+maxAmp.toFixed(2)+' pt</strong>.' : ''}</p>
+        <p style="margin:0 0 12px; font-size:13px; color:#475569;">Variation ±10% de chaque input. La colonne <strong>Δ</strong> = <code>r12(+10%) − r12(−10%)</code> (étalement total entre les 2 variations).${isFinite(maxAmp) ? ' <strong>Étalement max = '+maxAmp.toFixed(2)+' pt</strong>.' : ''}</p>
         <table style="width:100%; font-size:13px; border-collapse:collapse; user-select:text;">
           <thead><tr style="background:#7c3aed; color:white;">
             <th style="padding:8px 10px; text-align:left;">Variable</th>
             <th style="padding:8px 10px; text-align:right;">r12 (input −10%)</th>
+            <th style="padding:8px 10px; text-align:right;">ma valeur</th>
             <th style="padding:8px 10px; text-align:right;">r12 (input +10%)</th>
-            <th style="padding:8px 10px; text-align:right;">Δ−10% / Δ+10%</th>
+            <th style="padding:8px 10px; text-align:right;">Δ = +10% − (−10%)</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
@@ -1335,7 +1280,6 @@ function sensitivityAnalysis() {
           <span style="color:#16a34a;">vert</span> = très stable (&lt; 0.5pt) ·
           <span style="color:#ca8a04;">orange</span> = stable (&lt; 2pt) ·
           <span style="color:#dc2626;">rouge</span> = sensible (≥ 2pt).
-          Une asymétrie Δ−10% ≠ −Δ+10% révèle la non-linéarité log du modèle.
         </div>
       </div>
       <div style="padding:12px 20px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; gap:10px; justify-content:flex-end;">
