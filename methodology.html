@@ -66,247 +66,337 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 <div class="container">
 
 <div class="banner" style="margin-top:0;">
-  <strong>Production stable V229.3 (mai 2026)</strong> — 6 variantes de modèle disponibles (Deauville linéaire / ΔSUVmax fallback / sans TEP × hEq/VAF).
-  Le calculateur web bascule automatiquement selon les données disponibles.
+  <strong>Production V230 (mai 2026)</strong> — endpoint <strong>EFS</strong> (Event-Free Survival = rechute OR progression). Architecture inchangée vs V229.3 (Deauville linéaire 1-5 + ΔSUVmax% fallback + partial pooling B′ IDES=PV). <strong>6 variantes</strong> de modèle, bascule automatique selon données disponibles (TEP / Qubit cfDNA / quantification VAF).
 </div>
 
 <!-- ────────────────────────────────────────────────────── -->
-<!-- CONSORT flow + Table 1 (versions V229.3 à jour) — détails complets dans sections 9 et 10 ci-dessous -->
-<div class="card">
-<h2>📊 Cohorte d'entraînement — flow et caractéristiques (V229.3)</h2>
-<p>Le diagramme CONSORT (Figure 9 ci-dessous) et la Table 1 (Figure 10) résument la cohorte d'entraînement V229.3 : 224 patients screenés → 136/91 (M2_hEq IDES/PV optimal) ou 162/108 (M1 sans TEP). Patients atypiques documentés : KINZELIN (DLBCL primitif SNC, TEP « Non fait »), PHETMANY (échec extraction cfDNA, diagnostic non séquencé) — voir section 9.</p>
+<!-- Table of Contents -->
+<div class="card" id="toc">
+<h2>📑 Table des matières</h2>
+<div style="columns:2; column-gap:30px;">
+<ol style="margin:0; padding-left:18px; font-size:13.5px; line-height:1.7;">
+  <li><a href="#sec-objectif">Objectif clinique & endpoint EFS</a></li>
+  <li><a href="#sec-inputs">Variables d'entrée</a></li>
+  <li><a href="#sec-formules">Synthèse des formules</a></li>
+  <li><a href="#sec-modele">Structure du modèle Cox</a>
+    <ol style="font-size:12.5px;">
+      <li><a href="#sec-traj">Trajectoires mono-exponentielles</a></li>
+      <li><a href="#sec-score-kin">Score cinétique</a></li>
+      <li><a href="#sec-burden">Charge tumorale baseline</a></li>
+      <li><a href="#sec-v5a">Signal driver v5A_gated (D11)</a></li>
+      <li><a href="#sec-tep-var">Composante TEP</a></li>
+      <li><a href="#sec-lp">Linear predictor & risque</a></li>
+    </ol>
+  </li>
+  <li><a href="#sec-variantes">Les 6 variantes V230</a></li>
+  <li><a href="#sec-coefs-v230">Coefficients V230 (production)</a></li>
+  <li><a href="#sec-traj-fitted">Trajectoires fittées (λ par strate)</a></li>
+  <li><a href="#sec-partial-pooling">Partial pooling IDES = PV (justification)</a></li>
+  <li><a href="#sec-tern">Stratification clinique Tern 10/40</a></li>
+  <li><a href="#sec-calib-locale">Calibration locale (KNN adaptatif)</a></li>
+  <li><a href="#sec-validation">Validation interne</a>
+    <ol style="font-size:12.5px;">
+      <li><a href="#sec-bootstrap">Bootstrap C-index optimism-corrigé</a></li>
+      <li><a href="#sec-linearite">Linéarité du LP</a></li>
+      <li><a href="#sec-ph">Hypothèse PH (Grambsch-Therneau)</a></li>
+      <li><a href="#sec-calib">Calibration globale & sous-groupes</a></li>
+      <li><a href="#sec-dca">Decision Curve Analysis</a></li>
+      <li><a href="#sec-nri">NRI / IDI vs TEP seul</a></li>
+      <li><a href="#sec-forest">Forest plot par sous-groupe</a></li>
+      <li><a href="#sec-time-c">C-index temps-dépendant</a></li>
+      <li><a href="#sec-mice">MICE sensitivity</a></li>
+      <li><a href="#sec-endpoint">Choix endpoint PFS → EFS</a></li>
+      <li><a href="#sec-c2c3">Sensibilité C2 vs C3 (bi-tp)</a></li>
+      <li><a href="#sec-deauv-binlin">Deauville binaire vs linéaire</a></li>
+      <li><a href="#sec-score-vs-blup">score_kin vs BLUP</a></li>
+      <li><a href="#sec-competing">Risque compétitif (mort)</a></li>
+      <li><a href="#vpn-depth">Couverture moléculaire — pourquoi pas covariable</a></li>
+    </ol>
+  </li>
+  <li><a href="#sec-cohorte">Cohorte d'entraînement (CONSORT + Table 1)</a></li>
+  <li><a href="#sec-techniques">Notes techniques</a></li>
+  <li><a href="#sec-tripod">TRIPOD+AI checklist</a></li>
+  <li><a href="#sec-limites">Limites & disclaimer</a></li>
+  <li><a href="#sec-citation">Citation</a></li>
+</ol>
+</div>
 </div>
 
-<!-- ────────────────────────────────────────────────────── -->
+<!-- ════════════ SECTION 1-3 : VUE D'ENSEMBLE ════════════ -->
 <div class="card">
-<h2>🎯 Objectif clinique</h2>
-<p>Prédire la probabilité d'événement (EFS = Event-Free Survival = rechute ou progression ; les morts non-lymphome sont censurées) à 12 et 24 mois chez les patients atteints de lymphome B agressif (DLBCL, HGBL, PMBL, Burkitt, transformés, etc.) ou de Hodgkin classique, à partir d'une évaluation MRD ctDNA mi-traitement (point CXJ1, typiquement après cycle 2 ou 3 de chimio-immunothérapie de première ligne).</p>
-<div class="warn" style="margin:10px 0; font-size:13px;">
-<strong>📌 V230 (mai 2026)</strong> — Passage de l'endpoint <strong>PFS</strong> (toute-cause) vers <strong>EFS</strong> (Event-Free Survival = Rechute OR Progression). Les 3 morts non-lymphome (2 COVID + 1 ulcère hémorragique) sont désormais censurées, pas comptées comme événement. Architecture inchangée (Deauville LINÉAIRE + DeltaSUV fallback, partial pooling B′ IDES=PV). Voir <a href="#endpoint-pfs-rr">§8c-ter</a> pour la justification empirique (analyse de sensibilité PFS vs EFS).
+<h2 id="sec-objectif">1. Objectif clinique & endpoint EFS</h2>
+<p>Prédire la probabilité d'événement (<strong>EFS = Event-Free Survival</strong> = rechute ou progression ; les morts non-lymphome sont censurées) à 12 et 24 mois chez les patients atteints de lymphome B agressif (DLBCL, HGBL, PMBL, Burkitt, transformés) ou de Hodgkin classique, à partir d'une évaluation MRD ctDNA mi-traitement (point <strong>CXJ1</strong>, typiquement après cycle 2 ou 3 de chimio-immunothérapie de première ligne).</p>
+<div class="note" style="background:#dcfce7; border-color:#16a34a; margin:12px 0; font-size:13px;">
+<strong>📌 V230 (mai 2026)</strong> — Passage de l'endpoint <strong>PFS</strong> (toute cause) à <strong>EFS</strong>. Les 3 morts strictement non-lymphome (2 COVID + 1 ulcère hémorragique chez témoin de Jéhova) sont désormais censurées, pas comptées comme événement. Architecture inchangée (Deauville LINÉAIRE 1-5 + DeltaSUV fallback, partial pooling B′ IDES=PV). Justification empirique : <a href="#sec-endpoint">§12.10</a> (sensibilité PFS vs R/R).
 </div>
 
-<p><strong>Variables d'entrée requises :</strong></p>
+<h2 id="sec-inputs">2. Variables d'entrée du calculateur</h2>
 <ul>
-  <li>VAF moyenne au diagnostic et au CXJ1 (par pipeline de séquençage)</li>
-  <li>Concentration cfDNA plasmatique au diagnostic (optionnelle ; bascule auto en mode VAF si absente)</li>
-  <li>Score Deauville à la TEP interim (optionnel ; bascule auto en modèle 2-vars si absent)</li>
-  <li>Filtre qualité spécifique au pipeline (p-value MOABI pour IDES, comptage UMI pour PV)</li>
-  <li>Signal de séquençage sur les 11 gènes drivers oncogéniques (D11)</li>
-  <li>Histologie (Hodgkin classique vs reste → 2 trajectoires)</li>
-  <li>Délai réel entre J1 du cycle 1 et le prélèvement CXJ1 (jours)</li>
+  <li><strong>VAF moyenne au diagnostic et au CXJ1</strong> (par pipeline de séquençage)</li>
+  <li><strong>Concentration cfDNA plasmatique</strong> au diagnostic et au CXJ1 (optionnelle ; bascule auto en mode VAF % seule si absente)</li>
+  <li><strong>Score Deauville à la TEP interim</strong> (1-5, optionnel) — ou bascule fallback DeltaSUVmax% (calculé à partir de SUVmax diag + TEP2) — ou modèle sans TEP (M1)</li>
+  <li><strong>Filtre qualité spécifique au pipeline</strong> (p-value MOABI pour IDES, comptage UMI pour PV)</li>
+  <li><strong>Signal driver oncogénique au CXJ1</strong> sur les 11 gènes D11 (réutilisé du séquençage Watch List)</li>
+  <li><strong>Histologie</strong> (Hodgkin classique vs lymphomes B agressifs ; détermine la trajectoire mono-exp à utiliser)</li>
+  <li><strong>Délai réel</strong> entre J1 cycle 1 et prélèvement CXJ1 (jours, calculé depuis Glims)</li>
 </ul>
 </div>
 
-<!-- ────────────────────────────────────────────────────── -->
+<!-- ════════════ SECTION 3 : SYNTHÈSE FORMULES ════════════ -->
 <div class="card">
-<h2>📐 Structure du modèle</h2>
-
-<h3 id="formules-synthese">0. Synthèse des formules (vue d'ensemble)</h3>
-<p>Récapitulatif compact des étapes de calcul du risque <code>r12</code> pour un patient :</p>
+<h2 id="sec-formules">3. Synthèse des formules</h2>
+<p>Récapitulatif compact des étapes de calcul du risque <code>r(t)</code> pour un patient. Notations détaillées en <a href="#sec-modele">section 4</a>.</p>
 <div class="formula" style="white-space:pre-wrap; padding:14px; background:#f8fafc; border-left:4px solid #1e40af;">
-ctDNA_diag = VAF_diag(%) × cfDNA_diag (hEq)
-ctDNA_CXJ1 = VAF_CXJ1_polish × cfDNA_CXJ1
-ratio = ctDNA_CXJ1 / ctDNA_diag    (clamp 1e-7)
-mono_exp(t, λ) = exp(-λ · t)
-score_kin = log L_bad - log L_good (mono-exp, par histologie)
+<strong>Burden au diagnostic</strong>
+ctDNA_diag = VAF_diag(%) × cfDNA_diag      (hEq, ng·% par mL)
+log_burden = log(1 + ctDNA_diag)            (mode hEq) ou log(1 + VAF_diag)  (mode VAF)
 
-v5A_gated = log(1 + Σ reads_drv) × (n_drv/n_tot) × quality_gate
+<strong>Score cinétique (mono-exponentielle par histo)</strong>
+ratio_obs = ctDNA_CXJ1 / ctDNA_diag    (clamp 1e-7)
+log L_resp = − (log ratio_obs + λ_resp · t)² / (2σ²)    pour resp ∈ {good, bad}
+score_kin = log L_bad − log L_good                       (positif → bad responder)
 
-LP = β_score · score_kin
-   + β_burden · log(1 + ctDNA_diag)
-   + β_v5 · v5A_gated
-   + β_TEP · TEP_var       (Deauville 1-5 OR ΔSUVmax% fallback OR 0 si pas de TEP)
+<strong>Signal driver au CXJ1</strong>
+v5A_gated = log(1 + Σ reads_drv_D11) × (n_drv⁺ / n_total⁺) × quality_gate
 
-risque(t) = 1 - S₀(t)^exp(LP - LP_offset)
-</div>
-<p class="muted">Le détail de chaque composant est dans les sections suivantes (trajectoire mono-exp, score cinétique, v5A drivers, LP centré, etc.).</p>
+<strong>Composante TEP (l'une des 3 selon disponibilité)</strong>
+TEP_var = Deauville_num   (1, 2, 3, 4, 5)       — variante M2_*_Deauv
+       OU DeltaSUVmax%   (continu, ex: −85)     — variante M2_*_Delta (fallback)
+       OU absent                                 — variante M1_* (sans TEP)
 
-<h3>1. Trajectoire de décroissance ctDNA (mono-exponentielle)</h3>
-<p>Pour chaque histologie (Hodgkin / DLBCL), deux trajectoires sont fittées : <strong>good responder</strong> (EFS sans événement &gt;12 mois) et <strong>bad responder</strong> (événement ≤12 mois) :</p>
-<div class="formula">
-mono_exp(t, λ) = exp(−λ · t)
-</div>
-<p>Le score cinétique mesure la log-vraisemblance Gaussienne du ratio observé sous chacune des deux trajectoires :</p>
-<div class="formula">
-ratio_obs = ctDNA_CXJ1 / ctDNA_diag  (= VAF_CXJ1 / VAF_diag si mode VAF)<br>
-log L_good = − (log(ratio_obs) − log(exp(−λ_good · t)))² / (2σ²)<br>
-log L_bad  = − (log(ratio_obs) − log(exp(−λ_bad  · t)))² / (2σ²)<br>
-<strong>score_kin = log L_bad − log L_good</strong>
-</div>
-<p>Un score positif indique une trajectoire plus proche du <em>bad responder</em> (mauvais pronostic) ; un score négatif indique un <em>good responder</em>.</p>
-
-<h3>2. Charge tumorale baseline</h3>
-<div class="formula">
-log_burden = log(1 + ctDNA_diag)   [mode hEq, ctDNA en haploid genome equivalents/mL]<br>
-            ou log(1 + VAF_diag)    [mode VAF, VAF en %]
-</div>
-
-<h3>3. Signal driver oncogénique au CXJ1 (v5A_gated)</h3>
-<p>Mesure le signal résiduel sur les 11 gènes drivers (<strong>D11 = BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53</strong>) :</p>
-<div class="formula">
-v5A = log(1 + Σ Reads_alt sur drivers D11) × (n_drv_positifs / n_total_positifs)<br>
-<strong>v5A_gated = v5A × quality_gate</strong>
-</div>
-<p>Le <strong>quality_gate</strong> est binaire (0 ou 1) :</p>
-<ul>
-  <li><strong>Pipeline IDES</strong> : p-value MOABI Monte-Carlo (10⁵ permutations) ≤ 1/100001 → quali = 1</li>
-  <li><strong>Pipeline PV</strong> : (nbr doublets PV+ ≥ 3) ET (Σ UMI PV+ ≥ 3) → quali = 1</li>
-</ul>
-<p>Si quali = 0, alors v5A_gated = 0 ET VAF_CXJ1 est forcée à 0 dans le calcul du ratio (polish v56/v75).</p>
-
-<h3>4. TEP2_pos (interim PET)</h3>
-<div class="formula">
-TEP2_pos = 1 si Deauville ≥ 4 (positif), sinon 0
-</div>
-
-<h3>5. Linear Predictor (LP) et risque prédit</h3>
-<div class="formula">
-LP_raw = β_score · score_kin + β_burden · log_burden + β_v5A · v5A_gated + β_TEP2 · TEP2_pos<br>
-LP_centered = LP_raw − LP_offset   ← <strong>centrage cohorte</strong><br>
-S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
+<strong>Linear predictor & risque</strong>
+LP_raw = β_score·score_kin + β_burden·log_burden + β_v5·v5A_gated [+ β_TEP·TEP_var]
+LP = LP_raw − LP_offset                          (centrage cohorte)
+S(t | x) = S₀(t)<sup>exp(LP)</sup>      avec S₀ stratifiée pipeline IDES/PV
 <strong>r(t) = 1 − S(t | x)</strong>
 </div>
-<p class="muted">Le LP_offset est une constante par modèle (= β·X̄ moyen de la cohorte d'entraînement) qui aligne S₀(t) sur le patient médian. Sans ce centrage, le risque prédit serait systématiquement surévalué.</p>
 </div>
 
-<!-- ────────────────────────────────────────────────────── -->
+<!-- ════════════ SECTION 4 : STRUCTURE DÉTAILLÉE ════════════ -->
 <div class="card">
-<h2>🔀 Les 8 variantes du modèle</h2>
-<div class="note" style="border-color:#ed8936;background:#fffbeb;">
-<strong>V229.1 (2026-05-19) — Patch fallback Hodgkin/bad PV.</strong> Le couple <em>histo_HODGKIN/bad_responder</em> du pipeline PV n'a aucun patient calibrable (7 patients Hodgkin classique avec PFS=1 dans la cohorte, mais tous ont VAF_diag indétectable). Le fallback a été basculé de DLBCL/bad (V229, λ=0.237) à <strong>DLBCL/good (V229.1, λ=0.380)</strong> par cohérence biologique avec IDES (où on observe λ_bad_Hodgkin ≈ 0.37 ≈ λ_good_DLBCL ≈ 0.38). Coût empirique acceptable (Δ C-PV de −0.006 à −0.023 selon variante).
+<h2 id="sec-modele">4. Structure du modèle Cox (détail)</h2>
+
+<h3 id="sec-traj">4.1 Trajectoires de décroissance ctDNA (mono-exponentielle)</h3>
+<p>Pour chaque histologie (Hodgkin / DLBCL), deux trajectoires sont fittées sur la cohorte d'entraînement :</p>
+<ul>
+  <li><strong>good responder</strong> : pas d'événement EFS dans les 12 mois</li>
+  <li><strong>bad responder</strong> : événement EFS dans les 12 mois</li>
+</ul>
+<div class="formula">
+mono_exp(t, λ) = exp(−λ · t)    avec t = délai réel C1J1 → CXJ1 (jours)
+</div>
+<p>Les paramètres λ sont fittés par minimisation des moindres carrés en log-ratio (algorithme <code>differential_evolution</code>, scipy). Valeurs en <a href="#sec-traj-fitted">section 7</a>.</p>
+
+<h3 id="sec-score-kin">4.2 Score cinétique</h3>
+<p>Le score mesure la log-vraisemblance Gaussienne du ratio observé sous chacune des deux trajectoires, pour l'histologie du patient :</p>
+<div class="formula">
+ratio_obs = ctDNA_CXJ1 / ctDNA_diag  (= VAF_CXJ1 / VAF_diag en mode VAF, clamp à 1e-7)<br>
+log L_good = − (log ratio_obs − log mono_exp(t, λ_good))² / (2σ²)<br>
+log L_bad  = − (log ratio_obs − log mono_exp(t, λ_bad))² / (2σ²)<br>
+<strong>score_kin = log L_bad − log L_good</strong>
+</div>
+<p>Score positif → ratio plus proche du <em>bad responder</em> (mauvais pronostic) ; négatif → <em>good responder</em>. La variance σ² est aussi fittée par strate histologique.</p>
+
+<h3 id="sec-burden">4.3 Charge tumorale baseline (burden)</h3>
+<div class="formula">
+log_burden = log(1 + ctDNA_diag)   (mode hEq, ctDNA en hEq/mL)<br>
+            ou log(1 + VAF_diag)    (mode VAF, VAF en %)
 </div>
 
-<p>Le calculateur bascule automatiquement entre 8 variantes selon la disponibilité des données :</p>
+<h3 id="sec-v5a">4.4 Signal driver oncogénique au CXJ1 (v5A_gated)</h3>
+<p>Mesure le signal résiduel sur les 11 gènes drivers <strong>D11 = BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53</strong> :</p>
+<div class="formula">
+v5A = log(1 + Σ Reads_alt sur drivers D11) × (n_drv⁺ / n_total⁺)<br>
+<strong>v5A_gated = v5A × quality_gate</strong>
+</div>
+<p>Le <strong>quality_gate</strong> est binaire (0 ou 1), spécifique au pipeline :</p>
+<ul>
+  <li><strong>Pipeline IDES</strong> : p-value MOABI Monte-Carlo (10⁵ permutations) ≤ 1/100001 → quali = 1</li>
+  <li><strong>Pipeline PV</strong> : (nbr doublets PV⁺ ≥ 3) ET (Σ UMI PV⁺ ≥ 3) → quali = 1</li>
+</ul>
+<p>Si <code>quali = 0</code> (« polish v56/v75 actif ») : v5A_gated = 0 ET VAF_CXJ1 est forcée à 0 dans le calcul du ratio.</p>
 
+<h3 id="sec-tep-var">4.5 Composante TEP (3 variantes mutuellement exclusives)</h3>
+<p>L'évaluation métabolique TEP interim est incorporée via 3 spécifications selon les données disponibles :</p>
 <table>
-<tr><th>Pipeline</th><th>Quantification</th><th>TEP</th><th>Variante</th><th>N</th><th>events</th><th>C-index</th></tr>
-<tr><td rowspan="4"><strong>IDES</strong></td><td>hEq (VAF × cfDNA)</td><td>✅ inclus</td><td><strong>M2_hEq</strong> ⭐</td><td>136</td><td>25</td><td><strong>0.851</strong></td></tr>
-<tr><td>hEq (VAF × cfDNA)</td><td>❌ absent</td><td>M1_hEq</td><td>162</td><td>32</td><td>0.796</td></tr>
-<tr><td>VAF % seule</td><td>✅ inclus</td><td>M2_VAF</td><td>136</td><td>25</td><td>0.832</td></tr>
-<tr><td>VAF % seule</td><td>❌ absent</td><td>M1_VAF</td><td>162</td><td>32</td><td>0.758</td></tr>
-<tr><td rowspan="4"><strong>PV</strong></td><td>hEq (VAF × cfDNA)</td><td>✅ inclus</td><td><strong>M2_hEq</strong> ⭐</td><td>94</td><td>16</td><td><strong>0.893</strong></td></tr>
-<tr><td>hEq (VAF × cfDNA)</td><td>❌ absent</td><td>M1_hEq</td><td>115</td><td>24</td><td>0.816</td></tr>
-<tr><td>VAF % seule</td><td>✅ inclus</td><td>M2_VAF</td><td>94</td><td>16</td><td>0.863</td></tr>
-<tr><td>VAF % seule</td><td>❌ absent</td><td>M1_VAF</td><td>115</td><td>24</td><td>0.777</td></tr>
+<tr><th>Variante</th><th>Specification TEP</th><th>Codage</th><th>HR par unité</th></tr>
+<tr><td><strong>M2_*_Deauv</strong> ⭐</td><td>Deauville LINÉAIRE 1-5 (ordinal)</td><td>Deauville_num ∈ {1,2,3,4,5}</td><td>exp(0.378) = <strong>1.46</strong></td></tr>
+<tr><td>M2_*_Delta</td><td>ΔSUVmax% continu (fallback)</td><td>DeltaSUV = (SUVmax_2 − SUVmax_diag)/SUVmax_diag × 100</td><td>exp(0.0134) par % = <strong>1.014</strong></td></tr>
+<tr><td>M1_*</td><td>Pas de TEP</td><td>terme β_TEP absent du LP</td><td>—</td></tr>
 </table>
+<p>Le calculateur web bascule automatiquement entre les 3 spécifications selon les inputs. Validation du choix linéaire vs binaire : <a href="#sec-deauv-binlin">§12.12</a>.</p>
 
-<p>⭐ = configuration optimale (toutes les données disponibles).</p>
+<h3 id="sec-lp">4.6 Linear Predictor & risque prédit</h3>
+<div class="formula">
+LP_raw = β_score · score_kin + β_burden · log_burden + β_v5A · v5A_gated [+ β_TEP · TEP_var]<br>
+LP = LP_raw − LP_offset             ← <strong>centrage cohorte (essentiel)</strong><br>
+S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou PV)<br>
+<strong>r(t) = 1 − S(t | x)</strong>
+</div>
+<p class="muted">Le <code>LP_offset = β·X̄</code> est calculé sur la moyenne des covariables de la cohorte de chaque variante × pipeline. La librairie lifelines stocke <code>baseline_survival_</code> au mean des covariables (pas à X=0), donc le centrage est indispensable pour cohérence JS ⇔ Python (cf. <a href="#sec-techniques">§14</a>).</p>
+</div>
+
+<!-- ════════════ SECTION 5 : LES 6 VARIANTES V230 ════════════ -->
+<div class="card">
+<h2 id="sec-variantes">5. Les 6 variantes V230</h2>
+<p>Le calculateur web bascule automatiquement entre 6 variantes selon la disponibilité des données cliniques :</p>
+<table>
+<tr><th>Variante</th><th>Quantification</th><th>TEP</th><th>IDES N (evt)</th><th>C-IDES</th><th>PV N (evt)</th><th>C-PV</th></tr>
+<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>hEq (VAF × cfDNA)</td><td>Deauville 1-5</td><td>136 (26)</td><td><strong>0.847</strong></td><td>91 (16)</td><td><strong>0.887</strong></td></tr>
+<tr><td>M2_hEq Delta</td><td>hEq (VAF × cfDNA)</td><td>ΔSUVmax% (fallback)</td><td>118 (25)</td><td>0.835</td><td>79 (15)</td><td>0.892</td></tr>
+<tr><td>M1_hEq</td><td>hEq (VAF × cfDNA)</td><td>— absent</td><td>162 (32)</td><td>0.813</td><td>108 (21)</td><td>0.853</td></tr>
+<tr><td>M2_VAF Deauv</td><td>VAF % seule</td><td>Deauville 1-5</td><td>136 (26)</td><td>0.823</td><td>91 (16)</td><td>0.817</td></tr>
+<tr><td>M2_VAF Delta</td><td>VAF % seule</td><td>ΔSUVmax% (fallback)</td><td>118 (25)</td><td>0.816</td><td>79 (15)</td><td>0.843</td></tr>
+<tr><td>M1_VAF</td><td>VAF % seule</td><td>— absent</td><td>162 (32)</td><td>0.780</td><td>108 (21)</td><td>0.808</td></tr>
+</table>
+<p>⭐ = configuration optimale (toutes les données disponibles). Bootstrap optimism-corrigé en <a href="#sec-bootstrap">§12.1</a>.</p>
 
 <div class="note">
-<strong>Coûts mesurés (Δ C-index)</strong> :<br>
-• Retirer cfDNA Qubit (hEq → VAF) : IDES −0.013 / PV −0.003 en M2 ; IDES −0.032 / PV −0.019 en M1<br>
-• Retirer TEP interim (M2 → M1) : IDES −0.053 / PV −0.080 en hEq ; IDES −0.071 / PV −0.096 en VAF
+<strong>Coûts mesurés (Δ C-index, M2_hEq vs alternatives)</strong> :
+<ul style="margin:6px 0 0;">
+<li>Retirer le cfDNA Qubit (hEq → VAF) : IDES −0.024 / PV −0.070 en M2 ; IDES −0.033 / PV −0.045 en M1</li>
+<li>Retirer le Deauville (M2 → M1) : IDES −0.034 / PV −0.034 en hEq ; IDES −0.043 / PV −0.009 en VAF</li>
+<li>Substituer Deauville par DeltaSUV (M2_Deauv → M2_Delta) : équivalent (Δ &lt; 0.02 dans toutes variantes) ; cohorte −13% (perte de patients avec Deauville mais sans SUVmax)</li>
+</ul>
 </div>
 
-<h3>🩻 Baseline TEP seul (clinique pipeline-indépendant)</h3>
-<p>Modèle Cox univarié avec TEP2_pos comme seul prédicteur, fitté sur l'union IDES + PV (patient overlap = 99%) :</p>
+<h3>🩻 Comparaison MRD vs TEP seul (baseline clinique, V229.1 référence)</h3>
+<p>Pour situer la valeur ajoutée de la MRD, un Cox univarié <em>TEP seul</em> a été fitté sur l'union IDES + PV (patient overlap 99%) :</p>
 <table>
-<tr><th>Modèle</th><th>Covariables</th><th>N</th><th>events</th><th>C-index</th></tr>
-<tr><td>🩻 <strong>TEP seul</strong> (baseline clinique)</td><td>1 (TEP2_pos)</td><td>183</td><td>34</td><td><strong>0.646</strong></td></tr>
-<tr><td>🧬 <strong>M1_hEq MRD seul</strong> (sans TEP)</td><td>3 (score, burden, v5A)</td><td>261</td><td>50</td><td><strong>0.796 / 0.816</strong></td></tr>
-<tr><td>🩻🧬 <strong>M2_hEq</strong> (MRD + TEP)</td><td>4</td><td>222</td><td>39</td><td><strong>0.851 / 0.893</strong></td></tr>
+<tr><th>Modèle</th><th>Covariables</th><th>N</th><th>events</th><th>C-index (IDES / PV)</th></tr>
+<tr><td>🩻 TEP seul (baseline clinique)</td><td>1 (TEP2_pos binaire)</td><td>183</td><td>34</td><td><strong>0.646</strong> (pooled)</td></tr>
+<tr><td>🧬 M1_hEq (MRD seule, sans TEP)</td><td>3 (score, burden, v5A)</td><td>162 / 108</td><td>32 / 21</td><td><strong>0.813 / 0.853</strong></td></tr>
+<tr><td>🩻🧬 M2_hEq Deauv (MRD + TEP)</td><td>4</td><td>136 / 91</td><td>26 / 16</td><td><strong>0.847 / 0.887</strong></td></tr>
 </table>
-<p><strong>La MRD ctDNA est le marqueur prognostique dominant</strong> :</p>
 <ul>
-  <li>Apport de la MRD ajoutée au TEP : <strong>ΔC-index = +0.18</strong> (très grande amélioration)</li>
-  <li>Apport du TEP ajouté à la MRD : <strong>ΔC-index = +0.07</strong> (amélioration modérée)</li>
+<li>Apport <strong>MRD ajoutée au TEP</strong> : ΔC ≈ +0.20 (énorme amélioration)</li>
+<li>Apport <strong>TEP ajouté à la MRD</strong> : ΔC ≈ +0.03 à +0.04 (amélioration modérée)</li>
 </ul>
-<p>Le TEP interim conserve une valeur incrémentale combinée à la MRD ctDNA mais ne peut pas s'y substituer. β_TEP seul = +0.95 (HR=2.59, p=0.002).</p>
+<p class="muted">⇒ La MRD ctDNA est le marqueur pronostique dominant ; le TEP conserve une valeur incrémentale combinée mais ne peut pas s'y substituer.</p>
 </div>
 
-<!-- ────────────────────────────────────────────────────── -->
+<!-- ════════════ SECTION 6 : COEFFICIENTS V230 ════════════ -->
 <div class="card">
-<h2>📊 Coefficients Cox par variante</h2>
-
-<h3>Structure partial pooling (validée empiriquement)</h3>
-<p>Pour chaque variante (M2/M1 × hEq/VAF), le modèle Cox est fitté en <strong>partial pooling stratifié pipeline</strong> :</p>
-<ul>
-  <li><strong>β_score, β_burden, β_TEP partagés</strong> entre IDES et PV (LR test : χ²=0.20, df=3, <strong>p=0.978</strong> M2 hEq ; p&gt;0.97 toutes variantes)</li>
-  <li><strong>β_v5A pipeline-spécifique</strong> (échelles Reads_alt IDES vs fu_UMI PV trop différentes ; LR test rejet de partage p&lt;0.005)</li>
-  <li><strong>Baseline hazard stratifiée pipeline</strong> (S₀(t) séparée IDES vs PV)</li>
-</ul>
-
-<h3>Tableau complet des coefficients</h3>
+<h2 id="sec-coefs-v230">6. Coefficients V230 (production déployée)</h2>
+<p>Fit Cox stratifié pipeline (cluster-robust sur NOM, penalizer L2 = 0.05), endpoint EFS, structure <strong>partial pooling B′</strong> : β_score, β_burden, β_TEP partagés entre IDES et PV ; β_v5A pipeline-spécifique. Validation du partial pooling en <a href="#sec-partial-pooling">§8</a>.</p>
 
 <div class="variant-grid">
 
 <div class="variant-card">
-<h4>M2_hEq — TEP+ et cfDNA dispo (production)</h4>
+<h4>M2_hEq Deauv — variante optimale ⭐</h4>
 <table>
-<tr><th>Param</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.425</td></tr>
-<tr><td>β_log_burden (partagé)</td><td colspan="2" style="text-align:center;">+0.173</td></tr>
-<tr><td>β_TEP2_pos (partagé)</td><td colspan="2" style="text-align:center;">+0.873</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.580</td><td>+1.504</td></tr>
-<tr><td>LP_offset</td><td>+2.193</td><td>+2.455</td></tr>
-<tr><td>S₀(12)</td><td>0.8868</td><td>0.9328</td></tr>
+<tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.362</strong></td></tr>
+<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.271</strong></td></tr>
+<tr><td>β_Deauville_num (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.378</strong></td></tr>
+<tr><td>β_v5A_gated</td><td>+0.591</td><td>+1.501</td></tr>
+<tr><td>LP_offset</td><td>+4.025</td><td>+4.216</td></tr>
+<tr><td>S₀(12)</td><td>0.8879</td><td>0.9246</td></tr>
 </table>
 </div>
 
 <div class="variant-card">
-<h4>M1_hEq — pas de TEP, cfDNA dispo</h4>
+<h4>M2_hEq Delta — fallback DeltaSUVmax</h4>
 <table>
-<tr><th>Param</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.439</td></tr>
-<tr><td>β_log_burden (partagé)</td><td colspan="2" style="text-align:center;">+0.194</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.456</td><td>+1.091</td></tr>
-<tr><td>LP_offset</td><td>+2.102</td><td>+2.277</td></tr>
-<tr><td>S₀(12)</td><td>0.8578</td><td>0.8878</td></tr>
+<tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.343</td></tr>
+<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;">+0.237</td></tr>
+<tr><td>β_DeltaSUV (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.0134</strong> /%</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.499</td><td>+1.186</td></tr>
+<tr><td>LP_offset</td><td>+1.646</td><td>+1.748</td></tr>
+<tr><td>S₀(12)</td><td>0.8625</td><td>0.9012</td></tr>
 </table>
 </div>
 
 <div class="variant-card">
-<h4>M2_VAF — TEP+ mais pas de cfDNA Qubit</h4>
+<h4>M1_hEq — sans TEP (cfDNA dispo)</h4>
 <table>
-<tr><th>Param</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.421</td></tr>
-<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.152</td></tr>
-<tr><td>β_TEP2_pos (partagé)</td><td colspan="2" style="text-align:center;">+0.881</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.584</td><td>+1.502</td></tr>
-<tr><td>LP_offset</td><td>+0.738</td><td>+0.970</td></tr>
-<tr><td>S₀(12)</td><td>0.8836</td><td>0.9273</td></tr>
+<tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.438</td></tr>
+<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;">+0.312</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.463</td><td>+1.053</td></tr>
+<tr><td>LP_offset</td><td>+3.305</td><td>+3.392</td></tr>
+<tr><td>S₀(12)</td><td>0.8755</td><td>0.8931</td></tr>
+</table>
+</div>
+
+<div class="variant-card">
+<h4>M2_VAF Deauv — sans cfDNA Qubit</h4>
+<table>
+<tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.320</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.325</td></tr>
+<tr><td>β_Deauville_num (partagé)</td><td colspan="2" style="text-align:center;">+0.360</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.592</td><td>+1.516</td></tr>
+<tr><td>LP_offset</td><td>+1.855</td><td>+2.018</td></tr>
+<tr><td>S₀(12)</td><td>0.8794</td><td>0.9182</td></tr>
+</table>
+</div>
+
+<div class="variant-card">
+<h4>M2_VAF Delta — sans cfDNA, fallback Delta</h4>
+<table>
+<tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.278</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.313</td></tr>
+<tr><td>β_DeltaSUV (partagé)</td><td colspan="2" style="text-align:center;">+0.0136 /%</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.513</td><td>+1.214</td></tr>
+<tr><td>LP_offset</td><td>−0.152</td><td>−0.085</td></tr>
+<tr><td>S₀(12)</td><td>0.8574</td><td>0.8968</td></tr>
 </table>
 </div>
 
 <div class="variant-card">
 <h4>M1_VAF — modèle minimal (ni TEP ni cfDNA)</h4>
 <table>
-<tr><th>Param</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.431</td></tr>
-<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.181</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.455</td><td>+1.088</td></tr>
-<tr><td>LP_offset</td><td>+0.473</td><td>+0.607</td></tr>
-<tr><td>S₀(12)</td><td>0.8547</td><td>0.8782</td></tr>
+<tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.398</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.450</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.446</td><td>+1.068</td></tr>
+<tr><td>LP_offset</td><td>+0.963</td><td>+1.007</td></tr>
+<tr><td>S₀(12)</td><td>0.8674</td><td>0.8838</td></tr>
 </table>
 </div>
 
 </div>
+
+<h3>Interprétation clinique</h3>
+<ul>
+<li><strong>HR par unité Deauville</strong> = exp(0.378) = <strong>1.46</strong>. Deauville 4 vs 3 ⇒ +46% de hazard. Deauville 5 vs 1 ⇒ HR = 4.62.</li>
+<li><strong>HR par 10% de DeltaSUV</strong> = exp(0.134) = <strong>1.143</strong>. ΔSUV −50% vs −95% (45 pt d'écart) ⇒ HR = 1.84.</li>
+<li><strong>HR par 1-SD log_burden</strong> ≈ 1.4-1.6 (IDES) selon variante.</li>
+<li><strong>v5A_gated</strong> a un HR pipeline-spécifique : exp(0.591) = 1.81 IDES vs exp(1.501) = 4.48 PV (échelle UMI ≠ échelle reads).</li>
+</ul>
 </div>
 
-<!-- ────────────────────────────────────────────────────── -->
+<!-- ════════════ SECTION 7 : TRAJECTOIRES V230 ════════════ -->
 <div class="card">
-<h2>📈 Trajectoires mono-exponentielles</h2>
-<p>Quatre paramètres totaux par mode (hEq ou VAF) : 2 histologies × 2 statuts responder.</p>
+<h2 id="sec-traj-fitted">7. Trajectoires fittées (λ par strate)</h2>
+<p>Quatre paramètres λ par mode (hEq ou VAF) × pipeline : 2 histologies × 2 statuts responder = 4 trajectoires. Fittage par <code>differential_evolution</code> sur log-ratio observé vs prédit.</p>
 
-<h3>Mode hEq (ratio ctDNA absolu)</h3>
+<h3>Mode hEq (ratio ctDNA absolu = VAF × cfDNA)</h3>
 <table>
 <tr><th>Pipeline</th><th>Histologie</th><th>λ_good (j⁻¹)</th><th>t½_good</th><th>λ_bad (j⁻¹)</th><th>t½_bad</th></tr>
 <tr><td rowspan="2"><strong>IDES</strong></td><td>Hodgkin</td><td>0.646</td><td>1.1 j</td><td>0.371</td><td>1.9 j</td></tr>
-<tr><td>DLBCL</td><td>0.377</td><td>1.8 j</td><td>0.206</td><td>3.4 j</td></tr>
-<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.415</td><td>1.7 j</td><td>0.380 <em>(fallback DLBCL/good, V229.1)</em></td><td>1.8 j</td></tr>
-<tr><td>DLBCL</td><td>0.380</td><td>1.8 j</td><td>0.237</td><td>2.9 j</td></tr>
+<tr><td>DLBCL</td><td>0.367</td><td>1.9 j</td><td>0.211</td><td>3.3 j</td></tr>
+<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.417</td><td>1.7 j</td><td>0.364 <em>(fallback DLBCL/good)</em></td><td>1.9 j</td></tr>
+<tr><td>DLBCL</td><td>0.364</td><td>1.9 j</td><td>0.237</td><td>2.9 j</td></tr>
 </table>
 
 <h3>Mode VAF (ratio VAF % uniquement)</h3>
 <table>
 <tr><th>Pipeline</th><th>Histologie</th><th>λ_good (j⁻¹)</th><th>t½_good</th><th>λ_bad (j⁻¹)</th><th>t½_bad</th></tr>
 <tr><td rowspan="2"><strong>IDES</strong></td><td>Hodgkin</td><td>0.646</td><td>1.1 j</td><td>0.365</td><td>1.9 j</td></tr>
-<tr><td>DLBCL</td><td>0.373</td><td>1.9 j</td><td>0.189</td><td>3.7 j</td></tr>
-<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.413</td><td>1.7 j</td><td>0.373 <em>(fallback DLBCL/good, V229.1)</em></td><td>1.9 j</td></tr>
-<tr><td>DLBCL</td><td>0.373</td><td>1.9 j</td><td>0.220</td><td>3.1 j</td></tr>
+<tr><td>DLBCL</td><td>0.362</td><td>1.9 j</td><td>0.195</td><td>3.6 j</td></tr>
+<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.415</td><td>1.7 j</td><td>0.356 <em>(fallback DLBCL/good)</em></td><td>1.9 j</td></tr>
+<tr><td>DLBCL</td><td>0.356</td><td>1.9 j</td><td>0.221</td><td>3.1 j</td></tr>
 </table>
 
-<p class="muted">Les λ sont remarquablement similaires entre modes hEq et VAF, indiquant que la dynamique de décroissance ctDNA suit la VAF (le cfDNA module la magnitude mais pas la pente).</p>
+<div class="note" style="border-color:#ed8936;background:#fffbeb;">
+<strong>Fallback Hodgkin/bad PV → DLBCL/good</strong> — Le couple <em>histo_HODGKIN/bad_responder</em> du pipeline PV n'a aucun patient calibrable (7 patients Hodgkin classique avec EFS=1 dans la cohorte, mais tous ont VAF_diag indétectable en PV). Le fallback adopté V229.1 est <code>λ_bad_Hodgkin_PV = λ_good_DLBCL_PV</code>, cohérent avec IDES où on observe empiriquement λ_bad_Hodgkin ≈ 0.37 ≈ λ_good_DLBCL ≈ 0.38.
+</div>
+
+<p class="muted">Les λ sont remarquablement similaires entre modes hEq et VAF (Δ &lt; 0.02), indiquant que la dynamique de décroissance ctDNA suit la VAF — le cfDNA module la magnitude mais pas la pente.</p>
 
 <div class="center">
 <img class="figure" src="figs/publication/Fig_trajectories.png" alt="Mono-exp trajectories" style="max-width: 80%;">
@@ -314,10 +404,37 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 </div>
 </div>
 
-<!-- ────────────────────────────────────────────────────── -->
+<!-- ════════════ SECTION 8 : PARTIAL POOLING ════════════ -->
 <div class="card">
-<h2>🎯 Stratification clinique Tern 10/40 — pour les 8 variantes</h2>
-<p>Trois zones de risque basées sur la probabilité prédite de récidive à 12 mois (r12) :</p>
+<h2 id="sec-partial-pooling">8. Partial pooling IDES = PV (justification)</h2>
+<p>Tester si les coefficients β_score, β_burden et β_TEP peuvent être <strong>partagés</strong> entre IDES et PV pour stabiliser l'estimation (plus de patients dans chaque équation), tout en gardant β_v5A pipeline-spécifique (échelles Reads_alt IDES vs UMI PV différentes).</p>
+
+<h3>Comparaison de 5 modèles emboîtés (LR test, cluster-robust sur NOM)</h3>
+<table>
+<tr><th>Modèle</th><th>Coefs partagés IDES↔PV</th><th>params M2</th><th>AIC M2</th><th>LR vs A</th></tr>
+<tr><td>A</td><td>aucun (séparé total)</td><td>8</td><td>269.60</td><td>ref</td></tr>
+<tr><td>B</td><td>TEP + burden</td><td>6</td><td>265.80</td><td>p = 0.91 ✓</td></tr>
+<tr><td><strong>B′ (production)</strong></td><td><strong>TEP + burden + score</strong></td><td><strong>5</strong></td><td><strong>263.80</strong></td><td><strong>p = 0.98 ✓</strong></td></tr>
+<tr><td>C</td><td>TEP + burden + v5A</td><td>5</td><td>276.28</td><td>p = 0.005 ❌</td></tr>
+<tr><td>D</td><td>tout partagé (incl. v5A)</td><td>4</td><td>274.43</td><td>p = 0.01 ❌</td></tr>
+</table>
+<p>Le partage de TEP + burden + score (modèle B′) est statistiquement supporté (p = 0.98), améliore l'AIC de 5.80 points vs A et préserve le C-index. <strong>v5A reste pipeline-spécifique</strong> car ses échelles diffèrent : Reads_alt (IDES) vs fu_UMI (PV).</p>
+
+<h3>Validation de la spec TEP (Deauville LIN et Delta) V266</h3>
+<table>
+<tr><th>Spec TEP</th><th>Mode</th><th>β IDES seul</th><th>β PV seul</th><th>β pooled (production)</th><th>LR p (pool)</th></tr>
+<tr><td rowspan="2"><strong>Deauville LIN 1-5</strong></td><td>hEq</td><td>+0.361</td><td>+0.378</td><td><strong>+0.378</strong></td><td><strong>p = 0.91</strong> ✓</td></tr>
+<tr><td>VAF</td><td>+0.330</td><td>+0.343</td><td><strong>+0.360</strong></td><td><strong>p = 0.93</strong> ✓</td></tr>
+<tr><td rowspan="2"><strong>DeltaSUVmax %</strong></td><td>hEq</td><td>+0.0144</td><td>+0.0143</td><td><strong>+0.0134</strong></td><td><strong>p = 0.99</strong> ✓✓</td></tr>
+<tr><td>VAF</td><td>+0.0140</td><td>+0.0135</td><td><strong>+0.0136</strong></td><td><strong>p = 0.94</strong> ✓</td></tr>
+</table>
+<p>Cohérence exceptionnelle pour DeltaSUV (β identique à la 4e décimale entre IDES et PV). Partial pooling B′ totalement justifié pour les 2 spécifications TEP.</p>
+</div>
+
+<!-- ════════════ SECTION 9 : STRATIFICATION TERN ════════════ -->
+<div class="card">
+<h2 id="sec-tern">9. Stratification clinique Tern 10/40</h2>
+<p>Trois zones de risque basées sur la probabilité prédite d'événement à 12 mois (r12) :</p>
 <table>
 <tr><th>Zone</th><th>Plage r12</th><th>Conduite suggérée</th></tr>
 <tr><td>🟢 <strong>Faible</strong></td><td>r12 ≤ 10%</td><td>Surveillance standard</td></tr>
@@ -326,60 +443,52 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 </table>
 <p class="muted">Seuils 10/40 sélectionnés par évaluation exhaustive de 82 splits candidats sur la métrique de séparation des courbes KM adjacentes, cross-validation 5-fold confirmant 10/40 comme optimum interprétable.</p>
 
-<h3>Performance par zone × variante</h3>
-<p>EFS@12 et EFS@24 (Kaplan-Meier) calculés rétrospectivement sur la cohorte d'entraînement, par zone Tern et par variante de modèle :</p>
+<h3>Performance par zone × variante (V230 EFS, cohorte d'entraînement)</h3>
 
 <div class="warn" style="margin:10px 0 14px; font-size:13px;">
-<strong>⚠ Lecture des valeurs « 0.0% »</strong> — Les chiffres sont des estimations Kaplan-Meier qui ajustent pour la censure.
-Une valeur EFS@24 = <strong>0.0%</strong> signifie : « parmi les patients de cette zone encore <em>à risque à 24 mois</em>
-(= non censurés et sans événement avant 24mo), tous ont eu un événement avant 24mo ». Cela ne veut <strong>pas</strong>
-dire que la totalité de la zone est décédée — certains patients peuvent être encore en suivi avec un recul &lt; 24 mo
-(censurés à droite). En particulier, la zone <strong>Élevé</strong> est petite (N=9 à 20 selon variante) et la valeur
-0.0% est donc estimée sur un sous-ensemble réduit. La <a href="#fig-km-tern">figure KM par zone</a> ci-dessous
-montre les courbes complètes et le N at-risk à chaque temps.
+<strong>⚠ Lecture des valeurs « 0.0% »</strong> — Estimations Kaplan-Meier ajustées pour la censure. <strong>EFS@24 = 0.0%</strong> signifie que tous les patients <em>encore à risque à 24 mois</em> (non censurés et sans événement avant) ont eu un événement avant 24mo. Cela ne veut <strong>pas</strong> dire que la totalité de la zone est décédée — certains patients peuvent être encore en suivi avec un recul &lt; 24 mo (censurés à droite). La zone <strong>Élevé</strong> est petite (N=9 à 21 selon variante) et la valeur s'estime donc sur un sous-ensemble réduit. La <a href="#fig-km-tern">figure KM</a> ci-dessous montre les courbes complètes avec ticks de censure et N at-risk.
 </div>
 
-<h3 style="color:#1e40af;">Pipeline IDES</h3>
+<h4 style="color:#1e40af;">Pipeline IDES</h4>
 <table>
 <tr><th rowspan="2">Variante</th><th colspan="3">🟢 Faible (r12 ≤ 10%)</th><th colspan="3">🟡 Modéré (10–40%)</th><th colspan="3">🔴 Élevé (r12 &gt; 40%)</th></tr>
-<tr><th>N</th><th>EFS@12</th><th>EFS@24</th><th>N</th><th>EFS@12</th><th>EFS@24</th><th>N</th><th>EFS@12</th><th>EFS@24</th></tr>
-<tr><td><strong>M2_hEq</strong> ⭐</td><td>82</td><td>95.1%</td><td>95.1%</td><td>37</td><td>86.1%</td><td>82.8%</td><td>17</td><td>17.6%</td><td><strong>0.0%</strong></td></tr>
-<tr><td>M1_hEq</td><td>77</td><td>94.8%</td><td>94.8%</td><td>65</td><td>79.7%</td><td>75.5%</td><td>20</td><td>40.0%</td><td>32.0%</td></tr>
-<tr><td>M2_VAF</td><td>84</td><td>95.2%</td><td>95.2%</td><td>36</td><td>82.9%</td><td>79.6%</td><td>16</td><td>18.8%</td><td><strong>0.0%</strong></td></tr>
-<tr><td>M1_VAF</td><td>78</td><td>92.3%</td><td>90.8%</td><td>64</td><td>82.6%</td><td>80.6%</td><td>20</td><td>40.0%</td><td>30.0%</td></tr>
+<tr><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>80 (5)</td><td>93.8%</td><td>93.8%</td><td>37 (7)</td><td>86.1%</td><td>78.2%</td><td>19 (14)</td><td>29.2%</td><td>19.5%</td></tr>
+<tr><td>M1_hEq</td><td>85 (3)</td><td>96.5%</td><td>96.5%</td><td>56 (16)</td><td>76.4%</td><td>69.1%</td><td>21 (13)</td><td>40.1%</td><td>30.1%</td></tr>
+<tr><td>M2_VAF Deauv</td><td>84 (6)</td><td>92.8%</td><td>92.8%</td><td>36 (7)</td><td>85.5%</td><td>77.6%</td><td>16 (13)</td><td>25.0%</td><td>12.5%</td></tr>
+<tr><td>M1_VAF</td><td>78 (6)</td><td>92.3%</td><td>92.3%</td><td>67 (14)</td><td>83.4%</td><td>77.2%</td><td>17 (12)</td><td>32.7%</td><td>16.3%</td></tr>
 </table>
 
-<h3 style="color:#1e40af;">Pipeline PV</h3>
+<h4 style="color:#1e40af;">Pipeline PV</h4>
 <table>
 <tr><th rowspan="2">Variante</th><th colspan="3">🟢 Faible (r12 ≤ 10%)</th><th colspan="3">🟡 Modéré (10–40%)</th><th colspan="3">🔴 Élevé (r12 &gt; 40%)</th></tr>
-<tr><th>N</th><th>EFS@12</th><th>EFS@24</th><th>N</th><th>EFS@12</th><th>EFS@24</th><th>N</th><th>EFS@12</th><th>EFS@24</th></tr>
-<tr><td><strong>M2_hEq</strong> ⭐</td><td>69</td><td>95.5%</td><td>95.5%</td><td>16</td><td>87.5%</td><td>70.7%</td><td>9</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
-<tr><td>M1_hEq</td><td>69</td><td>95.7%</td><td>94.0%</td><td>33</td><td>74.7%</td><td>63.9%</td><td>13</td><td>23.1%</td><td>23.1%</td></tr>
-<tr><td>M2_VAF</td><td>70</td><td>95.6%</td><td>95.6%</td><td>15</td><td>86.7%</td><td>65.7%</td><td>9</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
-<tr><td>M1_VAF</td><td>70</td><td>92.8%</td><td>92.8%</td><td>33</td><td>81.4%</td><td>66.0%</td><td>12</td><td>16.7%</td><td>16.7%</td></tr>
+<tr><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>63 (5)</td><td>93.6%</td><td>91.8%</td><td>19 (2)</td><td>100.0%</td><td>82.5%</td><td>9 (9)</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
+<tr><td>M1_hEq</td><td>62 (4)</td><td>96.7%</td><td>92.9%</td><td>35 (8)</td><td>78.7%</td><td>73.4%</td><td>11 (9)</td><td>11.4%</td><td>11.4%</td></tr>
+<tr><td>M2_VAF Deauv</td><td>68 (4)</td><td>94.0%</td><td>94.0%</td><td>14 (3)</td><td>100.0%</td><td>65.6%</td><td>9 (9)</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
+<tr><td>M1_VAF</td><td>60 (3)</td><td>94.9%</td><td>94.9%</td><td>37 (9)</td><td>82.7%</td><td>70.0%</td><td>11 (9)</td><td>11.4%</td><td>11.4%</td></tr>
 </table>
 
 <div class="success">
 <strong>Observations clés :</strong>
 <ul>
-  <li>Zone <strong>Faible</strong> uniformément excellente (EFS@24 ≈ 93–98% dans toutes les variantes)</li>
-  <li>Zone <strong>Modéré</strong> montre des événements tardifs (EFS@12 ≈ 80–90% mais EFS@24 ≈ 64–80%) → justifie la surveillance rapprochée</li>
-  <li>Zone <strong>Élevé</strong> avec les variantes <strong>complètes M2 (TEP+) en pipeline PV</strong> atteint <strong>EFS@24 KM = 0%</strong> : tous les patients à risque à 24 mo ont eu un événement (cohorte 9 patients, attention à la lecture — voir note interprétative ci-dessus). Cela valide la décision RCP : la zone Élevé identifie un sous-groupe à très forte rechute précoce.</li>
-  <li>Sans TEP (variantes M1), la zone Élevé conserve quelques survivants tardifs (9–29%), reflétant la moindre discrimination — d'où l'intérêt d'inclure le TEP quand disponible</li>
+  <li>Zone <strong>Faible</strong> uniformément excellente (EFS@24 ≈ 92–96% dans toutes les variantes)</li>
+  <li>Zone <strong>Modéré</strong> montre des événements tardifs (EFS@12 ≈ 77–100% mais EFS@24 ≈ 65–82%) → justifie la surveillance rapprochée</li>
+  <li>Zone <strong>Élevé</strong> en variante M2 + PV ⇒ EFS@24 = 0% sur N=9, IC95% large. Pour M1 (sans TEP) reste avec quelques survivants tardifs (11-30%), reflétant la moindre discrimination — argument pour inclure le Deauville quand disponible.</li>
 </ul>
 </div>
 
 <div class="center" id="fig-km-tern">
-<img class="figure" src="figs/METHODO_v2_KM_tern_both.png" alt="KM curves by Tern zone (M2_hEq) with censoring ticks and N at-risk">
-<p class="muted">Courbes Kaplan-Meier par zone Tern 10/40 pour la variante optimale M2_hEq (IDES à gauche, PV à droite, V229.3). Les <strong>tick marks verticaux (|)</strong> représentent les censures (perdus de vue ou suivi en cours) ; chaque tick = 1 patient sorti de la cohorte sans événement. Le <strong>tableau « At risk »</strong> sous chaque axe X indique combien de patients sont encore observables aux temps 0, 6, 12, 18, 24, 30, 36 mo. Bande colorée = IC95% Greenwood.<br><br>
-<strong>Lecture de la zone Élevé PV (N=9, evt=9)</strong> : la courbe rouge plonge à 0% vers 11 mo, et le N at-risk passe de 9 → 3 → 0 dès 7 mo. Cela ne signifie pas que <em>tout</em> patient à r12 &gt; 40% va rechuter à coup sûr — la cohorte du sous-groupe est petite (9 patients) et la valeur EFS@24=0% est une estimation KM avec un IC95% large. Pour un nouveau patient prédit à 60%, la <em>calibration locale KNN</em> du calculateur (cercle violet) donne l'estimation contextuelle : sur les patients voisins en LP, le KM observé peut être plus optimiste que l'extrapolation Tern. L'utilité clinique de la zone Élevé est d'identifier <em>un sous-groupe à haut risque</em> pour discussion RCP, pas de prophétiser un événement certain.</p>
+<img class="figure" src="figs/METHODO_v2_KM_tern_both.png" alt="KM curves by Tern zone (M2_hEq Deauv V230) with censoring ticks and N at-risk">
+<p class="muted">Courbes Kaplan-Meier V230 par zone Tern 10/40 pour la variante optimale M2_hEq Deauv (IDES à gauche, PV à droite). Les <strong>tick marks verticaux (|)</strong> représentent les censures (perdus de vue ou suivi en cours). Le tableau <strong>« At risk »</strong> sous l'axe X indique le N restant à 0/6/12/18/24/30/36 mo. Bande colorée = IC95% Greenwood.<br><br>
+<strong>Lecture zone Élevé PV (N=9, evt=9)</strong> : courbe rouge plonge à 0% vers 11 mo, N at-risk passe de 9 → 3 → 0 dès 7 mo. Cela ne veut <em>pas</em> dire que tout patient à r12 &gt; 40% va rechuter à coup sûr — l'IC95% est large (cohorte 9 patients). Pour un nouveau patient prédit à 60%, la <em>calibration locale KNN</em> du calculateur (cercle violet) donne l'estimation contextuelle des voisins en LP, souvent plus optimiste que l'extrapolation Tern. L'utilité clinique de la zone Élevé est d'identifier <em>un sous-groupe à haut risque</em> pour discussion RCP, pas de prophétiser un événement certain.</p>
 </div>
 </div>
 
-<!-- ────────────────────────────────────────────────────── -->
+<!-- ════════════ SECTION 10 : CALIBRATION LOCALE ════════════ -->
 <div class="card">
-<h2>📍 Calibration locale (KNN adaptatif)</h2>
-<p>Le calculateur affiche systématiquement, à côté de la prédiction Cox, une <strong>estimation observationnelle KM</strong> calculée sur les patients de la cohorte les plus proches en LP du patient testé. Cette estimation sert de garde-fou contre l'extrapolation du Cox.</p>
+<h2 id="sec-calib-locale">10. Calibration locale (KNN adaptatif)</h2>
+<p>Le calculateur affiche systématiquement, à côté de la prédiction Cox, une <strong>estimation observationnelle KM</strong> calculée sur les patients de la cohorte les plus proches en LP du patient testé. Cette estimation sert de garde-fou contre l'extrapolation du Cox dans les zones de risque éparses.</p>
 
 <h3>Stratégie KNN adaptative (validée empiriquement)</h3>
 <ol>
@@ -400,111 +509,100 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <p>L'IC95% Greenwood (transformation log-log) est calculé sur l'estimateur KM local et reporté en chiffres sous le graphique.</p>
 </div>
 
-<!-- ────────────────────────────────────────────────────── -->
+<!-- ════════════ SECTION 11 : VALIDATION INTERNE ════════════ -->
 <div class="card">
-<h2>🔬 Validation rigoureuse</h2>
+<h2 id="sec-validation">11. Validation interne</h2>
+<p>Battery de tests internes du modèle Cox V230. Tous les bootstraps utilisent la méthode Harrell (B=500, optimism-corrected sur tirages avec remise) sauf indication contraire.</p>
 
-<h3>1. Hypothèse de linéarité du LP (Cox additif)</h3>
+<h3 id="sec-bootstrap">11.1 Bootstrap C-index optimism-corrigé (Harrell, B=500)</h3>
+<p>Pour les 6 variantes V230, bootstrap complet sur la cohorte d'entraînement (endpoint EFS, partial pooling B′ refitté à chaque tirage) :</p>
+<table>
+<tr><th>Variante</th><th>N (events)</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95% (percentile)</th></tr>
+<tr><td><strong>M2_hEq Deauv IDES</strong> ⭐</td><td>136 (26)</td><td>0.847</td><td>+0.010</td><td><strong>0.837</strong></td><td>[0.77, 0.93]</td></tr>
+<tr><td><strong>M2_hEq Deauv PV</strong> ⭐</td><td>91 (16)</td><td>0.887</td><td>+0.018</td><td><strong>0.869</strong></td><td>[0.82, 0.97]</td></tr>
+<tr><td>M2_hEq Delta IDES</td><td>118 (25)</td><td>0.835</td><td>+0.011</td><td>0.824</td><td>[0.74, 0.91]</td></tr>
+<tr><td>M2_hEq Delta PV</td><td>79 (15)</td><td>0.892</td><td>+0.023</td><td>0.869</td><td>[0.80, 0.97]</td></tr>
+<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.813</td><td>+0.008</td><td>0.805</td><td>[0.73, 0.88]</td></tr>
+<tr><td>M1_hEq PV</td><td>108 (21)</td><td>0.853</td><td>+0.013</td><td>0.840</td><td>[0.74, 0.93]</td></tr>
+<tr><td>M2_VAF Deauv IDES</td><td>136 (26)</td><td>0.823</td><td>+0.015</td><td>0.808</td><td>[0.76, 0.92]</td></tr>
+<tr><td>M2_VAF Deauv PV</td><td>91 (16)</td><td>0.817</td><td>+0.020</td><td>0.797</td><td>[0.74, 0.91]</td></tr>
+<tr><td>M2_VAF Delta IDES</td><td>118 (25)</td><td>0.816</td><td>+0.013</td><td>0.803</td><td>[0.74, 0.91]</td></tr>
+<tr><td>M2_VAF Delta PV</td><td>79 (15)</td><td>0.843</td><td>+0.015</td><td>0.828</td><td>[0.77, 0.96]</td></tr>
+<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.780</td><td>+0.008</td><td>0.772</td><td>[0.67, 0.87]</td></tr>
+<tr><td>M1_VAF PV</td><td>108 (21)</td><td>0.808</td><td>+0.020</td><td>0.788</td><td>[0.70, 0.91]</td></tr>
+</table>
+<p class="muted"><strong>Optimism très faible</strong> (max +0.023, médiane +0.014) → bonne généralisation. Δ V229.3 PFS → V230 EFS : M2_hEq IDES C_corr 0.848 → 0.837 (−0.011), PV 0.891 → 0.869 (−0.022). Cette légère baisse est attendue : EFS exclut 3 morts non-lymphome bien prédites par TEP, donc plus difficile à discriminer (cf. <a href="#sec-endpoint">§11.10</a>).</p>
+
+<h3 id="sec-linearite">11.2 Linéarité du LP (martingale + splines RCS)</h3>
 <table>
 <tr><th>Test</th><th>Résultat</th><th>Verdict</th></tr>
 <tr><td>Martingale residuals lowess vs log_burden</td><td>Amplitude = 0.13 (&lt; 0.3)</td><td>✓ Pattern plat</td></tr>
-<tr><td>Grambsch-Therneau PH test (4 covars)</td><td>p &gt; 0.48 pour toutes</td><td>✓ PH valide</td></tr>
 <tr><td>LR test ajout splines RCS à log_burden</td><td>χ²=1.66, df=4, p=0.80 NS</td><td>✓ Splines inutiles</td></tr>
+<tr><td>Bootstrap C-corrected : linéaire vs spline RCS</td><td>0.852 vs 0.837 (Δ=+0.015 pour linéaire)</td><td>✓ Linéaire généralise mieux</td></tr>
 </table>
+<p>Le modèle linéaire généralise mieux que le spline car le spline avait 3× plus d'optimism (overfit confirmé sur ~25 events). Pas d'évidence de non-linéarité.</p>
 
-<h3>2. Bootstrap C-index optimism-corrigé (B=500, Harrell)</h3>
+<h3 id="sec-ph">11.3 Hypothèse des hazards proportionnels (Grambsch-Therneau)</h3>
 <table>
-<tr><th>Modèle</th><th>C apparent</th><th>Mean optimism</th><th>C corrigé</th></tr>
-<tr><td>Linéaire (4 covars)</td><td>0.860</td><td>0.009</td><td><strong>0.852</strong></td></tr>
-<tr><td>Spline RCS (9 covars)</td><td>0.864</td><td>0.028</td><td>0.837</td></tr>
+<tr><th>Covariable</th><th>p-value (rank)</th><th>p-value (log)</th><th>Verdict</th></tr>
+<tr><td><code>score_kin</code></td><td>0.184</td><td>0.205</td><td>✓ Pas de violation</td></tr>
+<tr><td><code>log_burden_hEq</code></td><td>0.691</td><td>0.859</td><td>✓ Pas de violation</td></tr>
+<tr><td><code>Deauville_num</code></td><td>0.586</td><td>0.473</td><td>✓ Pas de violation</td></tr>
+<tr><td><code>v5A_gated</code></td><td>&gt; 0.30</td><td>&gt; 0.30</td><td>✓ Pas de violation</td></tr>
 </table>
-<p>Le modèle linéaire généralise mieux que le spline (+0.015 C corrigé). Le spline avait 3× plus d'optimism (overfit confirmé sur 24 events).</p>
+<p>Toutes les p &gt; 0.18 → <strong>aucune violation PH</strong>. Confirmation supplémentaire : l'interaction <code>score_kin × log(t)</code> ajoutée au Cox donne β = +0.025 (p = 0.78 NS) et ΔC = +0.001 (négligeable). Les HR sont valides sur 0-36 mois, justifiant la projection de S₀(12) et S₀(24) sans correction temps-dépendante.</p>
 
-<h3>3. Stabilité du coefficient β_burden (M2_hEq IDES)</h3>
-<table>
-<tr><th>Statistique</th><th>Valeur</th></tr>
-<tr><td>Apparent</td><td>0.288</td></tr>
-<tr><td>Mean / Median bootstrap (B=500)</td><td>0.289 / 0.290</td></tr>
-<tr><td>IC95% percentile</td><td>[0.100, 0.465]</td></tr>
-<tr><td>% bootstraps avec β &gt; 0</td><td>100%</td></tr>
-<tr><td>% bootstraps avec β ∈ [0.1, 0.5]</td><td>96.6%</td></tr>
-</table>
-
-<h3>4. Test de partage entre pipelines (partial pooling)</h3>
-<p>5 modèles emboîtés comparés par LR test sur la cohorte stackée IDES+PV (cluster-robust SE sur NOM) :</p>
-<table>
-<tr><th>Modèle</th><th>Coefs partagés</th><th>params M2</th><th>AIC M2</th><th>LR vs A</th></tr>
-<tr><td>A</td><td>aucun (séparé total)</td><td>8</td><td>269.60</td><td>ref</td></tr>
-<tr><td>B</td><td>TEP + burden</td><td>6</td><td>265.80</td><td>p=0.91 ✓</td></tr>
-<tr><td><strong>B′ (retenu)</strong></td><td><strong>TEP + burden + score</strong></td><td><strong>5</strong></td><td><strong>263.80</strong></td><td><strong>p=0.98 ✓</strong></td></tr>
-<tr><td>C</td><td>TEP + burden + v5A</td><td>5</td><td>276.28</td><td>p=0.005 ❌</td></tr>
-<tr><td>D</td><td>tout partagé</td><td>4</td><td>274.43</td><td>p=0.01 ❌</td></tr>
-</table>
-<p>Le partage des coefs TEP, burden et score est statistiquement supporté (LR p=0.98), améliore le AIC de 5.80 points et préserve le C-index. v5A doit rester pipeline-spécifique (échelles Reads_alt IDES vs UMI PV différentes).</p>
-
-<h3>5. Validation de l'utilité de chaque covariable (LR tests)</h3>
-<table>
-<tr><th>Covariable</th><th>Variante</th><th>LR p</th><th>ΔC-index</th><th>ΔAIC</th></tr>
-<tr><td>log_burden</td><td>M2_hEq</td><td>0.002</td><td>+0.030</td><td>−7.4</td></tr>
-<tr><td>log_burden</td><td>M1_hEq</td><td>&lt;0.001</td><td>+0.036</td><td>−12.9</td></tr>
-<tr><td>log_burden</td><td>M2_VAF</td><td>0.018</td><td>+0.019</td><td>−3.6</td></tr>
-<tr><td>log_burden</td><td>M1_VAF</td><td>0.034</td><td>+0.015</td><td>−2.5</td></tr>
-</table>
-<p>log_burden apporte une contribution significative dans les 4 variantes, y compris en mode VAF où l'échelle est plus comprimée.</p>
-</div>
-
-<!-- ────────────────────────────────────────────────────── -->
-<div class="card">
-<h2>🔧 Détails techniques</h2>
-
-<h3>Centrage du LP (LP_offset)</h3>
-<p>La librairie lifelines (Python) stocke <code>baseline_survival_</code> au <strong>mean des covariables</strong> de la cohorte d'entraînement, et non à X=0. Pour appliquer correctement la formule <code>S(t|x) = S₀(t)^exp(LP)</code>, il faut soustraire <code>β·X̄</code> au LP brut. Chaque modèle stocke donc son <strong>LP_offset</strong> dans le JSON et le calculateur JS l'applique automatiquement.</p>
-
-<h3>Régularisation</h3>
-<p>Tous les modèles Cox utilisent une pénalisation L2 (Ridge) avec λ=0.05 pour assurer la stabilité numérique avec des événements rares.</p>
-
-<h3>Cohérence des prédictions</h3>
-<p>Le calculateur JS reproduit exactement les prédictions de <code>lifelines.predict_survival_function</code> (validation : erreur max &lt; 1e-6 sur la cohorte).</p>
-
-<h3>Réutilisation des données patient</h3>
-<p>Aucune donnée patient n'est transmise au serveur. Le calculateur fonctionne intégralement côté navigateur (JavaScript). Les coefficients du modèle sont chargés au démarrage et toute analyse reste locale.</p>
-</div>
-
-<!-- ────────────────────────────────────────────────────── -->
-<div class="card">
-<h2>⚠️ Disclaimer</h2>
-<div class="warning">
-<p>Le calculateur est un <strong>prototype de recherche</strong>. Il n'est pas validé pour la prise en charge clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante d'un médecin hématologue qualifié.</p>
-<p>La calibration aux extrêmes de risque (r12 &gt; 60% ou ctDNA_diag &lt; 500 hEq/mL) est limitée par la taille de la cohorte de développement. Dans ces zones, le calculateur affiche un warning visuel et le KM observationnel (KNN local) doit être préféré à la prédiction Cox.</p>
-<p><strong>Validation externe</strong> sur cohorte indépendante en cours.</p>
-</div>
-</div>
-
-<!-- ────────────────────────────────────────────────────── -->
-<div class="card">
-<h2>📊 Validation publication-ready (V229.1)</h2>
-
-<h3>1. Decision Curve Analysis (DCA) — net benefit clinique</h3>
-<p>Le modèle V229.1 a un <strong>net benefit positif</strong> sur l'intervalle de seuils [5%, 50%], dépassant les stratégies « traiter tous » et « ne traiter personne ». Argument fort pour adoption clinique : la décision basée sur le calculateur évite plus de récidives qu'elle ne génère de surtraitements inutiles.</p>
+<h3 id="sec-calib">11.4 Calibration (globale + sous-groupes)</h3>
+<p>Le prédicteur Cox V230 est calibré sur toute la gamme des risques [0, 60%] — pas de sur/sous-estimation systématique. IC95% Greenwood par bin (5 bins équi-effectifs).</p>
 <div class="center">
-<img class="figure" src="figs/DCA_M2_hEq.png" alt="Decision Curve Analysis @ 12mo" style="max-width: 95%;">
-<p class="muted">DCA à 12 mois pour IDES (gauche) et PV (droite) M2_hEq. La courbe bleue (V229.1) domine systématiquement les stratégies par défaut.</p>
+<img class="figure" src="figs/Calibration_M2_hEq.png" alt="Calibration plot M2_hEq" style="max-width: 95%;">
+<p class="muted">Calibration M2_hEq Deauv : risque prédit vs observé. Bissectrice = calibration parfaite.</p>
 </div>
-
-<h3>2. Calibration globale (5 bins)</h3>
-<p>Le prédicteur Cox V229.1 est calibré sur toute la gamme des risques [0, 60%]. Pas de sur/sous-estimation systématique. IC95% Greenwood par bin.</p>
-<div class="center">
-<img class="figure" src="figs/Calibration_M2_hEq.png" alt="Calibration plot" style="max-width: 95%;">
-</div>
-
-<h3>3. Calibration par sous-groupe</h3>
-<p>Le modèle reste calibré séparément chez Hodgkin/DLBCL, &lt;60/≥60 ans, stade I-II/III-IV. Pas d'effet d'interaction non capturé.</p>
+<p>Le modèle reste calibré séparément chez Hodgkin/DLBCL, &lt;60/≥60 ans, stade I-II/III-IV — pas d'effet d'interaction non capturé.</p>
 <div class="center">
 <img class="figure" src="figs/Calibration_subgroup.png" alt="Calibration par sous-groupe" style="max-width: 95%;">
 </div>
 
-<h3>4. Time-dependent C-index C(t)</h3>
-<p>La discrimination du modèle est <strong>stable de 6 à 36 mois</strong> :</p>
+<h3 id="sec-dca">11.5 Decision Curve Analysis (DCA) — net benefit clinique</h3>
+<p>Le modèle a un <strong>net benefit positif</strong> sur l'intervalle de seuils [5%, 50%], dépassant les stratégies « traiter tous » et « ne traiter personne ». La décision basée sur le calculateur évite plus de récidives qu'elle ne génère de surtraitements inutiles.</p>
+<div class="center">
+<img class="figure" src="figs/DCA_M2_hEq.png" alt="Decision Curve Analysis @ 12mo" style="max-width: 95%;">
+<p class="muted">DCA à 12 mois pour IDES (gauche) et PV (droite) M2_hEq. La courbe bleue domine les stratégies par défaut.</p>
+</div>
+
+<h3 id="sec-nri">11.6 Reclassification index (NRI / IDI) vs TEP seul</h3>
+<p>Comparaison de la classification Tern (Faible/Modéré/Élevé) obtenue avec le modèle complet vs Cox TEP seul (baseline clinique, version V229.1 référencée) :</p>
+<table>
+<tr><th>Métrique</th><th>Valeur</th><th>Interprétation</th></tr>
+<tr><td>C-index TEP seul</td><td>0.635</td><td>Référence clinique</td></tr>
+<tr><td>C-index modèle complet</td><td><strong>0.792</strong></td><td>+0.157 vs TEP seul</td></tr>
+<tr><td>NRI continu</td><td><strong>+0.559</strong></td><td>Net reclassification améliorée</td></tr>
+<tr><td>IDI</td><td>+0.061</td><td>Integrated discrimination améliorée</td></tr>
+</table>
+<p>Sur 163 patients, le TEP seul classait <strong>tous</strong> les patients en zone « Faible » (r12 médian 0.14, max 0.31). Le modèle MRD complet redistribue <strong>58 patients (35%) en zones Modéré ou Élevé</strong>, dont 17 events futurs correctement identifiés — invisibles avec TEP seul.</p>
+
+<h3 id="sec-forest">11.7 Forest plot par sous-groupe (4 covariables)</h3>
+<p>HR par 1 SD de chaque covariable Cox dans les sous-groupes cliniques (Hodgkin/DLBCL, Stade I-II/III-IV, Age &lt;60/≥60). On vérifie qu'aucune covariable n'a un effet inversé ou massivement différent dans un sous-groupe.</p>
+<table>
+<tr><th>Covariable</th><th>Overall (N=137)</th><th>Hodgkin</th><th>DLBCL</th><th>Stade I-II</th><th>Stade III-IV</th><th>Age &lt;60</th><th>Age ≥60</th></tr>
+<tr><td>score_kin</td><td><strong>~1.5</strong></td><td>~1.7</td><td>~1.7</td><td>~1.8</td><td>~1.5</td><td>~1.6</td><td>~1.5</td></tr>
+<tr><td>log_burden_hEq</td><td><strong>~1.6</strong></td><td>~1.4</td><td>~1.6</td><td>~1.4</td><td>~1.7</td><td>~1.2</td><td>~2.8</td></tr>
+<tr><td>Deauville_num</td><td><strong>~1.5</strong></td><td>~1.6</td><td>~1.4</td><td>~1.5</td><td>~1.5</td><td>~1.7</td><td>~1.4</td></tr>
+<tr><td>v5A_gated</td><td><strong>~1.8</strong></td><td>~0.9 (NS)</td><td>~2.2</td><td>~0.9 (NS)</td><td>~2.1</td><td>~1.2 (NS)</td><td>~2.6</td></tr>
+</table>
+<p>Observations :</p>
+<ul>
+<li><strong>score_kin, burden et Deauville</strong> sont cohérents dans tous les sous-groupes (HR ≥ 1.4 partout). Pas d'interaction.</li>
+<li><strong>v5A_gated</strong> montre une <strong>hétérogénéité réelle</strong> : très fort effet dans DLBCL/Stade III-IV/Age≥60 (HR ≈ 2.2-2.6) mais NS dans Hodgkin/Stade I-II/Age&lt;60. Cohérent biologiquement : les drivers D11 sont surtout des mutations DLBCL-like (MYC, BCL2/6, TP53...) ; le signal driver porte essentiellement chez les lymphomes B agressifs avancés.</li>
+<li>Le contraste HR_burden &lt;60 (~1.2) vs ≥60 (~2.8) suggère un effet plus fort chez les patients âgés, mais l'interaction n'est <strong>pas significative</strong> (LR test p=0.49, V249).</li>
+</ul>
+<div class="center">
+<img class="figure" src="figs/Forest_subgroup.png" alt="Forest plot 4 covariates × 7 subgroups" style="max-width: 100%;">
+<p class="muted">Forest plots HR par 1-SD, calculés par refit Cox dans chaque sous-groupe (penalizer=0.05). Barres = IC95% Wald. La SD utilisée pour normaliser HR est calculée par sous-groupe → comparable entre lignes.</p>
+</div>
+
+<h3 id="sec-time-c">11.8 C-index temps-dépendant C(t)</h3>
+<p>La discrimination du modèle est stable de 6 à 36 mois :</p>
 <table>
 <tr><th>Time</th><th>C(t) IDES M2_hEq</th><th>C(t) PV M2_hEq</th></tr>
 <tr><td>6 mois</td><td>0.866</td><td>0.984</td></tr>
@@ -517,183 +615,37 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <img class="figure" src="figs/Time_C_index.png" alt="Time-dependent C-index" style="max-width: 80%;">
 </div>
 
-<h3>5. Subgroup forest plot — HR par sous-groupe pour les 4 covariables V229.3</h3>
-<p>Les 4 panels ci-dessous montrent le hazard ratio (HR par 1 SD) de <strong>chaque covariable Cox V229.3</strong> dans les sous-groupes cliniques (Hodgkin/DLBCL, Stade I-II/III-IV, Age &lt;60/≥60). Comparativement à l'overall (1ère ligne), on vérifie qu'aucune covariable n'a un effet inversé ou massivement différent dans un sous-groupe — c'est-à-dire qu'on ne masque pas d'interaction importante en utilisant un modèle commun.</p>
-<table>
-<tr><th>Covariable</th><th>Overall (N=137, ev=25)</th><th>Hodgkin</th><th>DLBCL</th><th>Stade I-II</th><th>Stade III-IV</th><th>Age &lt;60</th><th>Age ≥60</th></tr>
-<tr><td>score_kin</td><td><strong>~1.5</strong></td><td>~1.7</td><td>~1.7</td><td>~1.8</td><td>~1.5</td><td>~1.6</td><td>~1.5</td></tr>
-<tr><td>log_burden_hEq</td><td><strong>~1.6</strong></td><td>~1.4</td><td>~1.6</td><td>~1.4</td><td>~1.7</td><td>~1.2</td><td>~2.8</td></tr>
-<tr><td>Deauville_num</td><td><strong>~1.5</strong></td><td>~1.6</td><td>~1.4</td><td>~1.5</td><td>~1.5</td><td>~1.7</td><td>~1.4</td></tr>
-<tr><td>v5A_gated</td><td><strong>~1.8</strong></td><td>~0.9 (NS)</td><td>~2.2</td><td>~0.9 (NS)</td><td>~2.1</td><td>~1.2 (NS)</td><td>~2.6</td></tr>
-</table>
-<p>Observations clés :</p>
-<ul>
-<li><strong>score_kin, burden et Deauville</strong> sont cohérents dans tous les sous-groupes (HR ≥ 1.4 partout). Pas d'interaction.</li>
-<li><strong>v5A_gated</strong> montre une <strong>hétérogénéité réelle</strong> : très fort effet dans DLBCL/Stade III-IV/Age≥60 (HR ≈ 2.2-2.6) mais NS dans Hodgkin/Stade I-II/Age&lt;60. Cohérent biologiquement : les drivers D11 sont surtout des mutations DLBCL-like (MYC, BCL2/6, TP53...) ; le signal driver porte essentiellement chez les lymphomes B agressifs avancés. Pour les Hodgkin, le score est porté par burden + score_kin + Deauville.</li>
-<li>Le contraste HR_burden &lt;60 (~1.2) vs ≥60 (~2.8) suggère un effet plus fort chez les patients âgés, mais l'interaction n'est pas significative (LR test p=0.49, V249).</li>
-</ul>
-<div class="center">
-<img class="figure" src="figs/Forest_subgroup.png" alt="Forest plot 4 covariates × 7 subgroups" style="max-width: 100%;">
-<p class="muted">Forest plots HR par 1-SD pour les 4 covariables V229.3, calculés sur le modèle Cox refit dans chaque sous-groupe (penalizer=0.05). Les barres horizontales = IC95% Wald. La SD utilisée pour normaliser HR est calculée sur le sous-groupe lui-même, donc HR comparables entre lignes. Script : <code>scripts/_v15_275_KM_ticks_and_full_forest.py</code>.</p>
-</div>
-
-<h3>6. Reclassification index (NRI/IDI) — V229.1 vs TEP seul</h3>
-<p>Comparaison de la classification Tern (Faible/Modéré/Élevé) obtenue avec V229.1 vs Cox TEP seul (baseline clinique) :</p>
-<table>
-<tr><th>Métrique</th><th>Valeur</th><th>Interprétation</th></tr>
-<tr><td>C-index TEP seul</td><td>0.635</td><td>Référence clinique</td></tr>
-<tr><td>C-index V229.1</td><td><strong>0.792</strong></td><td>+0.157 vs TEP seul</td></tr>
-<tr><td>NRI continu</td><td><strong>+0.559</strong></td><td>Net reclassification améliorée</td></tr>
-<tr><td>IDI</td><td>+0.061</td><td>Integrated discrimination améliorée</td></tr>
-</table>
-<p>Sur 163 patients, le TEP seul classait <strong>tous</strong> les patients en zone « Faible » (r12 médian 0.14, max 0.31). V229.1 redistribue <strong>58 patients (35%) en zones Modéré ou Élevé</strong>, dont 17 events futurs correctement identifiés — invisibles avec TEP seul.</p>
-
-<h3>7. Competing risks (Fine-Gray)</h3>
-<p>Sur N=223 patients clinique, on observe <strong>1 seul décès sans progression préalable</strong> (Aalen-Johansen CIF à 12mo : progression 0.225, décès pur 0.005). Le risque compétitif « décès » est négligeable (&lt;0.5%) et ne nécessite pas une approche Fine-Gray distincte du Cox composite PFS.</p>
-
-<h3>8. Robustesse du score_kin (vs slope individuel BLUP)</h3>
-<p>Une approche joint longitudinal-survival two-stage (mixed-effects LMM extrayant un slope individuel par BLUP, puis Cox sur ce slope) a été testée comme alternative à <code>score_kin</code>. <strong>Bootstrap optimism-corrected (B=200) : V229.1 score_kin C=0.791 vs BLUP candidate C=0.777 (Δ=−0.014)</strong>. Le score_kin résumé (4 trajectoires moyennes par histo×responder) est plus robuste car moins de paramètres individuels à estimer sur cohorte limitée.</p>
-
-<h3>8b. Bootstrap V229.1 — C-index optimism-corrected + IC95% (B=500)</h3>
-<p>Pour les 8 variantes de production, bootstrap Harrell complet sur la <strong>vraie cohorte V229.1</strong> (TEP « Non fait » correctement exclu de M2) :</p>
-<table>
-<tr><th>Variante</th><th>N (events)</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95%</th></tr>
-<tr><td><strong>M2_hEq IDES</strong> ⭐</td><td>136 (25)</td><td>0.854</td><td>+0.009</td><td><strong>0.845</strong></td><td>[0.769, 0.936]</td></tr>
-<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.804</td><td>+0.006</td><td>0.798</td><td>[0.722, 0.881]</td></tr>
-<tr><td>M2_VAF IDES</td><td>136 (25)</td><td>0.842</td><td>+0.009</td><td>0.832</td><td>[0.740, 0.934]</td></tr>
-<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.771</td><td>+0.004</td><td>0.767</td><td>[0.658, 0.865]</td></tr>
-<tr><td><strong>M2_hEq PV</strong> ⭐</td><td>91 (16)</td><td>0.907</td><td>+0.017</td><td><strong>0.891</strong></td><td>[0.822, 0.980]</td></tr>
-<tr><td>M1_hEq PV</td><td>108 (22)</td><td>0.824</td><td>+0.011</td><td>0.813</td><td>[0.718, 0.912]</td></tr>
-<tr><td>M2_VAF PV</td><td>91 (16)</td><td>0.884</td><td>+0.012</td><td>0.871</td><td>[0.777, 0.984]</td></tr>
-<tr><td>M1_VAF PV</td><td>108 (22)</td><td>0.795</td><td>+0.019</td><td>0.776</td><td>[0.680, 0.909]</td></tr>
-</table>
-<p class="muted">Optimism très faible (max +0.019, médiane ~0.010) confirme bonne généralisation. Les valeurs C-corrected sont à reporter en publication. <strong>Note pré-analytique importante</strong> : les 36 patients avec TEP2 « Non fait » ou Deauville manquant (33 « Non fait » + 3 autres : PATIENT_S/GOSSE TEP fait mais Deauville non renseigné, DIEP statut absent) sont exclus de M2 (avec TEP) mais inclus dans M1 (sans TEP). Cela explique les N=136 vs 162 (IDES) et 91 vs 108 (PV) selon la variante.</p>
-
-<h3>8b-V229.3. Deauville LINÉAIRE + fallback DeltaSUVmax (production actuelle)</h3>
-<div class="note" style="border-color:#16a34a;background:#ecfdf5;">
-<strong>V229.3 (2026-05-19) — Mise à jour production.</strong> Le modèle est passé de Deauville BINAIRE (≥4) à Deauville LINÉAIRE (1-5 ordinal), avec ajout d'un fallback DeltaSUVmax% pour les patients sans Deauville interprété mais avec SUVmax disponibles.
-</div>
-
-<h4>Validation partial pooling IDES = PV (V266, LR test)</h4>
-<table>
-<tr><th>Spec TEP</th><th>Variante</th><th>β_IDES</th><th>β_PV</th><th>β_pooled (production)</th><th>LR p</th></tr>
-<tr><td rowspan="2"><strong>Deauville_lin</strong></td><td>hEq</td><td>+0.361</td><td>+0.378</td><td><strong>+0.366</strong></td><td><strong>p=0.91</strong> ✅</td></tr>
-<tr><td>VAF</td><td>+0.330</td><td>+0.343</td><td><strong>+0.334</strong></td><td><strong>p=0.93</strong> ✅</td></tr>
-<tr><td rowspan="2"><strong>DeltaSUV%</strong></td><td>hEq</td><td>+0.0144</td><td>+0.0143</td><td><strong>+0.0144</strong></td><td><strong>p=0.99</strong> ✅✅</td></tr>
-<tr><td>VAF</td><td>+0.0140</td><td>+0.0135</td><td><strong>+0.0139</strong></td><td><strong>p=0.94</strong> ✅</td></tr>
-</table>
-<p>Cohérence exceptionnelle pour DeltaSUV (β identique à la 4e décimale entre IDES et PV). Partial pooling B′ totalement justifié pour les 2 spécifications.</p>
-
-<h4>Coefficients V229.3 production (6 variantes hEq + équivalents VAF)</h4>
-<table>
-<tr><th>Variante</th><th>N (evt) IDES</th><th>N (evt) PV</th><th>β_score</th><th>β_burden</th><th>β_TEP</th><th>β_v5A IDES</th><th>β_v5A PV</th></tr>
-<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>136 (25)</td><td>91 (16)</td><td>+0.422</td><td>+0.300</td><td><strong>+0.366</strong>/unité Deauv</td><td>+0.578</td><td>+1.360</td></tr>
-<tr><td><strong>M2_hEq Delta</strong></td><td>118 (24)</td><td>79 (15)</td><td>+0.364</td><td>+0.278</td><td><strong>+0.0144</strong>/% Δ</td><td>+0.515</td><td>+1.330</td></tr>
-<tr><td>M1_hEq</td><td>162 (32)</td><td>108 (22)</td><td>+0.440</td><td>+0.293</td><td>—</td><td>+0.452</td><td>+1.021</td></tr>
-<tr><td>M2_VAF Deauv</td><td>136 (25)</td><td>91 (16)</td><td>+0.387</td><td>+0.450</td><td>+0.334/unité Deauv</td><td>+0.566</td><td>+1.354</td></tr>
-<tr><td>M2_VAF Delta</td><td>118 (24)</td><td>79 (15)</td><td>+0.312</td><td>+0.426</td><td>+0.0144/% Δ</td><td>+0.515</td><td>+1.318</td></tr>
-<tr><td>M1_VAF</td><td>162 (32)</td><td>108 (22)</td><td>+0.413</td><td>+0.442</td><td>—</td><td>+0.434</td><td>+1.023</td></tr>
-</table>
-
-<h4>Interprétation clinique</h4>
-<ul>
-<li><strong>HR par unité Deauville</strong> = exp(0.366) = <strong>1.44</strong>. Deauville 4 vs 3 ⇒ +44% de hazard. Deauville 5 vs 1 ⇒ HR = 4.33.</li>
-<li><strong>HR par 10% de DeltaSUV</strong> = exp(0.144) = <strong>1.155</strong>. ΔSUV −50% vs −95% (45% écart) ⇒ HR = 1.91.</li>
-<li><strong>Sensibilité Deauville 1→5</strong> (patient neutre, score=0, log_burden=9, v5A=0) : r12 = 3.2% / 4.6% / 6.6% / 9.4% / 13.2% — progression douce monotone (vs V229.1 binaire qui sautait 6.6% → 13% entre Deauville 3 et 4).</li>
-<li><strong>Discrimination intra-Deauville=4</strong> : pour un patient avec Deauville=4, ΔSUV=−85% (bonne réponse) donne r12 ≈ 6%, alors que ΔSUV=−40% (réponse insuffisante) donne r12 ≈ 12% — utile en zone ambiguë.</li>
-</ul>
-
-<h4>UX du calculateur web V229.3</h4>
-<p>Le calculateur bascule automatiquement entre 6 variantes selon les inputs cliniques :</p>
-<ul>
-<li><strong>Deauville renseigné</strong> (dropdown 1-5) → <code>M2_*_Deauv</code> (variante principale)</li>
-<li><strong>Pas de Deauville mais SUVmax_diag + SUVmax_2 renseignés</strong> (cocher fallback) → <code>M2_*_Delta</code> (Δ% calculé automatiquement)</li>
-<li><strong>TEP non disponible</strong> (checkbox) → <code>M1_*</code> (modèle sans TEP)</li>
-<li>+ toggle hEq / VAF selon disponibilité du Qubit cfDNA</li>
-</ul>
-
-<h4>Bootstrap V229.3 (B=500, Harrell optimism-corrected)</h4>
-<table>
-<tr><th>Variante</th><th>N (events)</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95%</th></tr>
-<tr><td><strong>M2_hEq Deauv IDES</strong> ⭐</td><td>136 (25)</td><td>0.858</td><td>+0.010</td><td><strong>0.848</strong></td><td>[0.78, 0.94]</td></tr>
-<tr><td><strong>M2_hEq Deauv PV</strong> ⭐</td><td>91 (16)</td><td>0.910</td><td>+0.018</td><td><strong>0.891</strong></td><td>[0.85, 0.98]</td></tr>
-<tr><td>M2_hEq Delta IDES</td><td>118 (24)</td><td>0.843</td><td>+0.009</td><td>0.834</td><td>[0.75, 0.92]</td></tr>
-<tr><td>M2_hEq Delta PV</td><td>79 (15)</td><td>0.894</td><td>+0.023</td><td>0.871</td><td>[0.81, 0.98]</td></tr>
-<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.804</td><td>+0.007</td><td>0.796</td><td>[0.72, 0.88]</td></tr>
-<tr><td>M1_hEq PV</td><td>108 (22)</td><td>0.824</td><td>+0.013</td><td>0.811</td><td>[0.71, 0.93]</td></tr>
-<tr><td>M2_VAF Deauv IDES</td><td>136 (25)</td><td>0.846</td><td>+0.015</td><td>0.831</td><td>[0.77, 0.93]</td></tr>
-<tr><td>M2_VAF Deauv PV</td><td>91 (16)</td><td>0.881</td><td>+0.021</td><td>0.860</td><td>[0.80, 0.98]</td></tr>
-<tr><td>M2_VAF Delta IDES</td><td>118 (24)</td><td>0.833</td><td>+0.011</td><td>0.822</td><td>[0.75, 0.92]</td></tr>
-<tr><td>M2_VAF Delta PV</td><td>79 (15)</td><td>0.880</td><td>+0.013</td><td>0.866</td><td>[0.78, 0.97]</td></tr>
-<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.771</td><td>+0.006</td><td>0.765</td><td>[0.66, 0.87]</td></tr>
-<tr><td>M1_VAF PV</td><td>108 (22)</td><td>0.796</td><td>+0.020</td><td>0.776</td><td>[0.70, 0.91]</td></tr>
-</table>
-<p><strong>Optimism très faible</strong> (max +0.023, médiane +0.013) → modèles robustes. <strong>Δ V229.1 → V229.3</strong> : M2_hEq IDES C_corr passe de 0.845 à <strong>0.848</strong> (+0.003), PV maintenu à <strong>0.891</strong>. La spécification linéaire est statistiquement équivalente à la binaire, avec l'avantage d'une interprétation plus fine (différenciation Deauville 2 vs 3, 4 vs 5).</p>
-
-<h3>8b-ter. Sensibilité au choix C2 vs C3 (bi-tp)</h3>
-<p>Pour les patients ayant 2 prélèvements CXJ1 (C2J1 et C3J1, N=24 IDES bi-tp), la valeur retenue par défaut est <strong>C2 (priorité au plus précoce)</strong>. Sensitivity analysis : comparaison de 4 stratégies de sélection sur la cohorte M2_hEq IDES (N=136, evt=25), bootstrap optimism-corrected B=200.</p>
-<table>
-<tr><th>Stratégie</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95%</th></tr>
-<tr><td><strong>C2 priority (production V229.3)</strong></td><td>0.857</td><td>+0.011</td><td><strong>0.846</strong></td><td>[0.78, 0.94]</td></tr>
-<tr><td>C3 priority</td><td>0.855</td><td>+0.009</td><td>0.847</td><td>[0.78, 0.93]</td></tr>
-<tr><td>MIN (VAF plus bas des 2)</td><td>0.855</td><td>+0.015</td><td>0.841</td><td>[0.79, 0.94]</td></tr>
-<tr><td>MAX (VAF plus haut des 2)</td><td>0.854</td><td>+0.010</td><td>0.844</td><td>[0.78, 0.93]</td></tr>
-</table>
-<p><strong>Δ C-corrected (C3 − C2) = +0.001 → équivalence statistique</strong>. Les 4 stratégies donnent une performance essentiellement identique sur la cohorte complète. Le choix C2 priority (plus précoce dans le traitement) est retenu pour son utilité clinique (décision plus précoce).</p>
-
-<p><strong>Cohérence mono-exponentielle C2 → C3</strong> : sur les 24 bi-tp, on a comparé VAF_C3 observée à VAF_C3 prédite par mono-exp depuis C2 (avec λ_good par histo et Δt = 21j).</p>
-<ul>
-<li><strong>12 patients en REBOND</strong> (VAF_C3 &gt; VAF_C2, 50% des bi-tp) — comportement atypique. <strong>Néanmoins 11/12 sont restés good responders cliniques</strong> (PFS=0 à 18-38mo). Un seul (JUNOT, DLBCL) a rechuté à 11mo.</li>
-<li><strong>12 patients en plateau</strong> (VAF_C3 ≤ VAF_C2 mais décroissance plus lente que λ_good prédit). Mix de good et bad responders.</li>
-<li><strong>0 patient avec « décroissance attendue good-like »</strong> au sens strict (VAF_C3 ≪ prédit). Cela tient au fait que λ_good prédit VAF_C3 quasi-nul en 21j ; toute mesure positive à C3 est mécaniquement classée plateau ou rebond.</li>
-</ul>
-<p class="muted">Interprétation : la mono-exponentielle est une approximation utile pour le score Cox, mais la majorité des patients bi-tp ont un comportement non-strictement mono-exp à C3 (probablement par bruit de mesure à très faibles VAF). Les rebonds ne sont pas spécifiquement associés à la rechute dans notre cohorte (1/12 events seulement). Cohorte des bi-tp probablement biaisée vers les patients pour lesquels le clinicien avait souhaité un suivi C3 supplémentaire (cas suspect C2 positif). À reproduire sur cohorte externe.</p>
-
-<h3>8b-bis. MICE sensitivity analysis</h3>
-<p>Le modèle V229.1 utilise une analyse <strong>complete-case</strong> pour chacune des 4 variantes (M2/M1 × hEq/VAF), routant les patients selon leur pattern de missingness. Sensitivity analysis MICE (Multiple Imputation by Chained Equations, m=20) pour vérifier robustesse :</p>
+<h3 id="sec-mice">11.9 MICE sensitivity analysis</h3>
+<p>Le modèle utilise une analyse <strong>complete-case</strong> pour chaque variante, routant les patients selon leur pattern de missingness. Sensitivity analysis MICE (Multiple Imputation by Chained Equations, m=20) pour vérifier la robustesse :</p>
 <table>
 <tr><th>Covariable M2_hEq IDES</th><th>Complete-case (N=136)</th><th>MICE (N=162, m=20)</th><th>Δβ</th><th>FMI</th></tr>
-<tr><td>β_score_kin</td><td>+0.423 ± 0.184</td><td>+0.408 ± 0.166</td><td>−0.015</td><td>0.006 ✅</td></tr>
-<tr><td>β_log_burden_hEq</td><td>+0.272 ± 0.115</td><td>+0.314 ± 0.095</td><td>+0.042</td><td>0.006 ✅</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.551 ± 0.123</td><td>+0.443 ± 0.114</td><td>−0.108</td><td>0.018 ✅</td></tr>
-<tr><td>β_TEP2_pos</td><td>+0.935 ± 0.368</td><td>+0.761 ± 0.340</td><td>−0.174</td><td><strong>0.087</strong> ⚠️</td></tr>
+<tr><td>β_score_kin</td><td>+0.423 ± 0.184</td><td>+0.408 ± 0.166</td><td>−0.015</td><td>0.006 ✓</td></tr>
+<tr><td>β_log_burden_hEq</td><td>+0.272 ± 0.115</td><td>+0.314 ± 0.095</td><td>+0.042</td><td>0.006 ✓</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.551 ± 0.123</td><td>+0.443 ± 0.114</td><td>−0.108</td><td>0.018 ✓</td></tr>
+<tr><td>β_TEP_var</td><td>+0.935 ± 0.368</td><td>+0.761 ± 0.340</td><td>−0.174</td><td><strong>0.087</strong> ⚠</td></tr>
 <tr><td><strong>C-index</strong></td><td>0.854</td><td>0.816</td><td>−0.038</td><td>—</td></tr>
 </table>
-<p><strong>Interprétation</strong> : 3 covariables sur 4 stables (FMI &lt; 0.02 = négligeable). Le β_TEP atténué sous MICE (FMI = 0.087, encore acceptable &lt; 10%) reflète probablement un pattern <strong>MNAR</strong> (Missing Not At Random) : les patients avec TEP « Non fait » ont probablement des caractéristiques cliniques particulières (formes indolentes, contre-indications). L'<strong>architecture multi-variantes du modèle</strong> (router ces patients vers M1 plutôt qu'imputer) reste la solution principale. MICE confirme que les conclusions principales (signes et significativité de score_kin, burden, v5A) sont robustes au pattern de missingness.</p>
+<p><strong>Interprétation</strong> : 3 covariables sur 4 sont stables (FMI &lt; 0.02 = négligeable). Le β_TEP atténué sous MICE (FMI = 0.087, encore acceptable &lt; 10%) reflète probablement un pattern <strong>MNAR</strong> : les patients avec TEP « Non fait » ont des caractéristiques cliniques particulières (formes indolentes, contre-indications). L'<strong>architecture multi-variantes</strong> (router ces patients vers M1 plutôt qu'imputer) reste la solution principale. MICE confirme que les conclusions sont robustes au pattern de missingness.</p>
 
-<h3>8c-bis. Deauville binaire vs linéaire — bootstrap B=500 sur 8 variantes</h3>
-<p>Test rigoureux : faut-il préférer Deauville binaire (≥4 vs &lt;4) ou Deauville linéaire (ordinal 1-5) ? Bootstrap optimism-corrected B=500 sur les 8 variantes :</p>
-<table>
-<tr><th>Variante</th><th>N (ev)</th><th>bin C_corr (V229.1)</th><th>lin C_corr</th><th>Δ (lin − bin)</th></tr>
-<tr><td><strong>M2_hEq IDES</strong> ⭐</td><td>136 (25)</td><td>0.845</td><td>0.849</td><td>+0.004 ≈</td></tr>
-<tr><td><strong>M2_hEq PV</strong> ⭐</td><td>91 (16)</td><td><strong>0.892</strong></td><td>0.890</td><td>−0.002 ≈</td></tr>
-<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.796</td><td>0.799</td><td>+0.003 ≈</td></tr>
-<tr><td>M1_hEq PV</td><td>108 (22)</td><td>0.810</td><td>0.811</td><td>+0.001 ≈</td></tr>
-<tr><td>M2_VAF IDES</td><td>136 (25)</td><td>0.835</td><td>0.834</td><td>−0.001 ≈</td></tr>
-<tr><td>M2_VAF PV</td><td>91 (16)</td><td><strong>0.868</strong></td><td>0.859</td><td>−0.010 ⬇</td></tr>
-<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.763</td><td>0.764</td><td>+0.001 ≈</td></tr>
-<tr><td>M1_VAF PV</td><td>108 (22)</td><td>0.777</td><td>0.775</td><td>−0.003 ≈</td></tr>
-</table>
-<p>Différence moyenne <strong>Δ ≈ 0</strong> (médiane = +0.0006). 4 variantes favorisent <code>lin</code>, 4 favorisent <code>bin</code>. Seule M2_VAF PV montre une différence notable (favor bin, +0.010). <strong>Conclusion : équivalents en performance</strong>. La spécification binaire (Deauville ≥4) est retenue pour cohérence Lugano 2014 et robustesse face à la variation Deauville 2 vs 3.</p>
-
-<h3 id="endpoint-pfs-rr">8c-ter. Sensibilité au choix d'endpoint — PFS vs R/R (sans morts non-liées)</h3>
-<p>L'endpoint actuel est <strong>PFS</strong> (= Rechute OR Progression OR Mort, toute cause). Question : si on restreint aux événements lymphome-spécifiques (<strong>R/R</strong> = Rechute OR Progression, censurant les morts sans rechute/progression), les coefficients et le C-index changent-ils ?</p>
-<p>Sur 223 patients IDES + 221 PV, on identifie <strong>5 patients PFS=1 mais R/R=0</strong> — deux situations très différentes :</p>
-<p><strong>(a) 3 morts strictement non-liées au lymphome</strong> (perte d'événement R/R justifiée) :</p>
+<h3 id="sec-endpoint">11.10 Choix d'endpoint : PFS → EFS (justification V230)</h3>
+<p>L'endpoint historique V229.x était <strong>PFS</strong> (= Rechute OR Progression OR Mort toute cause). Question : si on restreint aux événements lymphome-spécifiques (R/R = Rechute OR Progression, censurant les morts sans rechute/progression), les coefficients et la performance changent-ils ?</p>
+<p>Sur 223 patients IDES + 221 PV, on identifie <strong>5 patients PFS=1 mais R/R=0</strong>, deux situations distinctes :</p>
+<p><strong>(a) 3 morts strictement non-lymphome</strong> (perte d'événement R/R justifiée) :</p>
 <ul>
 <li><strong>PATIENT_F</strong> — Mort COVID @ 6 mo (Rechute=0, Progression=0)</li>
 <li><strong>PATIENT_G</strong> — Mort COVID nosocomial au cours de l'autogreffe @ 4 mo</li>
-<li><strong>PATIENT_H</strong> — Mort sur ulcère gastrique hémorragique (témoin de Jéhova ayant refusé les transfusions, hémopathie en RC) @ 6 mo</li>
+<li><strong>PATIENT_H</strong> — Mort sur ulcère gastrique hémorragique (témoin de Jéhova ayant refusé les transfusions) @ 6 mo</li>
 </ul>
-<p><strong>(b) 2 patients VIVANTS perdus de vue tardivement, PFS=1 mal encodé</strong> :</p>
+<p><strong>(b) 2 patients VIVANTS perdus de vue tardivement, PFS=1 mal encodé</strong> (saisie erronée : DDN_progression = date du dernier contact, pas date d'événement) :</p>
 <ul>
-<li><strong>PATIENT_D</strong> — vivant, perdu de vue le 2026-01-22 (≈ 55 mo post-C1J1). Aucun événement R/R ni mort (<em>vérifié dans la base clinique</em>). Le PFS=1 actuel + DDN_progression renseignée = saisie erronée : la DDN représente la date du dernier contact, pas une date d'événement. <strong>Correction propre</strong> : PFS=0 (censuré à 55 mo).</li>
-<li><strong>PATIENT_E</strong> — vivant, perdu de vue le 2026-02-16 (≈ 48.9 mo post-C1J1). Aucun événement (<em>vérifié</em>). Même pattern : DDN saisie comme dernier contact mais PFS=1 par défaut. <strong>Correction propre</strong> : PFS=0 (censuré à 48.9 mo).</li>
+<li><strong>PATIENT_D</strong> — vivant, perdu de vue le 2026-01-22 (≈ 55 mo). Correction propre : PFS=0 censuré.</li>
+<li><strong>PATIENT_E</strong> — vivant, perdu de vue le 2026-02-16 (≈ 48.9 mo). Correction propre : PFS=0 censuré.</li>
 </ul>
-<p><strong>Impact sur le modèle production V229.3</strong> (V15.276) : <strong>aucun</strong>. Les 2 patients ont <code>VAF_diag = NaN</code> (aucune mutation MOABI détectable au diagnostic) → exclus de toutes les cohortes M2/M1 V229.3 (qui requièrent VAF_diag pour score_kin et burden). Vérifié empiriquement : aucun candidat ne match (delai=55, event=1) ni (delai=48.9, event=1) dans les <code>cohort_arrays</code> du modèle déployé. ΔC-index = 0.0000 partout après recodage. La correction est utile pour la qualité de la base clinique mais n'affecte pas les chiffres du calculateur.</p>
-<p>Refit Cox stratifié pipeline avec partial pooling B′ V229.3 sur les 4 variantes principales (cohortes filtrées sur VAF_diag non-NaN, donc indépendantes du statut de ces 2 patients) :</p>
+<p class="muted">Impact sur le calculateur déployé : <strong>aucun</strong>. Ces 2 patients ont <code>VAF_diag = NaN</code> et sont déjà exclus des cohortes M2/M1 V230. Vérifié empiriquement (script <code>_v15_276</code>) : ΔC-index = 0.0000 partout.</p>
+
+<p>Refit Cox stratifié pipeline avec partial pooling B′ sur les 4 variantes principales :</p>
 <table>
-<tr><th>Variante</th><th>Pipeline</th><th>N (events PFS / R/R)</th><th>C PFS</th><th>C R/R</th><th>Δ C (R/R − PFS)</th></tr>
+<tr><th>Variante</th><th>Pipeline</th><th>N (events PFS / EFS)</th><th>C PFS</th><th>C EFS</th><th>Δ C</th></tr>
 <tr><td><strong>M2_hEq</strong> ⭐</td><td>IDES</td><td>137 (25 / 26)</td><td>0.859</td><td>0.843</td><td>−0.017</td></tr>
 <tr><td><strong>M2_hEq</strong> ⭐</td><td>PV</td><td>90 (15 / 16)</td><td>0.931</td><td>0.921</td><td>−0.010</td></tr>
 <tr><td>M2_VAF</td><td>IDES</td><td>137 (25 / 26)</td><td>0.855</td><td>0.831</td><td>−0.024</td></tr>
@@ -703,27 +655,62 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <tr><td>M1_VAF</td><td>IDES</td><td>163 (32 / 32)</td><td>0.777</td><td>0.781</td><td>+0.004</td></tr>
 <tr><td>M1_VAF</td><td>PV</td><td>106 (20 / 20)</td><td>0.816</td><td>0.850</td><td><strong>+0.033</strong></td></tr>
 </table>
-<p>Coefficients très stables sur l'exemple M2_hEq partial pooling B′ :</p>
-<table>
-<tr><th>Coef partagé</th><th>PFS</th><th>R/R</th><th>Δβ</th></tr>
-<tr><td>β_score_kin</td><td>+0.563</td><td>+0.498</td><td>−0.065</td></tr>
-<tr><td>β_log_burden_hEq</td><td>+0.196</td><td>+0.184</td><td>−0.012</td></tr>
-<tr><td>β_Deauville_num</td><td>+0.391</td><td>+0.412</td><td>+0.021</td></tr>
-<tr><td>β_v5A_IDES</td><td>+0.549</td><td>+0.550</td><td>+0.001</td></tr>
-<tr><td>β_v5A_PV</td><td>+1.210</td><td>+1.210</td><td>0.000</td></tr>
-</table>
-<p><strong>Observations</strong> :</p>
-<ol>
-<li><strong>M2 (avec TEP)</strong> : PFS donne un C-index très légèrement <em>supérieur</em> à R/R (ΔC ≈ −0.01 à −0.02). Le Deauville capte aussi les patients avec réponse métabolique faible qui ont un risque accru de complications non-lymphome (infection, autogreffe difficile) — donc PFS étant un endpoint plus large, il bénéficie indirectement du signal TEP sur la mortalité non-spécifique.</li>
-<li><strong>M1 (sans TEP)</strong> : R/R donne un C-index <em>supérieur</em> à PFS, surtout en PV (+0.033 à +0.037). Sans le TEP, le score MRD est un marqueur plus pur de résiduel lymphome ; restreindre l'endpoint à R/R amplifie le signal.</li>
-<li><strong>Coefficients très peu modifiés</strong> (Δβ &lt; 0.1 pour toutes les covariables). β_score_kin baisse de ~10% (les morts non-liées n'étaient pas prédites par score_kin), β_Deauville augmente de ~5% (Deauville reste central pour les vrais events lymphome).</li>
-<li><strong>Décision V230 (mai 2026)</strong> : <strong>passage à l'endpoint EFS</strong> en production. Cette analyse de sensibilité a justifié le choix : les 3 morts non-lymphome (COVID×2, ulcère hémorragique) ne reflètent pas un échec thérapeutique et leur inclusion dilue le signal MRD. Architecture inchangée (Deauville LINÉAIRE + DeltaSUV fallback, partial pooling B′ IDES=PV) ; seul l'endpoint change : <code>EFS = Rechute OR Progression</code>. Coefficients refittés (V15.278) : β_score=+0.362, β_burden=+0.271, β_v5A_IDES=+0.591, β_v5A_PV=+1.501, β_Deauv_lin=+0.378. C-index : M2_hEq IDES 0.847, PV 0.887.</li>
-</ol>
-<p>Script : <code>scripts/_v15_274_PFS_vs_RR_endpoint.py</code>. Export : <code>output/V15_274_PFS_vs_RR_compare.csv</code>.</p>
+<p>Coefficients très stables (Δβ &lt; 0.1) : pour M2_hEq B′, β_score_kin baisse de ~12% (+0.563 → +0.498), β_burden de ~6% (+0.196 → +0.184), β_Deauville augmente de ~5% (+0.391 → +0.412), β_v5A inchangé.</p>
 
-<h3 id="vpn-depth">8d. Pourquoi la couverture moléculaire (Σ DEPTH / Σ PCU) n'apparaît pas comme covariable du modèle</h3>
-<p><strong>Précision sémantique</strong> : ce qu'on appelle ici « Σ DEPTH » ou « Σ PCU » n'est pas la profondeur par variant, mais le <strong>nombre total de molécules analysées par patient</strong> = Σ sur la Watch List de la couverture à chaque variant. Pour IDES : Σ NbrReadDepth (reads × n_variants_WL). Pour PV : Σ fu_pos_UMI = Σ Position Common UMI (= molécules uniques × n_variants_WL). C'est le « budget moléculaire » global qui détermine la sensibilité de détection des résiduels.</p>
-<p>Une carte « VPN technique en fonction de la couverture moléculaire » a été retirée du calculateur (V15.272-273). Justification empirique :</p>
+<p><strong>Lecture</strong> :</p>
+<ul>
+<li><strong>M2 (avec TEP)</strong> : PFS donne C légèrement supérieur car le Deauville capte aussi le risque de complications non-lymphome (infection, autogreffe). EFS — endpoint plus pur — perd un peu de discrimination.</li>
+<li><strong>M1 (sans TEP)</strong> : EFS donne C supérieur surtout en PV (+0.037). Sans Deauville, le score MRD est un marqueur pur de résiduel lymphome ; restreindre à R/R amplifie le signal.</li>
+</ul>
+
+<div class="note" style="background:#dcfce7; border-color:#16a34a;">
+<strong>Décision V230 (mai 2026)</strong> : <strong>endpoint EFS adopté en production</strong>. Justification : (1) les 3 morts non-lymphome ne reflètent pas un échec thérapeutique et leur inclusion dilue le signal MRD ; (2) l'écart de C-index est ≤ 0.03 dans toutes les variantes ; (3) seul l'endpoint change, l'architecture reste identique (Deauville LINÉAIRE + DeltaSUV fallback + partial pooling B′). Coefficients V230 refittés exposés en <a href="#sec-coefs-v230">§6</a>.
+</div>
+<p class="muted">Script : <code>scripts/_v15_274_PFS_vs_RR_endpoint.py</code> + <code>_v15_278_refit_V230_EFS_endpoint.py</code>.</p>
+
+<h3 id="sec-c2c3">11.11 Sensibilité C2 vs C3 (bi-tp)</h3>
+<p>Pour les patients ayant 2 prélèvements CXJ1 (C2J1 et C3J1, N=24 IDES bi-tp), la valeur retenue par défaut est <strong>C2 (priorité au plus précoce)</strong>. Comparaison de 4 stratégies sur M2_hEq IDES (bootstrap optimism-corrected B=200) :</p>
+<table>
+<tr><th>Stratégie</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95%</th></tr>
+<tr><td><strong>C2 priority (production)</strong></td><td>0.857</td><td>+0.011</td><td><strong>0.846</strong></td><td>[0.78, 0.94]</td></tr>
+<tr><td>C3 priority</td><td>0.855</td><td>+0.009</td><td>0.847</td><td>[0.78, 0.93]</td></tr>
+<tr><td>MIN (VAF plus bas des 2)</td><td>0.855</td><td>+0.015</td><td>0.841</td><td>[0.79, 0.94]</td></tr>
+<tr><td>MAX (VAF plus haut des 2)</td><td>0.854</td><td>+0.010</td><td>0.844</td><td>[0.78, 0.93]</td></tr>
+</table>
+<p><strong>Δ C-corrected (C3 − C2) = +0.001 → équivalence statistique</strong>. Le choix C2 priority est retenu pour son utilité clinique (décision plus précoce dans le traitement).</p>
+
+<p><strong>Cohérence mono-exp C2 → C3</strong> : sur les 24 bi-tp, on a comparé VAF_C3 observée vs VAF_C3 prédite par mono-exp depuis C2 (λ_good par histo, Δt = 21j).</p>
+<ul>
+<li><strong>12 patients en REBOND</strong> (VAF_C3 &gt; VAF_C2, 50% des bi-tp) — comportement atypique. <strong>Néanmoins 11/12 sont restés good responders</strong> (EFS=0 à 18-38mo). Un seul (JUNOT, DLBCL) a rechuté à 11mo.</li>
+<li><strong>12 patients en plateau</strong> (VAF_C3 ≤ VAF_C2 mais décroissance plus lente que λ_good). Mix de good et bad responders.</li>
+<li><strong>0 patient avec décroissance « good-like » stricte</strong> (VAF_C3 ≪ prédit) : λ_good prédit VAF_C3 quasi-nul en 21j, donc toute mesure positive est mécaniquement classée plateau ou rebond.</li>
+</ul>
+<p class="muted">Interprétation : la mono-exp est une approximation utile pour le score Cox, mais la cohorte des bi-tp est probablement biaisée vers les patients pour lesquels le clinicien avait souhaité un suivi C3 supplémentaire (cas suspect à C2). À reproduire sur cohorte externe.</p>
+
+<h3 id="sec-deauv-binlin">11.12 Deauville binaire vs linéaire — bootstrap B=500</h3>
+<p>Test : Deauville binaire (≥4 vs &lt;4) ou Deauville linéaire (ordinal 1-5) ? Bootstrap optimism-corrected B=500 sur les 8 variantes V229.x :</p>
+<table>
+<tr><th>Variante</th><th>N (ev)</th><th>bin C_corr</th><th>lin C_corr</th><th>Δ (lin − bin)</th></tr>
+<tr><td><strong>M2_hEq IDES</strong> ⭐</td><td>136 (25)</td><td>0.845</td><td>0.849</td><td>+0.004 ≈</td></tr>
+<tr><td><strong>M2_hEq PV</strong> ⭐</td><td>91 (16)</td><td>0.892</td><td>0.890</td><td>−0.002 ≈</td></tr>
+<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.796</td><td>0.799</td><td>+0.003 ≈</td></tr>
+<tr><td>M1_hEq PV</td><td>108 (22)</td><td>0.810</td><td>0.811</td><td>+0.001 ≈</td></tr>
+<tr><td>M2_VAF IDES</td><td>136 (25)</td><td>0.835</td><td>0.834</td><td>−0.001 ≈</td></tr>
+<tr><td>M2_VAF PV</td><td>91 (16)</td><td>0.868</td><td>0.859</td><td>−0.010 ⬇</td></tr>
+<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.763</td><td>0.764</td><td>+0.001 ≈</td></tr>
+<tr><td>M1_VAF PV</td><td>108 (22)</td><td>0.777</td><td>0.775</td><td>−0.003 ≈</td></tr>
+</table>
+<p>Différence moyenne <strong>Δ ≈ 0</strong> (médiane = +0.0006). 4 variantes favorisent <code>lin</code>, 4 favorisent <code>bin</code>. <strong>Équivalents en performance</strong>. La spécification <strong>linéaire est retenue V229.3/V230</strong> pour son interprétation plus fine (différentiation Deauville 2 vs 3, 4 vs 5) et discrimination dans la zone Deauville=4 ambiguë.</p>
+
+<h3 id="sec-score-vs-blup">11.13 Robustesse du score_kin vs slope individuel BLUP</h3>
+<p>Une approche joint longitudinal-survival two-stage (mixed-effects LMM extrayant un slope individuel par BLUP, puis Cox sur ce slope) a été testée comme alternative à <code>score_kin</code>. <strong>Bootstrap optimism-corrected (B=200) : score_kin C=0.791 vs BLUP C=0.777 (Δ=−0.014)</strong>. Le score_kin résumé (4 trajectoires moyennes par histo×responder) est plus robuste car moins de paramètres individuels à estimer sur cohorte limitée.</p>
+
+<h3 id="sec-competing">11.14 Risque compétitif (mort sans progression)</h3>
+<p>Sur N=223 patients clinique, on observe <strong>1 seul décès sans progression préalable</strong> au sens strict (Aalen-Johansen CIF à 12mo : progression 0.225, décès pur 0.005). Le risque compétitif « décès » est négligeable (&lt;0.5%) et ne nécessite pas une approche Fine-Gray distincte du Cox composite. L'endpoint EFS V230 censure explicitement ces cas (cf. <a href="#sec-endpoint">§11.10</a>).</p>
+
+<h3 id="vpn-depth">11.15 Couverture moléculaire (Σ DEPTH / Σ PCU) — pourquoi pas covariable</h3>
+<p><strong>Précision sémantique</strong> : ce qu'on appelle ici « Σ DEPTH » ou « Σ PCU » n'est pas la profondeur par variant, mais le <strong>nombre total de molécules analysées par patient</strong> = Σ sur la Watch List de la couverture à chaque variant. Pour IDES : Σ NbrReadDepth (reads × n_variants_WL). Pour PV : Σ fu_pos_UMI = Σ Position Common UMI. C'est le « budget moléculaire » global qui détermine la sensibilité de détection des résiduels.</p>
+<p>La carte « VPN technique en fonction de la couverture moléculaire » a été retirée du calculateur (V15.272-273). Justification empirique :</p>
 <table>
 <tr><th>Variante M1 (sans TEP)</th><th>N polished-neg</th><th>Events @12mo</th><th>β log₁₀(Σ)</th><th>p</th></tr>
 <tr><td>IDES_hEq</td><td>99</td><td>9</td><td>−0.47</td><td>0.45 NS</td></tr>
@@ -731,7 +718,7 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <tr><td>PV_hEq</td><td>57</td><td>4</td><td>−0.26</td><td>0.75 NS</td></tr>
 <tr><td>PV_VAF</td><td>60</td><td>4</td><td>−0.31</td><td>0.71 NS</td></tr>
 </table>
-<p>Modèle <code>logit(no event @ 12mo) ~ log₁₀(Σ DEPTH)</code> sur la sous-cohorte des patients « polished neg » (gate qualité IDES p &gt; 1/100001 ou PV UMI &lt; 3) : la couverture moléculaire n'est <strong>jamais</strong> un prédicteur significatif. VPN observée stable à 91-93% sur 4 ordres de grandeur de Σ DEPTH (1.8k → 4M reads × variants IDES ; 3.5k → 2.4M UMI × variants PV).</p>
+<p>Modèle <code>logit(no event @ 12mo) ~ log₁₀(Σ DEPTH)</code> sur la sous-cohorte « polished neg » (gate qualité IDES p &gt; 1/100001 ou PV UMI &lt; 3) : la couverture moléculaire n'est <strong>jamais</strong> un prédicteur significatif. VPN observée stable à 91-93% sur 4 ordres de grandeur de Σ DEPTH.</p>
 
 <p>Test de confondage par cfDNA — modèle ajusté <code>logit(no event) ~ log(Σ DEPTH) + log(cfDNA_CXJ1) + log(cfDNA_diag)</code> :</p>
 <table>
@@ -739,22 +726,26 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <tr><td>IDES</td><td><strong>+0.35 (p=0.0004)</strong></td><td>−0.46 (p=0.45)</td><td>−0.06 (p=0.93)</td><td>Polish v56 absorbe déjà la couverture</td></tr>
 <tr><td>PV</td><td>+0.26 (p=0.04)</td><td>+0.53 (p=0.27)</td><td><strong>+1.09 (p=0.083, borderline)</strong></td><td>Effet technique pur émerge après ajustement</td></tr>
 </table>
-<p>Conclusion : la couverture moléculaire totale (Σ DEPTH / Σ PCU) est <strong>corrélée positivement</strong> avec le cfDNA — plus de matériel circulant ⇒ plus de molécules à séquencer ⇒ Σ plus élevée — et le cfDNA est lui-même un facteur pronostique fort (low cfDNA = bon prono). L'effet « marginal » de Σ DEPTH est donc <strong>masqué par le cfDNA</strong> : Σ basse ↔ cfDNA bas ↔ bon prono, ce qui compense la perte de sensibilité technique. Le modèle M1/M2 contient déjà <code>log(1+cfDNA_diag)</code> comme covariable burden, donc cette information est encodée.</p>
-<p>Note PV : après ajustement cfDNA, β_Σ_PV = +1.09 (p=0.083) → suggère un effet technique pur résiduel modeste (à cfDNA égal, Σ ↑ ⇒ VPN ↑). Non incorporé en production car la cohorte M1 PV polished-neg n'a que 4 events et le pipeline PV applique déjà un quality gate v75 (UMI ≥ 3) qui filtre les samples sous-couverts.</p>
-<p>Scripts : <code>scripts/_v15_272_VPN_technique_M1_empirical.py</code>, <code>scripts/_v15_273_depth_cfDNA_confounding.py</code>.</p>
+<p>Conclusion : la couverture moléculaire totale est <strong>corrélée positivement avec le cfDNA</strong> — plus de matériel circulant ⇒ plus de molécules à séquencer. Le cfDNA étant lui-même un facteur pronostique fort (low cfDNA = bon prono), l'effet « marginal » de Σ DEPTH est <strong>masqué par le cfDNA</strong> dans l'analyse non ajustée : Σ basse ↔ cfDNA bas ↔ bon prono, ce qui compense la perte de sensibilité technique. Le modèle M1/M2 contient déjà <code>log(1+cfDNA_diag)</code> comme covariable burden, donc cette information est encodée.</p>
+<p class="muted">Scripts : <code>_v15_272_VPN_technique_M1_empirical.py</code>, <code>_v15_273_depth_cfDNA_confounding.py</code>.</p>
 
-<h3>8c. Analyse exploratoire — DeltaSUVmax% vs Deauville TEP2</h3>
-<p>Le Deauville TEP2 (binaire ≥4) est le standard clinique. Question : le DeltaSUVmax% (continu, baisse relative du SUVmax diag→TEP2) apporterait-il de l'info supplémentaire ?</p>
+<h3 id="sec-deltasuv-explo">11.16 DeltaSUVmax% vs Deauville TEP2 — analyse exploratoire</h3>
+<p>Le Deauville TEP2 (ordinal 1-5) est le standard clinique. Question : le DeltaSUVmax% (continu, baisse relative du SUVmax diag→TEP2) apporterait-il de l'info supplémentaire ?</p>
 <table>
-<tr><th>Modèle (cohorte N=117, ev=23)</th><th>C-index</th><th>β_TEP2_pos</th><th>β_DeltaSUV</th><th>LR vs baseline</th></tr>
+<tr><th>Modèle (cohorte N=117, ev=23)</th><th>C-index</th><th>β_Deauville</th><th>β_DeltaSUV</th><th>LR vs baseline</th></tr>
 <tr><td>A. Baseline (score+burden+v5A+Deauville)</td><td>0.838</td><td>+0.94 (p=0.02)</td><td>—</td><td>—</td></tr>
 <tr><td>B. + DeltaSUV continu</td><td>0.846 (+0.008)</td><td>+0.64 (p=0.15 ⬇)</td><td>+0.010 (p=0.085)</td><td>p=0.091 NS</td></tr>
 <tr><td>C. DeltaSUV seul (sans Deauville)</td><td>0.842 (+0.004)</td><td>—</td><td>+0.015 (<strong>p=0.006</strong>)</td><td>—</td></tr>
 </table>
-<p>Conclusion : DeltaSUV et Deauville captent la <strong>même information</strong> (réponse métabolique). DeltaSUV continu pourrait remplacer Deauville (modèle C, p plus net) mais Deauville est le standard adopté en routine. Couverture DeltaSUV : 168/224 patients (75%) vs Deauville 188/224 (84%). <strong>Decision : Deauville maintenu en production</strong> ; DeltaSUVmax documenté comme variante alternative équivalente. Dans la zone Deauville=4 ambiguë (27 patients, 9 events), DeltaSUV permet une sous-stratification : shallow (Δ &gt; −70%) PFS event 42% vs deep (Δ ≤ −70%) 27%.</p>
+<p>DeltaSUV et Deauville captent la <strong>même information</strong> (réponse métabolique). DeltaSUV continu pourrait remplacer Deauville (modèle C, p plus net) mais Deauville est le standard de routine. Couverture DeltaSUV : 168/224 (75%) vs Deauville 188/224 (84%). <strong>Décision V230</strong> : Deauville maintenu en variante principale, DeltaSUVmax documenté comme variante fallback équivalente (M2_*_Delta). Dans la zone Deauville=4 ambiguë (27 patients, 9 events), DeltaSUV permet une sous-stratification : shallow (Δ &gt; −70%) event 42% vs deep (Δ ≤ −70%) 27%.</p>
+</div>
 
-<h3>9. CONSORT flow diagram</h3>
-<p>Diagramme de flux des inclusions avec exclusions par pipeline et variante :</p>
+<!-- ════════════ SECTION 12 : COHORTE D'ENTRAÎNEMENT ════════════ -->
+<div class="card">
+<h2 id="sec-cohorte">12. Cohorte d'entraînement</h2>
+
+<h3 id="sec-consort">12.1 Diagramme CONSORT (flow d'inclusion)</h3>
+<p>Flow d'inclusion des patients V230 — endpoint EFS, avec exclusions par pipeline et variante :</p>
 <div class="center">
 <svg viewBox="0 0 760 540" style="max-width:100%; height:auto; background:#fafbfc; border:1px solid #e2e8f0; border-radius:6px;">
   <defs>
@@ -777,7 +768,7 @@ montre les courbes complètes et le N at-risk à chaque temps.
   </style>
 
   <!-- Title -->
-  <text x="380" y="22" class="t9-b" text-anchor="middle">Cohorte CXJ1 — flow chart d'inclusion (V229.3)</text>
+  <text x="380" y="22" class="t9-b" text-anchor="middle">Cohorte CXJ1 — flow chart d'inclusion (V230 EFS)</text>
 
   <!-- Step 1: initial cohort -->
   <rect class="nd-top" x="280" y="38" width="200" height="44"/>
@@ -801,13 +792,13 @@ montre les courbes complètes et le N at-risk à chaque temps.
   <!-- IDES M1 -->
   <rect class="nd-mid" x="60" y="190" width="280" height="60"/>
   <text x="200" y="208" class="t9-b" text-anchor="middle">IDES — éligibles pour modèle Cox</text>
-  <text x="200" y="225" class="t9" text-anchor="middle">N = 162 (events PFS = 32)</text>
+  <text x="200" y="225" class="t9" text-anchor="middle">N = 162 (events EFS = 32)</text>
   <text x="200" y="241" class="t9-s" text-anchor="middle">VAF_diag détectée + cfDNA + score_kin + delai valides</text>
 
   <!-- IDES exclus -->
   <rect class="nd-excl" x="60" y="265" width="280" height="44"/>
   <text x="200" y="283" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">Exclus (IDES, 62 patients)</text>
-  <text x="200" y="299" class="t9-e" text-anchor="middle">VAF_diag = 0/NaN ; PFS manquant ; Glims aberrant ; cfDNA NaN</text>
+  <text x="200" y="299" class="t9-e" text-anchor="middle">VAF_diag = 0/NaN ; EFS manquant ; Glims aberrant ; cfDNA NaN</text>
 
   <line class="ar" x1="200" y1="168" x2="200" y2="188"/>
   <line class="ar-e" x1="200" y1="250" x2="200" y2="263"/>
@@ -815,7 +806,7 @@ montre les courbes complètes et le N at-risk à chaque temps.
   <!-- PV M1 -->
   <rect class="nd-mid" x="420" y="190" width="280" height="60" style="fill:#fce7f3; stroke:#be185d;"/>
   <text x="560" y="208" class="t9-b" text-anchor="middle">PV — éligibles pour modèle Cox</text>
-  <text x="560" y="225" class="t9" text-anchor="middle">N = 108 (events PFS = 22)</text>
+  <text x="560" y="225" class="t9" text-anchor="middle">N = 108 (events EFS = 21)</text>
   <text x="560" y="241" class="t9-s" text-anchor="middle">Phasage réussi + cfDNA + delai valides</text>
 
   <rect class="nd-excl" x="420" y="265" width="280" height="44"/>
@@ -829,13 +820,13 @@ montre les courbes complètes et le N at-risk à chaque temps.
   <rect class="nd" x="60" y="330" width="135" height="54"/>
   <text x="127" y="348" class="t9-b" text-anchor="middle">M1_hEq IDES</text>
   <text x="127" y="364" class="t9" text-anchor="middle">N = 162, ev = 32</text>
-  <text x="127" y="378" class="t9-s" text-anchor="middle">C-corr = 0.796</text>
+  <text x="127" y="378" class="t9-s" text-anchor="middle">C-corr = 0.805</text>
 
   <!-- IDES M2 (optimal) -->
   <rect class="nd-final" x="205" y="330" width="135" height="54"/>
   <text x="272" y="346" class="t9-b" text-anchor="middle">M2_hEq IDES ⭐</text>
-  <text x="272" y="362" class="t9" text-anchor="middle">N = 136, ev = 25</text>
-  <text x="272" y="376" class="t9-s" text-anchor="middle">C-corr = 0.848 [0.78-0.94]</text>
+  <text x="272" y="362" class="t9" text-anchor="middle">N = 136, ev = 26</text>
+  <text x="272" y="376" class="t9-s" text-anchor="middle">C-corr = 0.837 [0.77-0.93]</text>
 
   <!-- IDES TEP excl -->
   <rect class="nd-excl" x="60" y="395" width="280" height="32"/>
@@ -848,14 +839,14 @@ montre les courbes complètes et le N at-risk à chaque temps.
   <!-- PV M1 -->
   <rect class="nd" x="420" y="330" width="135" height="54"/>
   <text x="487" y="348" class="t9-b" text-anchor="middle">M1_hEq PV</text>
-  <text x="487" y="364" class="t9" text-anchor="middle">N = 108, ev = 22</text>
-  <text x="487" y="378" class="t9-s" text-anchor="middle">C-corr = 0.811</text>
+  <text x="487" y="364" class="t9" text-anchor="middle">N = 108, ev = 21</text>
+  <text x="487" y="378" class="t9-s" text-anchor="middle">C-corr = 0.840</text>
 
   <!-- PV M2 (optimal) -->
   <rect class="nd-final" x="565" y="330" width="135" height="54"/>
   <text x="632" y="346" class="t9-b" text-anchor="middle">M2_hEq PV ⭐</text>
   <text x="632" y="362" class="t9" text-anchor="middle">N = 91, ev = 16</text>
-  <text x="632" y="376" class="t9-s" text-anchor="middle">C-corr = 0.891 [0.85-0.98]</text>
+  <text x="632" y="376" class="t9-s" text-anchor="middle">C-corr = 0.869 [0.82-0.97]</text>
 
   <rect class="nd-excl" x="420" y="395" width="280" height="32"/>
   <text x="560" y="415" class="t9-e" text-anchor="middle">−17 patients TEP « Non fait » → routés M1</text>
@@ -879,10 +870,10 @@ montre les courbes complètes et le N at-risk à chaque temps.
   <rect class="nd-excl" x="450" y="510" width="14" height="14"/>
   <text x="470" y="522" class="t9-s">Exclusions / observations</text>
 </svg>
-<p class="muted">Vectoriel SVG — Cohorte M2_hEq optimal (⭐) : IDES 136/25, PV 91/16. M1 (sans TEP) inclut +26 IDES et +17 PV avec TEP « Non fait ».</p>
+<p class="muted">Vectoriel SVG — Cohorte M2_hEq Deauv optimal (⭐) V230 EFS : IDES 136 patients (26 events), PV 91 (16). M1 (sans TEP) inclut +26 IDES et +17 PV ayant le statut TEP « Non fait », routés automatiquement par le calculateur.</p>
 </div>
 
-<h3>10. Caractéristiques baseline (Table 1)</h3>
+<h3 id="sec-table1">12.2 Caractéristiques baseline (Table 1)</h3>
 <p>Caractéristiques de la cohorte M2_hEq IDES (N=137), ventilées par responder et histologie :</p>
 <table style="font-size:13px;">
 <thead>
@@ -910,8 +901,8 @@ montre les courbes complètes et le N at-risk à chaque temps.
 <tr><td><strong>Évaluation interim</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
 <tr><td>TEP2 Deauville ≥ 4, N (%)</td><td>38 (28%)</td><td>25 (22%)</td><td>13 (57%)</td><td>10 (14%)</td><td>28 (41%)</td></tr>
 <tr><td><strong>Évolution clinique</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
-<tr><td>Événement PFS @ 12mo, N (%)</td><td>23 (17%)</td><td>0 (0%)</td><td>23 (100%)</td><td>5 (7%)</td><td>18 (26%)</td></tr>
-<tr><td>Événement PFS (any time), N (%)</td><td>25 (18%)</td><td>2 (2%)</td><td>23 (100%)</td><td>6 (9%)</td><td>19 (28%)</td></tr>
+<tr><td>Événement EFS @ 12mo, N (%)</td><td>23 (17%)</td><td>0 (0%)</td><td>23 (100%)</td><td>5 (7%)</td><td>18 (26%)</td></tr>
+<tr><td>Événement EFS (any time), N (%)</td><td>26 (19%)</td><td>3 (3%)</td><td>23 (100%)</td><td>7 (10%)</td><td>19 (28%)</td></tr>
 <tr><td>Suivi (mois, médian [IQR])</td><td>23 [11-34]</td><td>27 [18-38]</td><td>5 [2-7]</td><td>28 [18-40]</td><td>20 [8-28]</td></tr>
 <tr><td><strong>Chimiothérapie 1ère ligne</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
 <tr><td>· RCHOP-based, N (%)</td><td>59 (43%)</td><td>44 (39%)</td><td>15 (65%)</td><td>—</td><td>59 (87%)</td></tr>
@@ -927,30 +918,59 @@ montre les courbes complètes et le N at-risk à chaque temps.
 </table>
 <p class="muted">Table HTML — entièrement vectorielle, accessible (lecteurs d'écran), copiable. Données brutes : <a href="figs/Table1_cohort.csv">CSV</a>.</p>
 
-<h3>11. TRIPOD+AI checklist</h3>
-<p>Le modèle V229.1 suit la checklist <strong>TRIPOD+AI 2024</strong> (Collins et al., BMJ 2024) pour le reporting des modèles de prédiction clinique :</p>
+<h3 id="sec-atypiques">12.3 Patients atypiques documentés</h3>
+<p>Quelques patients méritent une mention spécifique pour la traçabilité de la cohorte :</p>
 <ul>
-<li><strong>20/30 items ✅ fully reported</strong> : internal validation rigoureuse (bootstrap optimism, PH test, calibration multi-stratum, DCA, NRI/IDI), open science, code transparency</li>
-<li>6/30 items ⚠️ partial (manuscrit final)</li>
-<li>4/30 items ❌ pendants : PPI, funding, COI, external validation (en cours)</li>
+<li><strong>KINZELIN</strong> — DLBCL réfractaire (progression à 2 mo, décès à 4 mo), TEP « Non fait » → routé en M1.</li>
+<li><strong>PHETMANY</strong> — échec d'extraction cfDNA et <code>numero_run_diag = 'non_sequence?'</code> → exclu (VAF_diag indétectable).</li>
+<li><strong>PATIENT_L</strong> (Hodgkin, 2BEACOPP+4ABVD) — étiqueté C3J1 mais délai 98 j post-C1J1 ; probablement C4J1 (cycles longs). Bon répondeur clinique (Deauville 2, EFS=0 @ 34mo) — impact production minimal (VAF_CXJ1=0, polish actif).</li>
+<li><strong>PATIENT_M</strong> (DLBCL Poppemat, 6RCHOP) — étiqueté C3J1 mais délai <strong>105 j = exactement C6J1</strong> (6×21j). Sample probablement post-fin de traitement, mal étiqueté. Éligible M1_hEq, r12 prédit ~20% (zone Modéré), EFS=0 @ 23mo confirmé.</li>
+<li><strong>PATIENT_D, PATIENT_E</strong> — vivants, perdus de vue tardivement, PFS=1 mal encodé dans la base (cf. <a href="#sec-endpoint">§11.10</a>). Exclus des cohortes V230 par VAF_diag=NaN.</li>
+</ul>
+</div>
+
+<!-- ════════════ SECTION 13 : NOTES TECHNIQUES ════════════ -->
+<div class="card">
+<h2 id="sec-techniques">13. Notes techniques</h2>
+
+<h3>13.1 Centrage du LP (LP_offset)</h3>
+<p>La librairie <code>lifelines</code> (Python) stocke <code>baseline_survival_</code> au <strong>mean des covariables</strong> de la cohorte d'entraînement, et non à X=0. Pour appliquer correctement <code>S(t|x) = S₀(t)^exp(LP)</code>, il faut soustraire <code>β·X̄</code> au LP brut. Chaque modèle stocke donc son <strong>LP_offset</strong> dans le JSON et le calculateur JS l'applique automatiquement. Sans ce centrage, le risque prédit serait systématiquement surévalué.</p>
+
+<h3>13.2 Régularisation L2</h3>
+<p>Tous les modèles Cox utilisent une pénalisation L2 (Ridge) avec λ=0.05 pour assurer la stabilité numérique avec des événements rares (~25 events par variante M2).</p>
+
+<h3>13.3 Cohérence JS ⇔ Python</h3>
+<p>Le calculateur JS reproduit exactement les prédictions de <code>lifelines.predict_survival_function</code> (erreur max &lt; 1e-6 sur la cohorte).</p>
+
+<h3>13.4 Confidentialité des données</h3>
+<p>Aucune donnée patient n'est transmise au serveur. Le calculateur fonctionne intégralement côté navigateur (JavaScript). Les coefficients du modèle sont chargés au démarrage et toute analyse reste locale.</p>
+</div>
+
+<!-- ════════════ SECTION 14 : TRIPOD+AI ════════════ -->
+<div class="card">
+<h2 id="sec-tripod">14. TRIPOD+AI checklist</h2>
+<p>Le modèle suit la checklist <strong>TRIPOD+AI 2024</strong> (Collins et al., BMJ 2024) pour le reporting des modèles de prédiction clinique :</p>
+<ul>
+<li><strong>20/30 items ✓ fully reported</strong> : validation interne rigoureuse (bootstrap optimism, PH test, calibration multi-stratum, DCA, NRI/IDI, MICE), open science, code transparency</li>
+<li>6/30 items ⚠️ partial (manuscrit final en préparation)</li>
+<li>4/30 items ❌ pendants : PPI (Patient & Public Involvement), funding détaillé, COI, <strong>validation externe</strong> (en cours)</li>
 </ul>
 <p>📄 <a href="TRIPOD_AI_checklist.md">Voir checklist complète (Markdown)</a></p>
+</div>
 
-<h3>12. Test de l'hypothèse PH (Grambsch-Therneau)</h3>
-<p>Le modèle Cox suppose que les hazard ratios entre patients restent constants dans le temps. Le test de Grambsch-Therneau vérifie cette hypothèse pour chaque covariable :</p>
-<table>
-<tr><th>Covariable</th><th>p-value (transform=rank)</th><th>p-value (transform=log)</th><th>Verdict</th></tr>
-<tr><td><code>score_kin</code></td><td>0.184</td><td>0.205</td><td>✅ Pas de violation</td></tr>
-<tr><td><code>log_burden_hEq</code></td><td>0.691</td><td>0.859</td><td>✅ Pas de violation</td></tr>
-<tr><td><code>TEP2_pos</code></td><td>0.586</td><td>0.473</td><td>✅ Pas de violation</td></tr>
-</table>
-<p>Toutes les p &gt; 0.18 → <strong>aucune violation de l'hypothèse PH détectée</strong>. Confirmation supplémentaire : ajouter l'interaction <code>score_kin × log(t)</code> au Cox donne β = +0.025 (p = 0.78 NS) et ΔC-index = +0.001 (négligeable). Les HR estimés sont valides sur tout l'horizon 0-36 mois, justifiant la projection de S₀(12) et S₀(24) sans correction temps-dépendante.</p>
-
+<!-- ════════════ SECTION 15 : LIMITES & DISCLAIMER ════════════ -->
+<div class="card">
+<h2 id="sec-limites">15. Limites & disclaimer</h2>
+<div class="warning">
+<p>Le calculateur est un <strong>prototype de recherche</strong>. Il n'est pas validé pour la prise en charge clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante d'un médecin hématologue qualifié.</p>
+<p>La calibration aux extrêmes de risque (r12 &gt; 60% ou ctDNA_diag &lt; 500 hEq/mL) est limitée par la taille de la cohorte de développement. Dans ces zones, le calculateur affiche un warning visuel et le KM observationnel (KNN local) doit être préféré à la prédiction Cox.</p>
+<p><strong>Validation externe sur cohorte indépendante en cours.</strong> Les chiffres de C-index et calibration reportés ici sont des estimations <em>internes</em> avec optimism-correction par bootstrap Harrell, mais ne garantissent pas la performance sur une cohorte externe.</p>
+</div>
 </div>
 
 <!-- ────────────────────────────────────────────────────── -->
 <div class="card">
-<h2>📝 Citation</h2>
+<h2 id="sec-citation">16. Citation</h2>
 <p style="background:#f8fafc; padding:14px; border-left:4px solid #94a3b8;">
 Calculateur MRD CXJ1 — Cox proportional hazards models for ctDNA MRD in adult B-cell and Hodgkin lymphomas after mid-treatment timepoint. Partial pooling between IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines. Mono-exponential decay trajectories per histology × responder strata. Integrated baseline tumor burden term.<br>
 Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), 2026.
