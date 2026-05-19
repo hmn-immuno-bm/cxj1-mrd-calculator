@@ -648,18 +648,178 @@ S(t | x) = S₀(t)<sup>exp(LP_centered)</sup><br>
 <p>Conclusion : DeltaSUV et Deauville captent la <strong>même information</strong> (réponse métabolique). DeltaSUV continu pourrait remplacer Deauville (modèle C, p plus net) mais Deauville est le standard adopté en routine. Couverture DeltaSUV : 168/224 patients (75%) vs Deauville 188/224 (84%). <strong>Decision : Deauville maintenu en production</strong> ; DeltaSUVmax documenté comme variante alternative équivalente. Dans la zone Deauville=4 ambiguë (27 patients, 9 events), DeltaSUV permet une sous-stratification : shallow (Δ &gt; −70%) PFS event 42% vs deep (Δ ≤ −70%) 27%.</p>
 
 <h3>9. CONSORT flow diagram</h3>
-<p>Diagramme de flux des inclusions (V229.1) avec exclusions par pipeline et variante :</p>
+<p>Diagramme de flux des inclusions avec exclusions par pipeline et variante :</p>
 <div class="center">
-<img class="figure" src="figs/CONSORT_flow.png" alt="CONSORT flow" style="max-width: 90%;">
-<p class="muted">Note : N=224 patients screenés. M1 = sans TEP requis ; M2 ⭐ = avec TEP (configuration optimale). KINZELIN (DLBCL primitif SNC) avec TEP « Non fait » est classé par défaut TEP− dans M2_hEq ; idéalement à router vers M1_hEq.</p>
+<svg viewBox="0 0 760 540" style="max-width:100%; height:auto; background:#fafbfc; border:1px solid #e2e8f0; border-radius:6px;">
+  <defs>
+    <marker id="arr9" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <style>
+    .nd { fill: #ffffff; stroke: #475569; stroke-width: 1.5; rx: 6; }
+    .nd-top { fill: #fef3c7; stroke: #d97706; stroke-width: 2; }
+    .nd-mid { fill: #dbeafe; stroke: #1e40af; stroke-width: 1.5; }
+    .nd-final { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
+    .nd-excl { fill: #fee2e2; stroke: #dc2626; stroke-width: 1.5; stroke-dasharray: 4,2; }
+    .t9 { font-family: 'Segoe UI', sans-serif; font-size: 12px; fill: #1e293b; }
+    .t9-b { font-weight: 600; font-size: 12.5px; fill: #1e293b; }
+    .t9-s { font-size: 11px; fill: #64748b; }
+    .t9-e { font-size: 10px; fill: #7f1d1d; }
+    .ar { stroke: #475569; stroke-width: 1.6; fill: none; marker-end: url(#arr9); }
+    .ar-e { stroke: #d97706; stroke-width: 1.3; fill: none; stroke-dasharray: 4,3; marker-end: url(#arr9); }
+  </style>
+
+  <!-- Title -->
+  <text x="380" y="22" class="t9-b" text-anchor="middle">Cohorte CXJ1 — flow chart d'inclusion (V229.3)</text>
+
+  <!-- Step 1: initial cohort -->
+  <rect class="nd-top" x="280" y="38" width="200" height="44"/>
+  <text x="380" y="56" class="t9-b" text-anchor="middle">Cohorte clinique screenée</text>
+  <text x="380" y="72" class="t9" text-anchor="middle">N = 224 patients (2020-2025)</text>
+
+  <line class="ar" x1="380" y1="84" x2="380" y2="115"/>
+
+  <!-- Step 2: split by pipeline -->
+  <rect class="nd-mid" x="60" y="120" width="280" height="48"/>
+  <text x="200" y="139" class="t9-b" text-anchor="middle">Pipeline IDES (MOABI hybrid-capture)</text>
+  <text x="200" y="156" class="t9-s" text-anchor="middle">IDES p-value Monte-Carlo · 11 drivers D11</text>
+
+  <rect class="nd-mid" x="420" y="120" width="280" height="48" style="fill:#fce7f3; stroke:#be185d;"/>
+  <text x="560" y="139" class="t9-b" text-anchor="middle">Pipeline PV (phased variants UMI)</text>
+  <text x="560" y="156" class="t9-s" text-anchor="middle">Doublets UMI · diag_pos_UMI ≥ 10 · diag_VAFratio ≥ 0.3</text>
+
+  <line class="ar" x1="320" y1="84" x2="200" y2="118"/>
+  <line class="ar" x1="440" y1="84" x2="560" y2="118"/>
+
+  <!-- IDES M1 -->
+  <rect class="nd-mid" x="60" y="190" width="280" height="60"/>
+  <text x="200" y="208" class="t9-b" text-anchor="middle">IDES — éligibles pour modèle Cox</text>
+  <text x="200" y="225" class="t9" text-anchor="middle">N = 162 (events PFS = 32)</text>
+  <text x="200" y="241" class="t9-s" text-anchor="middle">VAF_diag détectée + cfDNA + score_kin + delai valides</text>
+
+  <!-- IDES exclus -->
+  <rect class="nd-excl" x="60" y="265" width="280" height="44"/>
+  <text x="200" y="283" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">Exclus (IDES, 62 patients)</text>
+  <text x="200" y="299" class="t9-e" text-anchor="middle">VAF_diag = 0/NaN ; PFS manquant ; Glims aberrant ; cfDNA NaN</text>
+
+  <line class="ar" x1="200" y1="168" x2="200" y2="188"/>
+  <line class="ar-e" x1="200" y1="250" x2="200" y2="263"/>
+
+  <!-- PV M1 -->
+  <rect class="nd-mid" x="420" y="190" width="280" height="60" style="fill:#fce7f3; stroke:#be185d;"/>
+  <text x="560" y="208" class="t9-b" text-anchor="middle">PV — éligibles pour modèle Cox</text>
+  <text x="560" y="225" class="t9" text-anchor="middle">N = 108 (events PFS = 22)</text>
+  <text x="560" y="241" class="t9-s" text-anchor="middle">Phasage réussi + cfDNA + delai valides</text>
+
+  <rect class="nd-excl" x="420" y="265" width="280" height="44"/>
+  <text x="560" y="283" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">Exclus (PV, 116 patients)</text>
+  <text x="560" y="299" class="t9-e" text-anchor="middle">Phasage absent (8) ou 0 (19) ; quali_gate ; VAF aberrante (>100%)</text>
+
+  <line class="ar" x1="560" y1="168" x2="560" y2="188"/>
+  <line class="ar-e" x1="560" y1="250" x2="560" y2="263"/>
+
+  <!-- IDES M1 -->
+  <rect class="nd" x="60" y="330" width="135" height="54"/>
+  <text x="127" y="348" class="t9-b" text-anchor="middle">M1_hEq IDES</text>
+  <text x="127" y="364" class="t9" text-anchor="middle">N = 162, ev = 32</text>
+  <text x="127" y="378" class="t9-s" text-anchor="middle">C-corr = 0.796</text>
+
+  <!-- IDES M2 (optimal) -->
+  <rect class="nd-final" x="205" y="330" width="135" height="54"/>
+  <text x="272" y="346" class="t9-b" text-anchor="middle">M2_hEq IDES ⭐</text>
+  <text x="272" y="362" class="t9" text-anchor="middle">N = 136, ev = 25</text>
+  <text x="272" y="376" class="t9-s" text-anchor="middle">C-corr = 0.848 [0.78-0.94]</text>
+
+  <!-- IDES TEP excl -->
+  <rect class="nd-excl" x="60" y="395" width="280" height="32"/>
+  <text x="200" y="415" class="t9-e" text-anchor="middle">−26 patients TEP « Non fait » → routés M1</text>
+
+  <line class="ar" x1="200" y1="309" x2="127" y2="328"/>
+  <line class="ar" x1="200" y1="309" x2="272" y2="328"/>
+  <line class="ar-e" x1="200" y1="384" x2="200" y2="395"/>
+
+  <!-- PV M1 -->
+  <rect class="nd" x="420" y="330" width="135" height="54"/>
+  <text x="487" y="348" class="t9-b" text-anchor="middle">M1_hEq PV</text>
+  <text x="487" y="364" class="t9" text-anchor="middle">N = 108, ev = 22</text>
+  <text x="487" y="378" class="t9-s" text-anchor="middle">C-corr = 0.811</text>
+
+  <!-- PV M2 (optimal) -->
+  <rect class="nd-final" x="565" y="330" width="135" height="54"/>
+  <text x="632" y="346" class="t9-b" text-anchor="middle">M2_hEq PV ⭐</text>
+  <text x="632" y="362" class="t9" text-anchor="middle">N = 91, ev = 16</text>
+  <text x="632" y="376" class="t9-s" text-anchor="middle">C-corr = 0.891 [0.85-0.98]</text>
+
+  <rect class="nd-excl" x="420" y="395" width="280" height="32"/>
+  <text x="560" y="415" class="t9-e" text-anchor="middle">−17 patients TEP « Non fait » → routés M1</text>
+
+  <line class="ar" x1="560" y1="309" x2="487" y2="328"/>
+  <line class="ar" x1="560" y1="309" x2="632" y2="328"/>
+  <line class="ar-e" x1="560" y1="384" x2="560" y2="395"/>
+
+  <!-- Notes patients atypiques -->
+  <rect class="nd-excl" x="60" y="450" width="640" height="48" style="fill:#fef9c3; stroke:#ca8a04; stroke-dasharray:0;"/>
+  <text x="380" y="468" class="t9-b" text-anchor="middle" style="fill:#713f12;">Patients atypiques documentés</text>
+  <text x="380" y="484" class="t9-s" text-anchor="middle">KINZELIN (DLBCL SNC, TEP « Non fait », rechute 2mo) · PHETMANY (échec extraction cfDNA, diag non séquencé)</text>
+
+  <!-- Legend -->
+  <rect class="nd-top" x="60" y="510" width="14" height="14"/>
+  <text x="80" y="522" class="t9-s">Cohorte initiale</text>
+  <rect class="nd-mid" x="170" y="510" width="14" height="14"/>
+  <text x="190" y="522" class="t9-s">Étape de filtrage</text>
+  <rect class="nd-final" x="290" y="510" width="14" height="14"/>
+  <text x="310" y="522" class="t9-s">Variante optimale (M2 ⭐)</text>
+  <rect class="nd-excl" x="450" y="510" width="14" height="14"/>
+  <text x="470" y="522" class="t9-s">Exclusions / observations</text>
+</svg>
+<p class="muted">Vectoriel SVG — Cohorte M2_hEq optimal (⭐) : IDES 136/25, PV 91/16. M1 (sans TEP) inclut +26 IDES et +17 PV avec TEP « Non fait ».</p>
 </div>
 
 <h3>10. Caractéristiques baseline (Table 1)</h3>
-<p>Caractéristiques de la cohorte M2_hEq IDES (N=136), ventilées par responder et histologie :</p>
-<div class="center">
-<img class="figure" src="figs/Table1_cohort.png" alt="Table 1" style="max-width: 100%;">
-<p class="muted"><a href="figs/Table1_cohort.csv">Télécharger Table 1 (CSV)</a></p>
-</div>
+<p>Caractéristiques de la cohorte M2_hEq IDES (N=137), ventilées par responder et histologie :</p>
+<table style="font-size:13px;">
+<thead>
+<tr style="background:#1e40af; color:white;">
+  <th style="color:white;">Caractéristique</th>
+  <th style="color:white;">Toute la cohorte<br/>(N=137)</th>
+  <th style="color:white;">Good responder<br/>(N=114)</th>
+  <th style="color:white;">Bad responder (PFS@12)<br/>(N=23)</th>
+  <th style="color:white;">Hodgkin<br/>(N=69)</th>
+  <th style="color:white;">DLBCL bucket<br/>(N=68)</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><strong>Démographie</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
+<tr><td>Age médian [IQR]</td><td>45 [30-62]</td><td>41 [29-60]</td><td>54 [43-67]</td><td>33 [27-49]</td><td>58 [43-73]</td></tr>
+<tr><td>Age ≥ 60 ans, N (%)</td><td>40 (29%)</td><td>30 (26%)</td><td>10 (43%)</td><td>7 (10%)</td><td>33 (49%)</td></tr>
+<tr><td>Sexe masculin, N (%)</td><td>83 (61%)</td><td>68 (60%)</td><td>15 (65%)</td><td>38 (55%)</td><td>45 (66%)</td></tr>
+<tr><td><strong>Histologie</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
+<tr><td>Hodgkin classique, N (%)</td><td>69 (50%)</td><td>64 (56%)</td><td>5 (22%)</td><td>69 (100%)</td><td>0 (0%)</td></tr>
+<tr><td>DLBCL / autres B agressifs, N (%)</td><td>68 (50%)</td><td>50 (44%)</td><td>18 (78%)</td><td>0 (0%)</td><td>68 (100%)</td></tr>
+<tr><td>Stade III-IV (Ann Arbor), N (%)</td><td>79 (58%)</td><td>60 (53%)</td><td>19 (83%)</td><td>33 (48%)</td><td>46 (68%)</td></tr>
+<tr><td><strong>MRD ctDNA au diagnostic</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
+<tr><td>ctDNA_diag (hEq/mL, médian [IQR])</td><td>19 201 [5 388-56 496]</td><td>13 972 [4 581-41 425]</td><td><strong>92 896</strong> [47 358-148 317]</td><td>10 222 [3 785-24 691]</td><td>46 012 [10 112-175 651]</td></tr>
+<tr><td>cfDNA_diag (ng/mL, médian [IQR])</td><td>4 023 [2 256-9 432]</td><td>3 750 [2 122-8 288]</td><td>9 148 [5 263-14 602]</td><td>2 796 [2 000-5 910]</td><td>6 080 [3 450-13 806]</td></tr>
+<tr><td><strong>Évaluation interim</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
+<tr><td>TEP2 Deauville ≥ 4, N (%)</td><td>38 (28%)</td><td>25 (22%)</td><td>13 (57%)</td><td>10 (14%)</td><td>28 (41%)</td></tr>
+<tr><td><strong>Évolution clinique</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
+<tr><td>Événement PFS @ 12mo, N (%)</td><td>23 (17%)</td><td>0 (0%)</td><td>23 (100%)</td><td>5 (7%)</td><td>18 (26%)</td></tr>
+<tr><td>Événement PFS (any time), N (%)</td><td>25 (18%)</td><td>2 (2%)</td><td>23 (100%)</td><td>6 (9%)</td><td>19 (28%)</td></tr>
+<tr><td>Suivi (mois, médian [IQR])</td><td>23 [11-34]</td><td>27 [18-38]</td><td>5 [2-7]</td><td>28 [18-40]</td><td>20 [8-28]</td></tr>
+<tr><td><strong>Chimiothérapie 1ère ligne</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
+<tr><td>· RCHOP-based, N (%)</td><td>59 (43%)</td><td>44 (39%)</td><td>15 (65%)</td><td>—</td><td>59 (87%)</td></tr>
+<tr><td>· BEACOPP/BrECADD, N (%)</td><td>47 (34%)</td><td>43 (38%)</td><td>4 (17%)</td><td>47 (68%)</td><td>—</td></tr>
+<tr><td>· ABVD/AVD-based, N (%)</td><td>23 (17%)</td><td>21 (18%)</td><td>2 (9%)</td><td>22 (32%)</td><td>1 (1%)</td></tr>
+<tr><td>· LMBA (Burkitt), N (%)</td><td>4 (3%)</td><td>4 (4%)</td><td>—</td><td>—</td><td>4 (6%)</td></tr>
+<tr><td>· Obinutuzumab-based, N (%)</td><td>2 (1%)</td><td>1 (1%)</td><td>1 (4%)</td><td>—</td><td>2 (3%)</td></tr>
+<tr><td>· Autre, N (%)</td><td>2 (1%)</td><td>1 (1%)</td><td>1 (4%)</td><td>—</td><td>2 (3%)</td></tr>
+<tr><td><strong>Traitement de 2ème ligne</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
+<tr><td>2ème ligne reçue, N (%)</td><td>25 (18%)</td><td>3 (3%)</td><td>22 (96%)</td><td>7 (10%)</td><td>18 (26%)</td></tr>
+<tr><td>· dont CAR-T (Axi-cel/Liso-cel), N (%)</td><td>13 (9%)</td><td>1 (1%)</td><td>12 (52%)</td><td>1 (1%)</td><td>12 (18%)</td></tr>
+</tbody>
+</table>
+<p class="muted">Table HTML — entièrement vectorielle, accessible (lecteurs d'écran), copiable. Données brutes : <a href="figs/Table1_cohort.csv">CSV</a>.</p>
 
 <h3>11. TRIPOD+AI checklist</h3>
 <p>Le modèle V229.1 suit la checklist <strong>TRIPOD+AI 2024</strong> (Collins et al., BMJ 2024) pour le reporting des modèles de prédiction clinique :</p>
