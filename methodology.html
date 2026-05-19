@@ -997,7 +997,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h2 id="sec-cohorte">XII. Cohorte d'entraînement</h2>
 
 <h3 id="sec-consort">XII.1 Diagramme CONSORT (flow d'inclusion)</h3>
-<p>Flow d'inclusion des patients V230 — endpoint EFS. <strong>IDES est la cohorte maître</strong> (tous les patients avec ≥1 variant détecté au diagnostic sont inclus). <strong>PV est un sous-groupe strict de IDES</strong> (phasage UMI réussi) : les 108 patients M1 PV sont inclus dans les 162 M1 IDES, les 91 M2 PV dans les 136 M2 IDES (vérifié, V15.288). Les exclusions latérales se détachent de la flèche verticale principale (convention CONSORT) :</p>
+<p>Flow d'inclusion des patients V230 — endpoint EFS. <strong>IDES est la cohorte maître</strong> (tous les patients avec une IDES p-value calculée au diagnostic sont inclus). <strong>PV est un sous-groupe strict de IDES</strong> (phasage UMI réussi) : les 108 patients M1 PV sont inclus dans les 162 M1 IDES, les 91 M2 PV dans les 136 M2 IDES (vérifié, V15.288). Les exclusions sont séparées en 2 catégories distinctes : (a) <strong>−9 « absence/aucun variants au diag »</strong> (annotation explicite dans la colonne <code>numero_run_diag</code> de la base clinique, runs 220622/231019/220420/250213/220202/251204/211110/230914/240725) ; (b) <strong>−51 données non disponibles ou perdues</strong> (échantillon perdu, séquençage échoué, autre protocole, etc.). Total = 224 − 60 = 164 patients avec IDES p-value, conduisant aux 162 M1 IDES après −2 exclusions techniques. Les exclusions latérales se détachent de la flèche verticale principale (convention CONSORT) :</p>
 <div class="center">
 <svg viewBox="0 0 1000 700" style="max-width:100%; height:auto; background:#fafbfc; border:1px solid #e2e8f0; border-radius:6px;">
   <defs>
@@ -1039,27 +1039,33 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <text x="500" y="55" class="t9-b" text-anchor="middle">Cohorte clinique screenée</text>
   <text x="500" y="72" class="t9" text-anchor="middle">N = 224 (NGS diag + CXJ1)</text>
 
-  <!-- Flèche verticale 1 : screening → variants détectés (avec branch −60) -->
+  <!-- Flèche verticale 1 : screening → après −9 "absence variants" -->
   <line class="ar" x1="500" y1="83" x2="500" y2="148"/>
-  <line class="ar-e" x1="500" y1="115" x2="660" y2="115"/>
-  <circle class="junction" cx="500" cy="115" r="2.5"/>
-  <rect class="nd-excl" x="660" y="88" width="330" height="56"/>
-  <text x="825" y="105" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−60 sans variant traçable au diag</text>
-  <text x="825" y="120" class="t9-e" text-anchor="middle">10 « absence/aucun variants » (runs 220622, 231019, 220420,</text>
-  <text x="825" y="132" class="t9-e" text-anchor="middle">250213, 220202, 251204, 211110, 230914, 240725) + 50 data lost</text>
+  <line class="ar-e" x1="500" y1="105" x2="660" y2="105"/>
+  <circle class="junction" cx="500" cy="105" r="2.5"/>
+  <rect class="nd-excl" x="660" y="85" width="330" height="42"/>
+  <text x="825" y="102" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−9 absence/aucun variants au diag</text>
+  <text x="825" y="118" class="t9-e" text-anchor="middle">Runs annotés : 220622, 231019, 220420, 250213, 220202, 251204, 211110, 230914, 240725</text>
+
+  <!-- Branche horizontale −51 "data lost / not available" -->
+  <line class="ar-e" x1="500" y1="135" x2="660" y2="135"/>
+  <circle class="junction" cx="500" cy="135" r="2.5"/>
+  <rect class="nd-excl" x="660" y="130" width="330" height="32"/>
+  <text x="825" y="146" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−51 données non disponibles / perdues</text>
+  <text x="825" y="158" class="t9-e" text-anchor="middle">Sample lost, séquençage échoué, autre protocole, etc.</text>
 
   <!-- 2. Box : patients avec variants détectés -->
-  <rect class="nd-mid" x="340" y="153" width="320" height="48" rx="6"/>
-  <text x="500" y="172" class="t9-b" text-anchor="middle">Patients avec ≥1 variant détecté au diag</text>
-  <text x="500" y="190" class="t9" text-anchor="middle">N = 164 (= IDES p-value calculable)</text>
+  <rect class="nd-mid" x="340" y="170" width="320" height="48" rx="6"/>
+  <text x="500" y="189" class="t9-b" text-anchor="middle">Patients avec IDES p-value calculée</text>
+  <text x="500" y="207" class="t9" text-anchor="middle">N = 164 (variants traçables au diag)</text>
 
   <!-- Flèche verticale 2 : variants → M1 IDES master (avec branch −2) -->
-  <line class="ar" x1="500" y1="201" x2="500" y2="266"/>
-  <line class="ar-e" x1="500" y1="233" x2="660" y2="233"/>
-  <circle class="junction" cx="500" cy="233" r="2.5"/>
-  <rect class="nd-excl" x="660" y="213" width="330" height="42"/>
-  <text x="825" y="230" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−2 exclusions techniques</text>
-  <text x="825" y="246" class="t9-e" text-anchor="middle">Patient hors fichier IDES + 1 patient avec data CXJ1 manquante</text>
+  <line class="ar" x1="500" y1="218" x2="500" y2="266"/>
+  <line class="ar-e" x1="500" y1="240" x2="660" y2="240"/>
+  <circle class="junction" cx="500" cy="240" r="2.5"/>
+  <rect class="nd-excl" x="660" y="220" width="330" height="42"/>
+  <text x="825" y="237" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−2 exclusions techniques</text>
+  <text x="825" y="253" class="t9-e" text-anchor="middle">Préfixe MOABI WL incohérent (V15.289) + 1 patient data CXJ1 manquante</text>
 
   <!-- 3. Master box : M1 IDES (cohorte de référence, highlighted) -->
   <rect class="nd-master" x="320" y="271" width="360" height="58"/>
@@ -1140,7 +1146,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <line x1="930" y1="662" x2="960" y2="662" style="stroke:#be185d; stroke-width:1.2; stroke-dasharray:2,3;"/>
   <text x="975" y="667" class="t9-sub" text-anchor="start">⊂</text>
 </svg>
-<p class="muted">Vectoriel SVG — Topologie en cascade vérifiée empiriquement (V15.288). <strong>IDES est la cohorte maître</strong> : tous les patients avec ≥1 variant détecté au diag (N=164) passent par l'analyse IDES p-value, dont 162 sont éligibles Cox EFS (M1 IDES). De ces 162, deux branches indépendantes : (a) <strong>filtre TEP Deauville → M2 IDES ⭐</strong> (136 patients) ; (b) <strong>filtre UMI phasable → M1 PV</strong> (108 patients, strictement inclus dans M1 IDES). M2 PV (91 patients) est l'intersection des deux filtres et donc strictement inclus dans M2 IDES (91/136 ✓). Les 60 patients exclus en amont = 10 « absence/aucun variants au diag » (runs explicitement annotés par l'utilisateur) + 50 données non disponibles (échantillons perdus, séquençage échoué, autre protocole, sans information de run). La flèche pointillée violette indique la relation de sous-ensemble PV ⊂ IDES.</p>
+<p class="muted">Vectoriel SVG — Topologie en cascade vérifiée empiriquement (V15.288 + V15.289). <strong>IDES est la cohorte maître</strong> : tous les patients avec une IDES p-value calculable au diag (N=164) passent par l'analyse IDES, dont 162 sont éligibles Cox EFS (M1 IDES). De ces 162, deux branches indépendantes : (a) <strong>filtre TEP Deauville → M2 IDES ⭐</strong> (136 patients) ; (b) <strong>filtre UMI phasable → M1 PV</strong> (108 patients, strictement inclus dans M1 IDES). M2 PV (91 patients) est l'intersection des deux filtres et donc strictement inclus dans M2 IDES (91/136 ✓). Les 60 patients exclus en amont sont scindés en <strong>2 catégories distinctes</strong> : 9 patients « absence/aucun variants » (annotation explicite sur 9 runs au diagnostic — pas de mutations traçables pour la MRD) + 51 patients « données non disponibles » (échantillons perdus, séquençage échoué, autre protocole, sans run documenté). Les 2 exclusions techniques restantes (162→164) correspondent au patient PATIENT_A (préfixe MOABI WL incohérent, V15.289) et à 1 patient avec data CXJ1 manquante. La flèche pointillée violette indique la relation de sous-ensemble PV ⊂ IDES.</p>
 </div>
 
 <h3 id="sec-table1">XII.2 Caractéristiques baseline (Table 1)</h3>
