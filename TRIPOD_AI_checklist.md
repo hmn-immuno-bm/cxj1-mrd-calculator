@@ -40,7 +40,7 @@
 | **7. Outcome** | ✅ | Methods §3 | Primary: Progression-free survival (PFS) at 12 months from C1J1 (treatment initiation); composite event = histologically/imaging-confirmed progression OR death (Aalen-Johansen CIF shows death-only competing risk = 0.005, negligible) |
 | **8. Predictors** : detailed list with type, units, timing | ✅ | Methods §4 | 4 covariates per pipeline variant : `score_kin` (continuous, log-likelihood ratio of trajectory under bad vs good mono-exp), `log_burden_hEq` (continuous, log(1+ctDNA_diag) where ctDNA_diag = VAF_diag × cfDNA_Qubit_diag in haploid genome equivalents/mL), `v5A_gated` (continuous, weighted by driver count and quality gate), `TEP2_pos` (binary, Deauville ≥4 at interim FDG-PET/CT) |
 | **9. Sample size** : justification | ⚠️ | Methods §5 | Pragmatic (all consecutive eligible patients). Events-per-variable (EPV) check: 25 events / 4 covariates = 6.25 EPV (below 10 conventional threshold but mitigated by partial pooling IDES⟷PV sharing 3 of 4 coefs). |
-| **10. Missing data** : handling | ✅ | Methods §6 | Listwise deletion (complete-case analysis) for the development. Missing TEP routed to M1 variants (without TEP). Missing cfDNA routed to VAF variants. 1 patient (PHETMANY) excluded for cfDNA extraction failure. 1 patient (KINZELIN, DLBCL primitive CNS) with TEP "Non fait" — classified TEP− by default in M2 variant. |
+| **10. Missing data** : handling | ✅ | Methods §6 | Listwise deletion (complete-case analysis) for the development. Missing TEP routed to M1 variants (without TEP). Missing cfDNA routed to VAF variants. 1 patient excluded for cfDNA extraction failure. 1 patient with DLBCL and TEP "Non fait" — routed to M1 variant. |
 
 ## Methods — Statistical analysis
 

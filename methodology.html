@@ -654,16 +654,16 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h3 id="sec-endpoint">XI.10 Choix d'endpoint : PFS → EFS (justification V230)</h3>
 <p>L'endpoint historique V229.x était <strong>PFS</strong> (= Rechute OR Progression OR Mort toute cause). Question : si on restreint aux événements lymphome-spécifiques (R/R = Rechute OR Progression, censurant les morts sans rechute/progression), les coefficients et la performance changent-ils ?</p>
 <p>Sur 223 patients IDES + 221 PV, on identifie <strong>5 patients PFS=1 mais R/R=0</strong>, deux situations distinctes :</p>
-<p><strong>(a) 3 morts strictement non-lymphome</strong> (perte d'événement R/R justifiée) :</p>
+<p><strong>(a) 3 décès strictement non-lymphome</strong> (perte d'événement R/R justifiée) :</p>
 <ul>
-<li><strong>PATIENT_F</strong> — Mort COVID @ 6 mo (Rechute=0, Progression=0)</li>
-<li><strong>PATIENT_G</strong> — Mort COVID nosocomial au cours de l'autogreffe @ 4 mo</li>
-<li><strong>PATIENT_H</strong> — Mort sur ulcère gastrique hémorragique (témoin de Jéhova ayant refusé les transfusions) @ 6 mo</li>
+<li>1 décès COVID communautaire @ 6 mo (Rechute=0, Progression=0)</li>
+<li>1 décès COVID nosocomial pendant l'autogreffe @ 4 mo</li>
+<li>1 décès par hémorragie sur ulcère gastrique en contexte de contre-indication aux transfusions @ 6 mo</li>
 </ul>
 <p><strong>(b) 2 patients VIVANTS perdus de vue tardivement, PFS=1 mal encodé</strong> (saisie erronée : DDN_progression = date du dernier contact, pas date d'événement) :</p>
 <ul>
-<li><strong>PATIENT_D</strong> — vivant, perdu de vue le 2026-01-22 (≈ 55 mo). Correction propre : PFS=0 censuré.</li>
-<li><strong>PATIENT_E</strong> — vivant, perdu de vue le 2026-02-16 (≈ 48.9 mo). Correction propre : PFS=0 censuré.</li>
+<li>Patient vivant, perdu de vue ≈ 55 mo post-C1J1. Correction propre : PFS=0 censuré.</li>
+<li>Patient vivant, perdu de vue ≈ 49 mo post-C1J1. Correction propre : PFS=0 censuré.</li>
 </ul>
 <p class="muted">Impact sur le calculateur déployé : <strong>aucun</strong>. Ces 2 patients ont <code>VAF_diag = NaN</code> et sont déjà exclus des cohortes M2/M1 V230. Vérifié empiriquement (script <code>_v15_276</code>) : ΔC-index = 0.0000 partout.</p>
 
@@ -705,7 +705,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <p><strong>Cohérence mono-exp C2 → C3</strong> : sur les 24 bi-tp, on a comparé VAF_C3 observée vs VAF_C3 prédite par mono-exp depuis C2 (λ_good par histo, Δt = 21j).</p>
 <ul>
-<li><strong>12 patients en REBOND</strong> (VAF_C3 &gt; VAF_C2, 50% des bi-tp) — comportement atypique. <strong>Néanmoins 11/12 sont restés good responders</strong> (EFS=0 à 18-38mo). Un seul (JUNOT, DLBCL) a rechuté à 11mo.</li>
+<li><strong>12 patients en REBOND</strong> (VAF_C3 &gt; VAF_C2, 50% des bi-tp) — comportement atypique. <strong>Néanmoins 11/12 sont restés good responders</strong> (EFS=0 à 18-38mo). Un seul patient DLBCL parmi ces 12 a rechuté à 11mo.</li>
 <li><strong>12 patients en plateau</strong> (VAF_C3 ≤ VAF_C2 mais décroissance plus lente que λ_good). Mix de good et bad responders.</li>
 <li><strong>0 patient avec décroissance « good-like » stricte</strong> (VAF_C3 ≪ prédit) : λ_good prédit VAF_C3 quasi-nul en 21j, donc toute mesure positive est mécaniquement classée plateau ou rebond.</li>
 </ul>
@@ -730,9 +730,9 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p>Une approche joint longitudinal-survival two-stage (mixed-effects LMM extrayant un slope individuel par BLUP, puis Cox sur ce slope) a été testée comme alternative à <code>score_kin</code>. <strong>Bootstrap optimism-corrected (B=200) : score_kin C=0.791 vs BLUP C=0.777 (Δ=−0.014)</strong>. Le score_kin résumé (4 trajectoires moyennes par histo×responder) est plus robuste car moins de paramètres individuels à estimer sur cohorte limitée.</p>
 
 <h3 id="sec-competing">XI.14 Risque compétitif (mort non-lymphome)</h3>
-<p>Sur N=223 patients clinique, on dénombre <strong>3 morts strictement non-liées au lymphome</strong> (PATIENT_F COVID @ 6mo, PATIENT_G COVID nosocomial autogreffe @ 4mo, PATIENT_H ulcère hémorragique chez témoin de Jéhova @ 6mo — cf. <a href="#sec-endpoint">§XI.10</a>). Sous l'endpoint <strong>V230 EFS</strong>, ces patients sont <strong>censurés au temps du décès</strong> (pas comptés comme événement R/P), ce qui correspond à la gestion canonique du risque compétitif par <em>censoring informatif faible</em> compte tenu de la faible fréquence (3/223 = 1.3%).</p>
-<p>Sous l'ancien endpoint PFS (V229.x), ces 3 morts étaient comptées comme événements composites. L'analyse Aalen-Johansen CIF à 12 mois donnait : progression 0.225, décès « pur » (sans R/P préalable) 0.013, soit un risque compétitif &lt; 2%. Une approche Fine-Gray distincte du Cox composite n'aurait apporté aucune amélioration significative (différence de cumulative incidence &lt; 0.005).</p>
-<p>Avec le passage à EFS, la question du risque compétitif <strong>disparaît par construction</strong> : ces patients sont à risque jusqu'au décès puis censurés, exactement comme s'ils étaient perdus de vue. La sous-estimation potentielle est négligeable (3 patients, dont 2 ont en plus <code>VAF_diag = NaN</code> et sont donc déjà exclus des cohortes M2/M1 V230 — seul PATIENT_H reste dans la cohorte).</p>
+<p>Sur N=223 patients clinique, on dénombre <strong>3 décès strictement non-liés au lymphome</strong> (2 COVID, 1 hémorragie sur ulcère en contexte de contre-indication aux transfusions — cf. <a href="#sec-endpoint">§XI.10</a>). Sous l'endpoint <strong>V230 EFS</strong>, ces patients sont <strong>censurés au temps du décès</strong> (pas comptés comme événement R/P), ce qui correspond à la gestion canonique du risque compétitif par <em>censoring informatif faible</em> compte tenu de la faible fréquence (3/223 = 1.3%).</p>
+<p>Sous l'ancien endpoint PFS (V229.x), ces 3 décès étaient comptés comme événements composites. L'analyse Aalen-Johansen CIF à 12 mois donnait : progression 0.225, décès « pur » (sans R/P préalable) 0.013, soit un risque compétitif &lt; 2%. Une approche Fine-Gray distincte du Cox composite n'aurait apporté aucune amélioration significative (différence de cumulative incidence &lt; 0.005).</p>
+<p>Avec le passage à EFS, la question du risque compétitif <strong>disparaît par construction</strong> : ces patients sont à risque jusqu'au décès puis censurés, exactement comme s'ils étaient perdus de vue. La sous-estimation potentielle est négligeable (3 patients, dont 2 ont en plus <code>VAF_diag = NaN</code> et sont déjà exclus des cohortes M2/M1 V230 — un seul reste dans la cohorte).</p>
 
 <h3 id="vpn-depth">XI.15 Couverture moléculaire (Σ DEPTH / Σ PCU) — pourquoi pas covariable</h3>
 <p><strong>Précision sémantique</strong> : ce qu'on appelle ici « Σ DEPTH » ou « Σ PCU » n'est pas la profondeur par variant, mais le <strong>nombre total de molécules analysées par patient</strong> = Σ sur la Watch List de la couverture à chaque variant. Pour IDES : Σ NbrReadDepth (reads × n_variants_WL). Pour PV : Σ fu_pos_UMI = Σ Position Common UMI. C'est le « budget moléculaire » global qui détermine la sensibilité de détection des résiduels.</p>
@@ -954,13 +954,13 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p class="muted">Table HTML — entièrement vectorielle, accessible (lecteurs d'écran), copiable. Données brutes : <a href="figs/Table1_cohort.csv">CSV</a>.</p>
 
 <h3 id="sec-atypiques">XII.3 Patients atypiques documentés</h3>
-<p>Quelques patients méritent une mention spécifique pour la traçabilité de la cohorte :</p>
+<p>Quelques profils patients méritent une mention pour la traçabilité de la cohorte (catégories anonymisées) :</p>
 <ul>
-<li><strong>KINZELIN</strong> — DLBCL réfractaire (progression à 2 mo, décès à 4 mo), TEP « Non fait » → routé en M1.</li>
-<li><strong>PHETMANY</strong> — échec d'extraction cfDNA et <code>numero_run_diag = 'non_sequence?'</code> → exclu (VAF_diag indétectable).</li>
-<li><strong>PATIENT_L</strong> (Hodgkin, 2BEACOPP+4ABVD) — étiqueté C3J1 mais délai 98 j post-C1J1 ; probablement C4J1 (cycles longs). Bon répondeur clinique (Deauville 2, EFS=0 @ 34mo) — impact production minimal (VAF_CXJ1=0, polish actif).</li>
-<li><strong>PATIENT_M</strong> (DLBCL Poppemat, 6RCHOP) — étiqueté C3J1 mais délai <strong>105 j = exactement C6J1</strong> (6×21j). Sample probablement post-fin de traitement, mal étiqueté. Éligible M1_hEq, r12 prédit ~20% (zone Modéré), EFS=0 @ 23mo confirmé.</li>
-<li><strong>PATIENT_D, PATIENT_E</strong> — vivants, perdus de vue tardivement, PFS=1 mal encodé dans la base (cf. <a href="#sec-endpoint">§XI.10</a>). Exclus des cohortes V230 par VAF_diag=NaN.</li>
+<li><strong>DLBCL réfractaire avec TEP non fait</strong> (N=1) — progression à 2 mo, décès à 4 mo. Routé en M1.</li>
+<li><strong>Échec d'extraction cfDNA au diagnostic</strong> (N=1) — <code>numero_run_diag = 'non_sequence?'</code> → exclu de la cohorte (VAF_diag indétectable).</li>
+<li><strong>Hodgkin classique sous 2BEACOPP + 4ABVD</strong> (N=1) — étiqueté C3J1 mais délai réel 98 j post-C1J1, compatible avec C4J1 (cycles longs). Bon répondeur clinique (Deauville 2, EFS=0 @ 34 mo) ; impact production minimal car VAF_CXJ1=0 (polish actif).</li>
+<li><strong>DLBCL sous 6 RCHOP</strong> (N=1) — étiqueté C3J1 mais délai <strong>105 j = exactement C6J1</strong> (6 × 21 j). Échantillon probablement post-fin de traitement, mal étiqueté. Éligible M1_hEq, r12 prédit ≈ 20 % (zone Modéré), EFS=0 @ 23 mo confirmé.</li>
+<li><strong>2 patients vivants perdus de vue tardivement</strong> — PFS=1 mal encodé dans la base (cf. <a href="#sec-endpoint">§XI.10</a>). Exclus des cohortes V230 par <code>VAF_diag=NaN</code>.</li>
 </ul>
 </div>
 
