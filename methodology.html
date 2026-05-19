@@ -498,47 +498,183 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h3>Performance par zone × variante (V230 EFS, cohorte d'entraînement)</h3>
 
 <div class="warn" style="margin:10px 0 14px; font-size:13px;">
-<strong>⚠ Lecture des valeurs « 0.0% »</strong> — Estimations Kaplan-Meier ajustées pour la censure. <strong>EFS@24 = 0.0%</strong> signifie que tous les patients <em>encore à risque à 24 mois</em> (non censurés et sans événement avant) ont eu un événement avant 24mo. Cela ne veut <strong>pas</strong> dire que la totalité de la zone est décédée — certains patients peuvent être encore en suivi avec un recul &lt; 24 mo (censurés à droite). La zone <strong>Élevé</strong> est petite (N=9 à 21 selon variante) et la valeur s'estime donc sur un sous-ensemble réduit. La <a href="#fig-km-tern">figure KM</a> ci-dessous montre les courbes complètes avec ticks de censure et N at-risk.
+<strong>⚠ Lecture des valeurs « 0.0% »</strong> — Estimations Kaplan-Meier ajustées pour la censure. <strong>EFS@24 = 0.0%</strong> signifie que tous les patients <em>encore à risque à 24 mois</em> (non censurés et sans événement avant) ont eu un événement avant 24mo. Cela ne veut <strong>pas</strong> dire que la totalité de la zone est décédée — certains patients peuvent être encore en suivi avec un recul &lt; 24 mo (censurés à droite). La zone <strong>Élevé</strong> est petite (N=9 à 21 selon variante) et la valeur s'estime donc sur un sous-ensemble réduit. Les <strong>tick marks verticaux (|)</strong> sur les courbes représentent les censures, et le tableau <strong>« At risk »</strong> sous chaque axe X montre les N restants. Toutes les figures sont <strong>vectorielles SVG</strong> (zoom propre, recherche texte).
 </div>
 
-<h4 style="color:#1e40af;">Pipeline IDES</h4>
-<table>
-<tr><th rowspan="2">Variante</th><th colspan="3">🟢 Faible (r12 ≤ 5%)</th><th colspan="3">🟡 Modéré (5–35%)</th><th colspan="3">🔴 Élevé (r12 &gt; 35%)</th></tr>
-<tr><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>40 (1)</td><td>97.5%</td><td>97.5%</td><td>76 (11)</td><td>88.0%</td><td>84.6%</td><td>20 (14)</td><td>31.4%</td><td>21.0%</td></tr>
-<tr><td>M2_hEq Delta</td><td>11 (0)</td><td>100.0%</td><td>100.0%</td><td>88 (12)</td><td>88.5%</td><td>85.7%</td><td>19 (13)</td><td>33.4%</td><td>22.3%</td></tr>
-<tr><td>M1_hEq</td><td>35 (1)</td><td>97.1%</td><td>97.1%</td><td>103 (16)</td><td>87.3%</td><td>83.6%</td><td>24 (15)</td><td>39.5%</td><td>31.6%</td></tr>
-<tr><td>M2_VAF Deauv</td><td>28 (0)</td><td>100.0%</td><td>100.0%</td><td>89 (13)</td><td>87.4%</td><td>84.6%</td><td>19 (13)</td><td>35.1%</td><td>23.4%</td></tr>
-<tr><td>M2_VAF Delta</td><td>1 (0)</td><td>100.0%</td><td>100.0%</td><td>102 (14)</td><td>88.0%</td><td>85.6%</td><td>15 (11)</td><td>31.1%</td><td>15.6%</td></tr>
-<tr><td>M1_VAF</td><td>7 (0)</td><td>100.0%</td><td>100.0%</td><td>134 (19)</td><td>88.0%</td><td>85.1%</td><td>21 (13)</td><td>41.3%</td><td>31.0%</td></tr>
-</table>
+<style>
+  .km-block { margin: 22px 0 12px; padding: 12px 0; border-top: 1px solid #e2e8f0; }
+  .km-block > h4 { margin: 0 0 14px 0; color: #1e40af; font-size: 16px; text-align: center; }
+  .km-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .km-pair > div { text-align: center; }
+  .km-pair img { max-width: 100%; height: auto; display: block; margin: 0 auto 8px; }
+  .km-mini { width: 95%; margin: 0 auto; font-size: 12px; border-collapse: collapse; }
+  .km-mini th, .km-mini td { padding: 4px 6px; border-bottom: 1px solid #e2e8f0; text-align: center; }
+  .km-mini th { background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; }
+  .km-mini .zone-F { background: #ecfdf5; }
+  .km-mini .zone-M { background: #fffbeb; }
+  .km-mini .zone-E { background: #fef2f2; }
+  @media (max-width: 800px) { .km-pair { grid-template-columns: 1fr; } }
+</style>
 
-<h4 style="color:#1e40af;">Pipeline PV</h4>
-<table>
-<tr><th rowspan="2">Variante</th><th colspan="3">🟢 Faible (r12 ≤ 5%)</th><th colspan="3">🟡 Modéré (5–35%)</th><th colspan="3">🔴 Élevé (r12 &gt; 35%)</th></tr>
-<tr><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>43 (1)</td><td>97.7%</td><td>97.7%</td><td>39 (6)</td><td>91.4%</td><td>79.6%</td><td>9 (9)</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
-<tr><td>M2_hEq Delta</td><td>18 (0)</td><td>100.0%</td><td>100.0%</td><td>52 (6)</td><td>91.8%</td><td>86.6%</td><td>9 (9)</td><td>11.1%</td><td><strong>0.0%</strong></td></tr>
-<tr><td>M1_hEq</td><td>24 (0)</td><td>100.0%</td><td>100.0%</td><td>73 (12)</td><td>87.3%</td><td>81.5%</td><td>11 (9)</td><td>11.4%</td><td>11.4%</td></tr>
-<tr><td>M2_VAF Deauv</td><td>37 (4)</td><td>89.1%</td><td>89.1%</td><td>45 (3)</td><td>100.0%</td><td>89.9%</td><td>9 (9)</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
-<tr><td>M2_VAF Delta</td><td>9 (1)</td><td>88.9%</td><td>88.9%</td><td>61 (5)</td><td>94.7%</td><td>90.5%</td><td>9 (9)</td><td>11.1%</td><td><strong>0.0%</strong></td></tr>
-<tr><td>M1_VAF</td><td>8 (0)</td><td>100.0%</td><td>100.0%</td><td>88 (12)</td><td>89.5%</td><td>84.6%</td><td>12 (9)</td><td>20.0%</td><td>20.0%</td></tr>
-</table>
+<!-- ════════════ Variante 1 : M2_hEq Deauv ⭐ ════════════ -->
+<div class="km-block" id="km-M2hEqDeauv">
+<h4>M2_hEq Deauv &nbsp;⭐&nbsp; <span style="font-weight:normal;color:#64748b;font-size:14px;">— variante optimale (Deauville + cfDNA Qubit)</span></h4>
+<div class="km-pair">
+  <div>
+    <img src="figs/tern_v230/KM_M2_hEq_Deauv_IDES.svg" alt="KM M2_hEq Deauv IDES — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>40 (1)</td><td>97.5%</td><td>97.5%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>76 (11)</td><td>88.0%</td><td>84.6%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>20 (14)</td><td>31.4%</td><td>21.0%</td></tr>
+    </table>
+  </div>
+  <div>
+    <img src="figs/tern_v230/KM_M2_hEq_Deauv_PV.svg" alt="KM M2_hEq Deauv PV — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>43 (1)</td><td>97.7%</td><td>97.7%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>39 (6)</td><td>91.4%</td><td>79.6%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>9 (9)</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
+    </table>
+  </div>
+</div>
+</div>
 
-<div class="success">
+<!-- ════════════ Variante 2 : M2_hEq Delta ════════════ -->
+<div class="km-block" id="km-M2hEqDelta">
+<h4>M2_hEq Delta &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— ΔSUVmax% fallback + cfDNA Qubit</span></h4>
+<div class="km-pair">
+  <div>
+    <img src="figs/tern_v230/KM_M2_hEq_Delta_IDES.svg" alt="KM M2_hEq Delta IDES — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>11 (0)</td><td>100.0%</td><td>100.0%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>88 (12)</td><td>88.5%</td><td>85.7%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>19 (13)</td><td>33.4%</td><td>22.3%</td></tr>
+    </table>
+  </div>
+  <div>
+    <img src="figs/tern_v230/KM_M2_hEq_Delta_PV.svg" alt="KM M2_hEq Delta PV — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>18 (0)</td><td>100.0%</td><td>100.0%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>52 (6)</td><td>91.8%</td><td>86.6%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>9 (9)</td><td>11.1%</td><td><strong>0.0%</strong></td></tr>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ════════════ Variante 3 : M1_hEq ════════════ -->
+<div class="km-block" id="km-M1hEq">
+<h4>M1_hEq &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— sans TEP, avec cfDNA Qubit</span></h4>
+<div class="km-pair">
+  <div>
+    <img src="figs/tern_v230/KM_M1_hEq_IDES.svg" alt="KM M1_hEq IDES — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>35 (1)</td><td>97.1%</td><td>97.1%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>103 (16)</td><td>87.3%</td><td>83.6%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>24 (15)</td><td>39.5%</td><td>31.6%</td></tr>
+    </table>
+  </div>
+  <div>
+    <img src="figs/tern_v230/KM_M1_hEq_PV.svg" alt="KM M1_hEq PV — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>24 (0)</td><td>100.0%</td><td>100.0%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>73 (12)</td><td>87.3%</td><td>81.5%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>11 (9)</td><td>11.4%</td><td>11.4%</td></tr>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ════════════ Variante 4 : M2_VAF Deauv ════════════ -->
+<div class="km-block" id="km-M2VAFDeauv">
+<h4>M2_VAF Deauv &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— Deauville sans cfDNA Qubit</span></h4>
+<div class="km-pair">
+  <div>
+    <img src="figs/tern_v230/KM_M2_VAF_Deauv_IDES.svg" alt="KM M2_VAF Deauv IDES — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>28 (0)</td><td>100.0%</td><td>100.0%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>89 (13)</td><td>87.4%</td><td>84.6%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>19 (13)</td><td>35.1%</td><td>23.4%</td></tr>
+    </table>
+  </div>
+  <div>
+    <img src="figs/tern_v230/KM_M2_VAF_Deauv_PV.svg" alt="KM M2_VAF Deauv PV — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>37 (4)</td><td>89.1%</td><td>89.1%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>45 (3)</td><td>100.0%</td><td>89.9%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>9 (9)</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ════════════ Variante 5 : M2_VAF Delta ════════════ -->
+<div class="km-block" id="km-M2VAFDelta">
+<h4>M2_VAF Delta &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— ΔSUVmax% fallback sans cfDNA</span></h4>
+<div class="km-pair">
+  <div>
+    <img src="figs/tern_v230/KM_M2_VAF_Delta_IDES.svg" alt="KM M2_VAF Delta IDES — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>1 (0)</td><td>100.0%</td><td>100.0%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>102 (14)</td><td>88.0%</td><td>85.6%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>15 (11)</td><td>31.1%</td><td>15.6%</td></tr>
+    </table>
+  </div>
+  <div>
+    <img src="figs/tern_v230/KM_M2_VAF_Delta_PV.svg" alt="KM M2_VAF Delta PV — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>9 (1)</td><td>88.9%</td><td>88.9%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>61 (5)</td><td>94.7%</td><td>90.5%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>9 (9)</td><td>11.1%</td><td><strong>0.0%</strong></td></tr>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ════════════ Variante 6 : M1_VAF ════════════ -->
+<div class="km-block" id="km-M1VAF">
+<h4>M1_VAF &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— modèle minimal (ni TEP ni cfDNA Qubit)</span></h4>
+<div class="km-pair">
+  <div>
+    <img src="figs/tern_v230/KM_M1_VAF_IDES.svg" alt="KM M1_VAF IDES — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>7 (0)</td><td>100.0%</td><td>100.0%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>134 (19)</td><td>88.0%</td><td>85.1%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>21 (13)</td><td>41.3%</td><td>31.0%</td></tr>
+    </table>
+  </div>
+  <div>
+    <img src="figs/tern_v230/KM_M1_VAF_PV.svg" alt="KM M1_VAF PV — Tern 5/35"/>
+    <table class="km-mini">
+      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
+      <tr class="zone-F"><td>🟢 Faible</td><td>8 (0)</td><td>100.0%</td><td>100.0%</td></tr>
+      <tr class="zone-M"><td>🟡 Modéré</td><td>88 (12)</td><td>89.5%</td><td>84.6%</td></tr>
+      <tr class="zone-E"><td>🔴 Élevé</td><td>12 (9)</td><td>20.0%</td><td>20.0%</td></tr>
+    </table>
+  </div>
+</div>
+</div>
+
+<div class="success" style="margin-top:24px;">
 <strong>Observations clés :</strong>
 <ul>
   <li>Zone <strong>Faible</strong> excellente partout (EFS@24 ≈ 97-100% dans toutes les variantes ; ≤ 5% est très strict mais réservé aux patients vraiment "safe").</li>
   <li>Zone <strong>Modéré</strong> bien séparée de Faible (EFS@24 ≈ 80-90%, gap de 13-18 pt vs Faible). Évènements tardifs visibles, justifiant la surveillance rapprochée (TEP supplémentaire, MRD régulière).</li>
   <li>Zone <strong>Élevé</strong> en M2 + PV ⇒ EFS@24 = 0% sur N=9 (toutes rechutes avant 12 mo). En M1 (sans TEP), 11-20% survivent tardivement — argument pour inclure le Deauville quand disponible.</li>
   <li>Cohérence entre variantes : M1 vs M2 décale légèrement les effectifs Faible (moins de patients en Faible sans TEP → 5% plus difficile à atteindre) mais préserve la séparation Modéré ↔ Faible (gap @24 ≈ 14-16 pt) et Élevé (EFS@24 ≈ 11-32%).</li>
+  <li><strong>Lecture zone Élevé PV (N=9, evt=9)</strong> : courbe rouge plonge à 0% vers 11 mo, IC95% large. Pour un nouveau patient prédit à 60%, la <em>calibration locale KNN</em> du calculateur (cercle violet) donne l'estimation contextuelle des voisins en LP. L'utilité clinique de la zone Élevé est d'identifier <em>un sous-groupe à haut risque</em> pour discussion RCP, pas de prophétiser un événement certain.</li>
 </ul>
-</div>
-
-<div class="center" id="fig-km-tern">
-<img class="figure" src="figs/METHODO_v2_KM_tern_both.png" alt="KM curves by Tern zone (M2_hEq Deauv V230) with censoring ticks and N at-risk">
-<p class="muted">Courbes Kaplan-Meier V230 par zone Tern 5/35 pour la variante optimale M2_hEq Deauv (IDES à gauche, PV à droite). Les <strong>tick marks verticaux (|)</strong> représentent les censures (perdus de vue ou suivi en cours). Le tableau <strong>« At risk »</strong> sous l'axe X indique le N restant à 0/6/12/18/24/30/36 mo. Bande colorée = IC95% Greenwood.<br><br>
-<strong>Lecture zone Élevé PV (N=9, evt=9)</strong> : courbe rouge plonge à 0% vers 11 mo, N at-risk passe de 9 → 3 → 0 dès 7 mo. Cela ne veut <em>pas</em> dire que tout patient à r12 &gt; 35% va rechuter à coup sûr — l'IC95% est large (cohorte 9 patients). Pour un nouveau patient prédit à 60%, la <em>calibration locale KNN</em> du calculateur (cercle violet) donne l'estimation contextuelle des voisins en LP, souvent plus optimiste que l'extrapolation Tern. L'utilité clinique de la zone Élevé est d'identifier <em>un sous-groupe à haut risque</em> pour discussion RCP, pas de prophétiser un événement certain.</p>
 </div>
 </div>
 
