@@ -1401,18 +1401,101 @@ function sensitivityAnalysis() {
   document.getElementById('cfdna_cxj1').value = orig.cc;
   calculate();
 
-  // Display in a modal-like alert
-  let txt = '🎯 SENSITIVITY ANALYSIS (±10% perturbations)\\n\\n';
-  txt += 'Scenario'.padEnd(28) + ' | r12 prédit\\n';
-  txt += '─'.repeat(45) + '\\n';
+  // Display in a proper HTML modal (lisible + copiable)
   const ref_r12 = results[0].r12;
+  let stdev = null;
+  const valid = results.filter(r => r.r12 !== null).map(r => r.r12);
+  if (valid.length > 1) {
+    const mean = valid.reduce((a,b)=>a+b,0) / valid.length;
+    stdev = Math.sqrt(valid.reduce((a,b)=>a+(b-mean)**2,0) / valid.length);
+  }
+
+  // Build HTML rows
+  let rows = '';
   for (const r of results) {
     const diff = (r.r12 !== null && ref_r12 !== null) ? (r.r12 - ref_r12) : null;
-    const diff_str = diff !== null ? (diff>=0 ? '+':'') + diff.toFixed(1) + 'pt' : '-';
-    txt += (r.name.padEnd(28) + ' | ' + (r.r12!==null ? r.r12.toFixed(1)+'%' : '-').padEnd(8) + ' (' + diff_str + ')\\n');
+    const diff_str = diff !== null ? ((diff>=0 ? '+':'') + diff.toFixed(2) + ' pt') : '—';
+    const diff_color = diff === null ? '#94a3b8' : (Math.abs(diff) < 0.5 ? '#16a34a' : (Math.abs(diff) < 2 ? '#ca8a04' : '#dc2626'));
+    const is_ref = r.name === 'Reference';
+    rows += `<tr${is_ref ? ' style="background:#f1f5f9;font-weight:600;"' : ''}>
+      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;">${r.name}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;">${r.r12 !== null ? r.r12.toFixed(2)+'%' : '—'}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;color:${diff_color};">${diff_str}</td>
+    </tr>`;
   }
-  txt += '\\nNote: Stabilité = écart-type r12 sur tous les scénarios.';
-  alert(txt);
+
+  // Plain text version for clipboard copy
+  const lines = ['Analyse de sensibilité ±10% — r12 prédit', ''];
+  lines.push('Scénario'.padEnd(28) + 'r12'.padStart(10) + '   Δ vs ref');
+  lines.push('-'.repeat(54));
+  for (const r of results) {
+    const diff = (r.r12 !== null && ref_r12 !== null) ? (r.r12 - ref_r12) : null;
+    const diff_str = diff !== null ? ((diff>=0 ? '+':'') + diff.toFixed(2) + ' pt') : '-';
+    lines.push(r.name.padEnd(28) + (r.r12 !== null ? r.r12.toFixed(2)+'%' : '-').padStart(10) + '   ' + diff_str);
+  }
+  if (stdev !== null) lines.push('', 'Écart-type r12 (stabilité globale) : ' + stdev.toFixed(2) + ' pt');
+  const plain_text = lines.join('\n');
+
+  // Modal markup
+  let modal = document.getElementById('sensitivity_modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'sensitivity_modal';
+  modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;';
+  modal.innerHTML = `
+    <div style="background:white; border-radius:10px; max-width:680px; width:100%; max-height:88vh; overflow-y:auto; box-shadow:0 10px 40px rgba(0,0,0,0.3); display:flex; flex-direction:column;">
+      <div style="padding:16px 20px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between;">
+        <h3 style="margin:0; color:#7c3aed; font-size:16px;">🎯 Analyse de sensibilité ±10%</h3>
+        <button onclick="document.getElementById('sensitivity_modal').remove();" style="background:transparent; border:none; font-size:22px; cursor:pointer; color:#64748b; padding:0 4px; line-height:1;">×</button>
+      </div>
+      <div style="padding:14px 20px;">
+        <p style="margin:0 0 12px; font-size:13px; color:#475569;">Variation ±10% de chaque input pour évaluer la stabilité de r12. ${stdev !== null ? '<strong>Écart-type r12 = '+stdev.toFixed(2)+' pt</strong> sur les scénarios.' : ''}</p>
+        <table style="width:100%; font-size:13px; border-collapse:collapse; user-select:text;">
+          <thead><tr style="background:#7c3aed; color:white;">
+            <th style="padding:8px 10px; text-align:left;">Scénario</th>
+            <th style="padding:8px 10px; text-align:right;">r12 prédit</th>
+            <th style="padding:8px 10px; text-align:right;">Δ vs référence</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div style="margin-top:14px; padding:10px; background:#f8fafc; border-radius:6px; font-size:12px; color:#475569;">
+          <strong>Légende</strong> :
+          <span style="color:#16a34a;">vert</span> = très stable (|Δ| &lt; 0.5pt) ·
+          <span style="color:#ca8a04;">orange</span> = stable (|Δ| &lt; 2pt) ·
+          <span style="color:#dc2626;">rouge</span> = sensible (|Δ| ≥ 2pt).
+        </div>
+      </div>
+      <div style="padding:12px 20px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; gap:10px; justify-content:flex-end;">
+        <button id="sens_copy_btn" style="padding:8px 18px; background:#1e40af; color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px;">📋 Copier les résultats</button>
+        <button onclick="document.getElementById('sensitivity_modal').remove();" style="padding:8px 18px; background:#64748b; color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px;">Fermer</button>
+      </div>
+    </div>
+  `;
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+
+  // Copy button
+  document.getElementById('sens_copy_btn').addEventListener('click', () => {
+    const btn = document.getElementById('sens_copy_btn');
+    const done = (ok) => {
+      btn.textContent = ok ? '✓ Copié !' : '❌ Échec';
+      btn.style.background = ok ? '#16a34a' : '#dc2626';
+      setTimeout(() => { btn.textContent = '📋 Copier les résultats'; btn.style.background = '#1e40af'; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(plain_text).then(() => done(true)).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = plain_text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(true); } catch(_) { done(false); }
+        ta.remove();
+      });
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = plain_text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(true); } catch(_) { done(false); }
+      ta.remove();
+    }
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════
