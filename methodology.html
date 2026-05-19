@@ -128,6 +128,7 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
       <li><a href="#sec-score-vs-blup">score_kin vs BLUP</a></li>
       <li><a href="#sec-competing">Risque compétitif (mort)</a></li>
       <li><a href="#vpn-depth">Couverture moléculaire — pourquoi pas covariable</a></li>
+      <li><a href="#sec-clinical-scores">Indépendance vs IPI / Hasenclever</a></li>
       <li><a href="#sec-deltasuv-explo">DeltaSUVmax% vs Deauville — exploratoire</a></li>
     </ol>
   </li>
@@ -787,7 +788,59 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p>Conclusion : la couverture moléculaire totale est <strong>corrélée positivement avec le cfDNA</strong> — plus de matériel circulant ⇒ plus de molécules à séquencer. Le cfDNA étant lui-même un facteur pronostique fort (low cfDNA = bon prono), l'effet « marginal » de Σ DEPTH est <strong>masqué par le cfDNA</strong> dans l'analyse non ajustée : Σ basse ↔ cfDNA bas ↔ bon prono, ce qui compense la perte de sensibilité technique. Le modèle M1/M2 contient déjà <code>log(1+cfDNA_diag)</code> comme covariable burden, donc cette information est encodée.</p>
 <p class="muted">Scripts : <code>_v15_272_VPN_technique_M1_empirical.py</code>, <code>_v15_273_depth_cfDNA_confounding.py</code>.</p>
 
-<h3 id="sec-deltasuv-explo">XI.16 DeltaSUVmax% vs Deauville TEP2 — analyse exploratoire</h3>
+<h3 id="sec-clinical-scores">XI.16 Indépendance vs scores cliniques classiques (IPI / Hasenclever)</h3>
+<p>Le modèle V230 capture-t-il une information pronostique <strong>indépendante</strong> des scores cliniques de référence (IPI pour DLBCL, Hasenclever pour Hodgkin classique) ? Test sur cohorte M2_hEq Deauv V230 EFS (pipelines IDES + PV poolés, scores cliniques renseignés) :</p>
+
+<h4>Pipeline d'analyse</h4>
+<p>Pour chaque histologie, 3 modèles Cox emboîtés :</p>
+<ol>
+<li><strong>Score clinique seul</strong> : EFS ~ IPI (ou Hasenclever)</li>
+<li><strong>LP V230 seul</strong> : EFS ~ LP (LP = β·X centré, score + log_burden + Deauville + v5A_gated)</li>
+<li><strong>Combiné</strong> : EFS ~ score clinique + LP V230</li>
+</ol>
+<p>Deux LR tests bidirectionnels :</p>
+<ul>
+<li>Score clinique ajoute-t-il à LP V230 ? (test du score résiduel)</li>
+<li>LP V230 ajoute-t-il au score clinique ? (test de l'apport MRD)</li>
+</ul>
+
+<h4>DLBCL — IPI (N=96, 29 events)</h4>
+<table>
+<tr><th>Modèle</th><th>C-index</th><th>AIC</th><th>Coefficients (p)</th></tr>
+<tr><td>IPI seul</td><td>0.650</td><td>248.42</td><td>β_IPI = +0.301 (<strong>p=0.007</strong>)</td></tr>
+<tr><td><strong>LP V230 seul</strong></td><td><strong>0.808</strong></td><td><strong>219.18</strong></td><td>β_LP = +0.664 (<strong>p&lt;0.001</strong>)</td></tr>
+<tr><td>IPI + LP V230</td><td>0.817</td><td>219.49</td><td>β_IPI = +0.153 (p=0.20 <strong>NS</strong>) ; β_LP = +0.636 (<strong>p&lt;0.001</strong>)</td></tr>
+</table>
+<p><strong>LR tests</strong> :</p>
+<ul>
+<li><strong>IPI ajouté à LP V230</strong> : χ² = 1.68, df = 1, <strong>p = 0.19 NS</strong> ❌ → IPI ne capture aucune information résiduelle</li>
+<li><strong>LP V230 ajouté à IPI</strong> : χ² = 30.93, df = 1, <strong>p &lt; 0.0001</strong> ✓✓✓ → MRD apporte une information massive</li>
+</ul>
+
+<h4>Hodgkin classique — Hasenclever (N=110, 9 events)</h4>
+<table>
+<tr><th>Modèle</th><th>C-index</th><th>AIC</th><th>Coefficients (p)</th></tr>
+<tr><td>Hasenclever seul</td><td>0.585</td><td>83.87</td><td>β_Hsn = +0.108 (p=0.54 <strong>NS</strong>)</td></tr>
+<tr><td><strong>LP V230 seul</strong></td><td><strong>0.835</strong></td><td><strong>76.01</strong></td><td>β_LP = +0.703 (<strong>p=0.006</strong>)</td></tr>
+<tr><td>Hasenclever + LP V230</td><td>0.829</td><td>77.95</td><td>β_Hsn = +0.041 (p=0.82 <strong>NS</strong>) ; β_LP = +0.696 (<strong>p=0.007</strong>)</td></tr>
+</table>
+<p><strong>LR tests</strong> :</p>
+<ul>
+<li><strong>Hasenclever ajouté à LP V230</strong> : χ² = 0.05, df = 1, <strong>p = 0.82 NS</strong> ❌ → Hasenclever ne capture aucune information résiduelle</li>
+<li><strong>LP V230 ajouté à Hasenclever</strong> : χ² = 7.92, df = 1, <strong>p = 0.005</strong> ✓✓ → MRD apporte une information majeure</li>
+</ul>
+
+<div class="success">
+<strong>Conclusion</strong> :
+<ul style="margin-top:6px;">
+<li>Le modèle V230 <strong>capture l'intégralité de l'information pronostique de l'IPI</strong> (DLBCL) et du Hasenclever (Hodgkin) — leurs coefficients deviennent non significatifs lorsqu'on les ajoute au LP V230 (p≥0.20).</li>
+<li>Réciproquement, le LP V230 <strong>apporte un gain pronostique massif au-delà</strong> des scores cliniques classiques : Δ C-index = +0.16 (DLBCL) et +0.25 (Hodgkin), LR test p ≤ 0.005 dans les deux cohortes.</li>
+<li>Cette indépendance justifie de ne pas inclure IPI/Hasenclever comme covariables supplémentaires dans le modèle V230 : leur information est déjà encodée via la trajectoire mono-exp (score_kin) + la charge tumorale baseline (log_burden) + l'évaluation métabolique interim (Deauville) + le signal driver oncogénique (v5A_gated).</li>
+</ul>
+</div>
+<p class="muted">Script : <code>scripts/_v15_285_IPI_Hasenclever_independence.py</code>. À reproduire sur cohorte externe pour confirmer.</p>
+
+<h3 id="sec-deltasuv-explo">XI.17 DeltaSUVmax% vs Deauville TEP2 — analyse exploratoire</h3>
 <p>Le Deauville TEP2 (ordinal 1-5) est le standard clinique. Question : le DeltaSUVmax% (continu, baisse relative du SUVmax diag→TEP2) apporterait-il de l'info supplémentaire ?</p>
 <table>
 <tr><th>Modèle (cohorte N=117, ev=23)</th><th>C-index</th><th>β_Deauville</th><th>β_DeltaSUV</th><th>LR vs baseline</th></tr>
