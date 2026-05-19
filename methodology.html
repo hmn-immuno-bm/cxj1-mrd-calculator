@@ -245,8 +245,8 @@ v5A = log(1 + Σ Reads_alt sur drivers D11) × (n_drv⁺ / n_total⁺)<br>
 <p>L'évaluation métabolique TEP interim est incorporée via 3 spécifications selon les données disponibles :</p>
 <table>
 <tr><th>Variante</th><th>Specification TEP</th><th>Codage</th><th>HR par unité</th></tr>
-<tr><td><strong>M2_*_Deauv</strong> ⭐</td><td>Deauville LINÉAIRE 1-5 (ordinal)</td><td>Deauville_num ∈ {1,2,3,4,5}</td><td>exp(0.378) = <strong>1.46</strong></td></tr>
-<tr><td>M2_*_Delta</td><td>ΔSUVmax% continu (fallback)</td><td>DeltaSUV = (SUVmax_2 − SUVmax_diag)/SUVmax_diag × 100</td><td>exp(0.0134) par % = <strong>1.014</strong></td></tr>
+<tr><td><strong>M2_*_Deauv</strong> ⭐</td><td>Deauville LINÉAIRE 1-5 (ordinal)</td><td>Deauville_num ∈ {1,2,3,4,5}</td><td>exp(0.365) = <strong>1.44</strong></td></tr>
+<tr><td>M2_*_Delta</td><td>ΔSUVmax% continu (fallback)</td><td>DeltaSUV = (SUVmax_2 − SUVmax_diag)/SUVmax_diag × 100</td><td>exp(0.0133) par % = <strong>1.013</strong></td></tr>
 <tr><td>M1_*</td><td>Pas de TEP</td><td>terme β_TEP absent du LP</td><td>—</td></tr>
 </table>
 <p>Le calculateur web bascule automatiquement entre les 3 spécifications selon les inputs. Validation du choix linéaire vs binaire : <a href="#sec-deauv-binlin">§XI.12</a>.</p>
@@ -267,20 +267,20 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p>Le calculateur web bascule automatiquement entre 6 variantes selon la disponibilité des données cliniques :</p>
 <table>
 <tr><th>Variante</th><th>Quantification</th><th>TEP</th><th>IDES N (evt)</th><th>C-IDES</th><th>PV N (evt)</th><th>C-PV</th></tr>
-<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>hEq (VAF × cfDNA)</td><td>Deauville 1-5</td><td>136 (26)</td><td><strong>0.847</strong></td><td>91 (16)</td><td><strong>0.887</strong></td></tr>
-<tr><td>M2_hEq Delta</td><td>hEq (VAF × cfDNA)</td><td>ΔSUVmax% (fallback)</td><td>118 (25)</td><td>0.835</td><td>79 (15)</td><td>0.892</td></tr>
-<tr><td>M1_hEq</td><td>hEq (VAF × cfDNA)</td><td>— absent</td><td>162 (32)</td><td>0.813</td><td>108 (21)</td><td>0.853</td></tr>
-<tr><td>M2_VAF Deauv</td><td>VAF % seule</td><td>Deauville 1-5</td><td>136 (26)</td><td>0.823</td><td>91 (16)</td><td>0.817</td></tr>
-<tr><td>M2_VAF Delta</td><td>VAF % seule</td><td>ΔSUVmax% (fallback)</td><td>118 (25)</td><td>0.816</td><td>79 (15)</td><td>0.843</td></tr>
-<tr><td>M1_VAF</td><td>VAF % seule</td><td>— absent</td><td>162 (32)</td><td>0.780</td><td>108 (21)</td><td>0.808</td></tr>
+<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>hEq (VAF × cfDNA)</td><td>Deauville 1-5</td><td>138 (26)</td><td><strong>0.844</strong></td><td>92 (16)</td><td><strong>0.890</strong></td></tr>
+<tr><td>M2_hEq Delta</td><td>hEq (VAF × cfDNA)</td><td>ΔSUVmax% (fallback)</td><td>120 (25)</td><td>0.833</td><td>80 (15)</td><td>0.892</td></tr>
+<tr><td>M1_hEq</td><td>hEq (VAF × cfDNA)</td><td>— absent</td><td>164 (32)</td><td>0.812</td><td>109 (21)</td><td>0.856</td></tr>
+<tr><td>M2_VAF Deauv</td><td>VAF % seule</td><td>Deauville 1-5</td><td>138 (26)</td><td>0.821</td><td>92 (16)</td><td>0.819</td></tr>
+<tr><td>M2_VAF Delta</td><td>VAF % seule</td><td>ΔSUVmax% (fallback)</td><td>120 (25)</td><td>0.816</td><td>80 (15)</td><td>0.843</td></tr>
+<tr><td>M1_VAF</td><td>VAF % seule</td><td>— absent</td><td>164 (32)</td><td>0.780</td><td>109 (21)</td><td>0.810</td></tr>
 </table>
 <p>⭐ = configuration optimale (toutes les données disponibles). Bootstrap optimism-corrigé en <a href="#sec-bootstrap">§XI.1</a>.</p>
 
 <div class="note">
 <strong>Coûts mesurés (Δ C-index, M2_hEq vs alternatives)</strong> :
 <ul style="margin:6px 0 0;">
-<li>Retirer le cfDNA Qubit (hEq → VAF) : IDES −0.024 / PV −0.070 en M2 ; IDES −0.033 / PV −0.045 en M1</li>
-<li>Retirer le Deauville (M2 → M1) : IDES −0.034 / PV −0.034 en hEq ; IDES −0.043 / PV −0.009 en VAF</li>
+<li>Retirer le cfDNA Qubit (hEq → VAF) : IDES −0.023 / PV −0.071 en M2 ; IDES −0.032 / PV −0.046 en M1</li>
+<li>Retirer le Deauville (M2 → M1) : IDES −0.032 / PV −0.034 en hEq ; IDES −0.041 / PV −0.009 en VAF</li>
 <li>Substituer Deauville par DeltaSUV (M2_Deauv → M2_Delta) : équivalent (Δ &lt; 0.02 dans toutes variantes) ; cohorte −13% (perte de patients avec Deauville mais sans SUVmax)</li>
 </ul>
 </div>
@@ -299,11 +299,11 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h4>M2_hEq Deauv — variante optimale ⭐</h4>
 <table>
 <tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.362</strong></td></tr>
-<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.271</strong></td></tr>
-<tr><td>β_Deauville_num (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.378</strong></td></tr>
-<tr><td>β_v5A_gated</td><td>+0.591</td><td>+1.501</td></tr>
-<tr><td>LP_offset</td><td>+4.025</td><td>+4.216</td></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.374</strong></td></tr>
+<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.264</strong></td></tr>
+<tr><td>β_Deauville_num (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.365</strong></td></tr>
+<tr><td>β_v5A_gated</td><td>+0.597</td><td>+1.500</td></tr>
+<tr><td>LP_offset</td><td>+3.920</td><td>+4.094</td></tr>
 <tr><td>S₀(12)</td><td>0.8879</td><td>0.9246</td></tr>
 </table>
 </div>
@@ -312,11 +312,11 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h4>M2_hEq Delta — fallback DeltaSUVmax</h4>
 <table>
 <tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.343</td></tr>
-<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;">+0.237</td></tr>
-<tr><td>β_DeltaSUV (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.0134</strong> /%</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.499</td><td>+1.186</td></tr>
-<tr><td>LP_offset</td><td>+1.646</td><td>+1.748</td></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.348</td></tr>
+<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;">+0.236</td></tr>
+<tr><td>β_DeltaSUV (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.0133</strong> /%</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.505</td><td>+1.192</td></tr>
+<tr><td>LP_offset</td><td>+1.652</td><td>+1.748</td></tr>
 <tr><td>S₀(12)</td><td>0.8625</td><td>0.9012</td></tr>
 </table>
 </div>
@@ -325,10 +325,10 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h4>M1_hEq — sans TEP (cfDNA dispo)</h4>
 <table>
 <tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.438</td></tr>
-<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;">+0.312</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.463</td><td>+1.053</td></tr>
-<tr><td>LP_offset</td><td>+3.305</td><td>+3.392</td></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.440</td></tr>
+<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;">+0.310</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.466</td><td>+1.055</td></tr>
+<tr><td>LP_offset</td><td>+3.286</td><td>+3.365</td></tr>
 <tr><td>S₀(12)</td><td>0.8755</td><td>0.8931</td></tr>
 </table>
 </div>
@@ -337,11 +337,11 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h4>M2_VAF Deauv — sans cfDNA Qubit</h4>
 <table>
 <tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.320</td></tr>
-<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.325</td></tr>
-<tr><td>β_Deauville_num (partagé)</td><td colspan="2" style="text-align:center;">+0.360</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.592</td><td>+1.516</td></tr>
-<tr><td>LP_offset</td><td>+1.855</td><td>+2.018</td></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.328</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.320</td></tr>
+<tr><td>β_Deauville_num (partagé)</td><td colspan="2" style="text-align:center;">+0.351</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.598</td><td>+1.516</td></tr>
+<tr><td>LP_offset</td><td>+1.824</td><td>+1.975</td></tr>
 <tr><td>S₀(12)</td><td>0.8794</td><td>0.9182</td></tr>
 </table>
 </div>
@@ -350,11 +350,11 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h4>M2_VAF Delta — sans cfDNA, fallback Delta</h4>
 <table>
 <tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.278</td></tr>
-<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.313</td></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.282</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.319</td></tr>
 <tr><td>β_DeltaSUV (partagé)</td><td colspan="2" style="text-align:center;">+0.0136 /%</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.513</td><td>+1.214</td></tr>
-<tr><td>LP_offset</td><td>−0.152</td><td>−0.085</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.518</td><td>+1.220</td></tr>
+<tr><td>LP_offset</td><td>−0.128</td><td>−0.064</td></tr>
 <tr><td>S₀(12)</td><td>0.8574</td><td>0.8968</td></tr>
 </table>
 </div>
@@ -363,10 +363,10 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h4>M1_VAF — modèle minimal (ni TEP ni cfDNA)</h4>
 <table>
 <tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.398</td></tr>
-<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.450</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.446</td><td>+1.068</td></tr>
-<tr><td>LP_offset</td><td>+0.963</td><td>+1.007</td></tr>
+<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.400</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.449</td></tr>
+<tr><td>β_v5A_gated</td><td>+0.449</td><td>+1.070</td></tr>
+<tr><td>LP_offset</td><td>+0.961</td><td>+0.999</td></tr>
 <tr><td>S₀(12)</td><td>0.8674</td><td>0.8838</td></tr>
 </table>
 </div>
@@ -375,10 +375,10 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <h3>Interprétation clinique</h3>
 <ul>
-<li><strong>HR par unité Deauville</strong> = exp(0.378) = <strong>1.46</strong>. Deauville 4 vs 3 ⇒ +46% de hazard. Deauville 5 vs 1 ⇒ HR = 4.62.</li>
-<li><strong>HR par 10% de DeltaSUV</strong> = exp(0.134) = <strong>1.143</strong>. ΔSUV −50% vs −95% (45 pt d'écart) ⇒ HR = 1.84.</li>
+<li><strong>HR par unité Deauville</strong> = exp(0.365) = <strong>1.44</strong>. Deauville 4 vs 3 ⇒ +44% de hazard. Deauville 5 vs 1 ⇒ HR = 4.31.</li>
+<li><strong>HR par 10% de DeltaSUV</strong> = exp(0.133) = <strong>1.142</strong>. ΔSUV −50% vs −95% (45 pt d'écart) ⇒ HR = 1.82.</li>
 <li><strong>HR par 1-SD log_burden</strong> ≈ 1.4-1.6 (IDES) selon variante.</li>
-<li><strong>v5A_gated</strong> a un HR pipeline-spécifique : exp(0.591) = 1.81 IDES vs exp(1.501) = 4.48 PV (échelle UMI ≠ échelle reads).</li>
+<li><strong>v5A_gated</strong> a un HR pipeline-spécifique : exp(0.597) = 1.82 IDES vs exp(1.500) = 4.48 PV (échelle UMI ≠ échelle reads).</li>
 </ul>
 </div>
 
@@ -423,7 +423,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p>Tester si les coefficients β_score, β_burden et β_TEP peuvent être <strong>partagés</strong> entre IDES et PV pour stabiliser l'estimation (plus de patients dans chaque équation), tout en gardant β_v5A pipeline-spécifique (échelles Reads_alt IDES vs UMI PV différentes).</p>
 
 <h3>Comparaison exhaustive : 16 combinaisons de partial pooling (V230 EFS)</h3>
-<p>Sur la cohorte stackée IDES+PV M2_hEq Deauv (N=227, 42 events), on a refitté Cox stratifié pipeline avec cluster-robust sur NOM, pour <strong>toutes</strong> les combinaisons possibles de coefs partagés entre IDES et PV (2⁴ = 16 sous-ensembles des 4 covariables). LR test contre le modèle A (aucun partagé, 8 paramètres) :</p>
+<p>Sur la cohorte stackée IDES+PV M2_hEq Deauv (N=230, 42 events ; AIC ci-dessous calculés sur snapshot N=227 pré-patches V15.289/V15.291, hiérarchie qualitative inchangée), on a refitté Cox stratifié pipeline avec cluster-robust sur NOM, pour <strong>toutes</strong> les combinaisons possibles de coefs partagés entre IDES et PV (2⁴ = 16 sous-ensembles des 4 covariables). LR test contre le modèle A (aucun partagé, 8 paramètres) :</p>
 <table style="font-size:12.5px;">
 <tr><th>Coefs partagés IDES↔PV</th><th>n_params</th><th>AIC</th><th>C-IDES</th><th>C-PV</th><th>LR vs A</th><th>df</th><th>p</th><th></th></tr>
 
@@ -699,20 +699,20 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p>Pour les 6 variantes V230, bootstrap complet sur la cohorte d'entraînement (endpoint EFS, partial pooling B′ refitté à chaque tirage) :</p>
 <table>
 <tr><th>Variante</th><th>N (events)</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95% (percentile)</th></tr>
-<tr><td><strong>M2_hEq Deauv IDES</strong> ⭐</td><td>136 (26)</td><td>0.847</td><td>+0.010</td><td><strong>0.837</strong></td><td>[0.77, 0.93]</td></tr>
-<tr><td><strong>M2_hEq Deauv PV</strong> ⭐</td><td>91 (16)</td><td>0.887</td><td>+0.018</td><td><strong>0.869</strong></td><td>[0.82, 0.97]</td></tr>
-<tr><td>M2_hEq Delta IDES</td><td>118 (25)</td><td>0.835</td><td>+0.011</td><td>0.824</td><td>[0.74, 0.91]</td></tr>
-<tr><td>M2_hEq Delta PV</td><td>79 (15)</td><td>0.892</td><td>+0.023</td><td>0.869</td><td>[0.80, 0.97]</td></tr>
-<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.813</td><td>+0.008</td><td>0.805</td><td>[0.73, 0.88]</td></tr>
-<tr><td>M1_hEq PV</td><td>108 (21)</td><td>0.853</td><td>+0.013</td><td>0.840</td><td>[0.74, 0.93]</td></tr>
-<tr><td>M2_VAF Deauv IDES</td><td>136 (26)</td><td>0.823</td><td>+0.015</td><td>0.808</td><td>[0.76, 0.92]</td></tr>
-<tr><td>M2_VAF Deauv PV</td><td>91 (16)</td><td>0.817</td><td>+0.020</td><td>0.797</td><td>[0.74, 0.91]</td></tr>
-<tr><td>M2_VAF Delta IDES</td><td>118 (25)</td><td>0.816</td><td>+0.013</td><td>0.803</td><td>[0.74, 0.91]</td></tr>
-<tr><td>M2_VAF Delta PV</td><td>79 (15)</td><td>0.843</td><td>+0.015</td><td>0.828</td><td>[0.77, 0.96]</td></tr>
-<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.780</td><td>+0.008</td><td>0.772</td><td>[0.67, 0.87]</td></tr>
-<tr><td>M1_VAF PV</td><td>108 (21)</td><td>0.808</td><td>+0.020</td><td>0.788</td><td>[0.70, 0.91]</td></tr>
+<tr><td><strong>M2_hEq Deauv IDES</strong> ⭐</td><td>138 (26)</td><td>0.844</td><td>+0.010</td><td><strong>0.834</strong></td><td>[0.77, 0.93]</td></tr>
+<tr><td><strong>M2_hEq Deauv PV</strong> ⭐</td><td>92 (16)</td><td>0.890</td><td>+0.018</td><td><strong>0.872</strong></td><td>[0.82, 0.97]</td></tr>
+<tr><td>M2_hEq Delta IDES</td><td>120 (25)</td><td>0.833</td><td>+0.011</td><td>0.822</td><td>[0.74, 0.91]</td></tr>
+<tr><td>M2_hEq Delta PV</td><td>80 (15)</td><td>0.892</td><td>+0.023</td><td>0.869</td><td>[0.80, 0.97]</td></tr>
+<tr><td>M1_hEq IDES</td><td>164 (32)</td><td>0.812</td><td>+0.008</td><td>0.804</td><td>[0.73, 0.88]</td></tr>
+<tr><td>M1_hEq PV</td><td>109 (21)</td><td>0.856</td><td>+0.013</td><td>0.843</td><td>[0.74, 0.93]</td></tr>
+<tr><td>M2_VAF Deauv IDES</td><td>138 (26)</td><td>0.821</td><td>+0.015</td><td>0.806</td><td>[0.76, 0.92]</td></tr>
+<tr><td>M2_VAF Deauv PV</td><td>92 (16)</td><td>0.819</td><td>+0.020</td><td>0.799</td><td>[0.74, 0.91]</td></tr>
+<tr><td>M2_VAF Delta IDES</td><td>120 (25)</td><td>0.816</td><td>+0.013</td><td>0.803</td><td>[0.74, 0.91]</td></tr>
+<tr><td>M2_VAF Delta PV</td><td>80 (15)</td><td>0.843</td><td>+0.015</td><td>0.828</td><td>[0.77, 0.96]</td></tr>
+<tr><td>M1_VAF IDES</td><td>164 (32)</td><td>0.780</td><td>+0.008</td><td>0.772</td><td>[0.67, 0.87]</td></tr>
+<tr><td>M1_VAF PV</td><td>109 (21)</td><td>0.810</td><td>+0.020</td><td>0.790</td><td>[0.70, 0.91]</td></tr>
 </table>
-<p class="muted"><strong>Optimism très faible</strong> (max +0.023, médiane +0.014) → bonne généralisation. Δ V229.3 PFS → V230 EFS : M2_hEq IDES C_corr 0.848 → 0.837 (−0.011), PV 0.891 → 0.869 (−0.022). Cette légère baisse est attendue : EFS exclut 3 morts non-lymphome bien prédites par TEP, donc plus difficile à discriminer (cf. <a href="#sec-endpoint">§XI.10</a>).</p>
+<p class="muted"><strong>Optimism très faible</strong> (max +0.023, médiane +0.014) → bonne généralisation. Δ V229.3 PFS → V230 EFS : M2_hEq IDES C_corr 0.848 → 0.834 (−0.014), PV 0.891 → 0.872 (−0.019). Cette légère baisse est attendue : EFS exclut 3 morts non-lymphome bien prédites par TEP, donc plus difficile à discriminer (cf. <a href="#sec-endpoint">§XI.10</a>).</p>
 
 <h3 id="sec-linearite">XI.2 Linéarité du LP (martingale + splines RCS)</h3>
 <table>
@@ -758,8 +758,8 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <table>
 <tr><th>Modèle</th><th>Covariables</th><th>N (events)</th><th>C-index (IDES / PV)</th></tr>
 <tr><td>🩻 <strong>TEP seul</strong> (baseline clinique)</td><td>1 (TEP2_pos binaire)</td><td>183 (34)</td><td><strong>0.646</strong> (pooled)</td></tr>
-<tr><td>🧬 <strong>M1_hEq</strong> (MRD seule, sans TEP)</td><td>3 (score, burden, v5A)</td><td>162 / 108 (32 / 21)</td><td><strong>0.813 / 0.853</strong></td></tr>
-<tr><td>🩻🧬 <strong>M2_hEq Deauv</strong> ⭐ (MRD + TEP)</td><td>4 (score, burden, v5A, Deauville)</td><td>136 / 91 (26 / 16)</td><td><strong>0.847 / 0.887</strong></td></tr>
+<tr><td>🧬 <strong>M1_hEq</strong> (MRD seule, sans TEP)</td><td>3 (score, burden, v5A)</td><td>164 / 109 (32 / 21)</td><td><strong>0.812 / 0.856</strong></td></tr>
+<tr><td>🩻🧬 <strong>M2_hEq Deauv</strong> ⭐ (MRD + TEP)</td><td>4 (score, burden, v5A, Deauville)</td><td>138 / 92 (26 / 16)</td><td><strong>0.844 / 0.890</strong></td></tr>
 </table>
 <ul>
 <li>Apport <strong>MRD ajoutée au TEP</strong> : ΔC-index ≈ <strong>+0.20</strong> (énorme amélioration)</li>
@@ -803,11 +803,11 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p>La discrimination du modèle est stable de 6 à 36 mois :</p>
 <table>
 <tr><th>Time</th><th>C(t) IDES M2_hEq</th><th>C(t) PV M2_hEq</th></tr>
-<tr><td>6 mois</td><td>0.866</td><td>0.984</td></tr>
-<tr><td>12 mois</td><td>0.847</td><td>0.892</td></tr>
-<tr><td>18 mois</td><td>0.851</td><td>0.890</td></tr>
-<tr><td>24 mois</td><td>0.859</td><td>0.888</td></tr>
-<tr><td>36 mois</td><td>0.836</td><td>0.847</td></tr>
+<tr><td>6 mois</td><td>0.864</td><td>0.985</td></tr>
+<tr><td>12 mois</td><td>0.844</td><td>0.890</td></tr>
+<tr><td>18 mois</td><td>0.848</td><td>0.892</td></tr>
+<tr><td>24 mois</td><td>0.856</td><td>0.890</td></tr>
+<tr><td>36 mois</td><td>0.834</td><td>0.849</td></tr>
 </table>
 <div class="center">
 <img class="figure" src="figs/Time_C_index.png" alt="Time-dependent C-index" style="max-width: 80%;">
@@ -816,7 +816,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h3 id="sec-mice">XI.9 MICE sensitivity analysis</h3>
 <p>Le modèle utilise une analyse <strong>complete-case</strong> pour chaque variante, routant les patients selon leur pattern de missingness. Sensitivity analysis MICE (Multiple Imputation by Chained Equations, m=20) pour vérifier la robustesse :</p>
 <table>
-<tr><th>Covariable M2_hEq IDES</th><th>Complete-case (N=136)</th><th>MICE (N=162, m=20)</th><th>Δβ</th><th>FMI</th></tr>
+<tr><th>Covariable M2_hEq IDES</th><th>Complete-case (N=138)</th><th>MICE (N=164, m=20)</th><th>Δβ</th><th>FMI</th></tr>
 <tr><td>β_score_kin</td><td>+0.423 ± 0.184</td><td>+0.408 ± 0.166</td><td>−0.015</td><td>0.006 ✓</td></tr>
 <tr><td>β_log_burden_hEq</td><td>+0.272 ± 0.115</td><td>+0.314 ± 0.095</td><td>+0.042</td><td>0.006 ✓</td></tr>
 <tr><td>β_v5A_gated</td><td>+0.551 ± 0.123</td><td>+0.443 ± 0.114</td><td>−0.108</td><td>0.018 ✓</td></tr>
@@ -844,14 +844,14 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p>Refit Cox stratifié pipeline avec partial pooling B′ sur les 4 variantes principales :</p>
 <table>
 <tr><th>Variante</th><th>Pipeline</th><th>N (events PFS / EFS)</th><th>C PFS</th><th>C EFS</th><th>Δ C</th></tr>
-<tr><td><strong>M2_hEq</strong> ⭐</td><td>IDES</td><td>137 (25 / 26)</td><td>0.859</td><td>0.843</td><td>−0.017</td></tr>
-<tr><td><strong>M2_hEq</strong> ⭐</td><td>PV</td><td>90 (15 / 16)</td><td>0.931</td><td>0.921</td><td>−0.010</td></tr>
-<tr><td>M2_VAF</td><td>IDES</td><td>137 (25 / 26)</td><td>0.855</td><td>0.831</td><td>−0.024</td></tr>
-<tr><td>M2_VAF</td><td>PV</td><td>90 (15 / 16)</td><td>0.916</td><td>0.906</td><td>−0.010</td></tr>
-<tr><td>M1_hEq</td><td>IDES</td><td>163 (32 / 32)</td><td>0.805</td><td>0.810</td><td>+0.005</td></tr>
-<tr><td>M1_hEq</td><td>PV</td><td>106 (20 / 20)</td><td>0.848</td><td>0.885</td><td><strong>+0.037</strong></td></tr>
-<tr><td>M1_VAF</td><td>IDES</td><td>163 (32 / 32)</td><td>0.777</td><td>0.781</td><td>+0.004</td></tr>
-<tr><td>M1_VAF</td><td>PV</td><td>106 (20 / 20)</td><td>0.816</td><td>0.850</td><td><strong>+0.033</strong></td></tr>
+<tr><td><strong>M2_hEq</strong> ⭐</td><td>IDES</td><td>139 (25 / 26)</td><td>0.859</td><td>0.840</td><td>−0.019</td></tr>
+<tr><td><strong>M2_hEq</strong> ⭐</td><td>PV</td><td>91 (15 / 16)</td><td>0.931</td><td>0.924</td><td>−0.007</td></tr>
+<tr><td>M2_VAF</td><td>IDES</td><td>139 (25 / 26)</td><td>0.855</td><td>0.829</td><td>−0.026</td></tr>
+<tr><td>M2_VAF</td><td>PV</td><td>91 (15 / 16)</td><td>0.916</td><td>0.908</td><td>−0.008</td></tr>
+<tr><td>M1_hEq</td><td>IDES</td><td>165 (32 / 32)</td><td>0.805</td><td>0.808</td><td>+0.003</td></tr>
+<tr><td>M1_hEq</td><td>PV</td><td>107 (20 / 20)</td><td>0.848</td><td>0.888</td><td><strong>+0.040</strong></td></tr>
+<tr><td>M1_VAF</td><td>IDES</td><td>165 (32 / 32)</td><td>0.777</td><td>0.781</td><td>+0.004</td></tr>
+<tr><td>M1_VAF</td><td>PV</td><td>107 (20 / 20)</td><td>0.816</td><td>0.852</td><td><strong>+0.036</strong></td></tr>
 </table>
 <p>Coefficients très stables (Δβ &lt; 0.1) : pour M2_hEq B′, β_score_kin baisse de ~12% (+0.563 → +0.498), β_burden de ~6% (+0.196 → +0.184), β_Deauville augmente de ~5% (+0.391 → +0.412), β_v5A inchangé.</p>
 
@@ -870,10 +870,10 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p>Pour les patients ayant 2 prélèvements CXJ1 (C2J1 et C3J1, N=24 IDES bi-tp), la valeur retenue par défaut est <strong>C2 (priorité au plus précoce)</strong>. Comparaison de 4 stratégies sur M2_hEq IDES (bootstrap optimism-corrected B=200) :</p>
 <table>
 <tr><th>Stratégie</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95%</th></tr>
-<tr><td><strong>C2 priority (production)</strong></td><td>0.857</td><td>+0.011</td><td><strong>0.846</strong></td><td>[0.78, 0.94]</td></tr>
-<tr><td>C3 priority</td><td>0.855</td><td>+0.009</td><td>0.847</td><td>[0.78, 0.93]</td></tr>
-<tr><td>MIN (VAF plus bas des 2)</td><td>0.855</td><td>+0.015</td><td>0.841</td><td>[0.79, 0.94]</td></tr>
-<tr><td>MAX (VAF plus haut des 2)</td><td>0.854</td><td>+0.010</td><td>0.844</td><td>[0.78, 0.93]</td></tr>
+<tr><td><strong>C2 priority (production)</strong></td><td>0.854</td><td>+0.011</td><td><strong>0.843</strong></td><td>[0.78, 0.94]</td></tr>
+<tr><td>C3 priority</td><td>0.852</td><td>+0.009</td><td>0.844</td><td>[0.78, 0.93]</td></tr>
+<tr><td>MIN (VAF plus bas des 2)</td><td>0.852</td><td>+0.015</td><td>0.838</td><td>[0.79, 0.94]</td></tr>
+<tr><td>MAX (VAF plus haut des 2)</td><td>0.851</td><td>+0.010</td><td>0.841</td><td>[0.78, 0.93]</td></tr>
 </table>
 <p><strong>Δ C-corrected (C3 − C2) = +0.001 → équivalence statistique</strong>. Le choix C2 priority est retenu pour son utilité clinique (décision plus précoce dans le traitement).</p>
 
@@ -889,14 +889,14 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p>Test : Deauville binaire (≥4 vs &lt;4) ou Deauville linéaire (ordinal 1-5) ? Bootstrap optimism-corrected B=500 sur les 8 variantes V229.x :</p>
 <table>
 <tr><th>Variante</th><th>N (ev)</th><th>bin C_corr</th><th>lin C_corr</th><th>Δ (lin − bin)</th></tr>
-<tr><td><strong>M2_hEq IDES</strong> ⭐</td><td>136 (25)</td><td>0.845</td><td>0.849</td><td>+0.004 ≈</td></tr>
-<tr><td><strong>M2_hEq PV</strong> ⭐</td><td>91 (16)</td><td>0.892</td><td>0.890</td><td>−0.002 ≈</td></tr>
-<tr><td>M1_hEq IDES</td><td>162 (32)</td><td>0.796</td><td>0.799</td><td>+0.003 ≈</td></tr>
-<tr><td>M1_hEq PV</td><td>108 (22)</td><td>0.810</td><td>0.811</td><td>+0.001 ≈</td></tr>
-<tr><td>M2_VAF IDES</td><td>136 (25)</td><td>0.835</td><td>0.834</td><td>−0.001 ≈</td></tr>
-<tr><td>M2_VAF PV</td><td>91 (16)</td><td>0.868</td><td>0.859</td><td>−0.010 ⬇</td></tr>
-<tr><td>M1_VAF IDES</td><td>162 (32)</td><td>0.763</td><td>0.764</td><td>+0.001 ≈</td></tr>
-<tr><td>M1_VAF PV</td><td>108 (22)</td><td>0.777</td><td>0.775</td><td>−0.003 ≈</td></tr>
+<tr><td><strong>M2_hEq IDES</strong> ⭐</td><td>138 (26)</td><td>0.842</td><td>0.846</td><td>+0.004 ≈</td></tr>
+<tr><td><strong>M2_hEq PV</strong> ⭐</td><td>92 (16)</td><td>0.895</td><td>0.893</td><td>−0.002 ≈</td></tr>
+<tr><td>M1_hEq IDES</td><td>164 (32)</td><td>0.795</td><td>0.798</td><td>+0.003 ≈</td></tr>
+<tr><td>M1_hEq PV</td><td>109 (21)</td><td>0.813</td><td>0.814</td><td>+0.001 ≈</td></tr>
+<tr><td>M2_VAF IDES</td><td>138 (26)</td><td>0.833</td><td>0.832</td><td>−0.001 ≈</td></tr>
+<tr><td>M2_VAF PV</td><td>92 (16)</td><td>0.870</td><td>0.861</td><td>−0.010 ⬇</td></tr>
+<tr><td>M1_VAF IDES</td><td>164 (32)</td><td>0.763</td><td>0.764</td><td>+0.001 ≈</td></tr>
+<tr><td>M1_VAF PV</td><td>109 (21)</td><td>0.779</td><td>0.777</td><td>−0.003 ≈</td></tr>
 </table>
 <p>Différence moyenne <strong>Δ ≈ 0</strong> (médiane = +0.0006). 4 variantes favorisent <code>lin</code>, 4 favorisent <code>bin</code>. <strong>Équivalents en performance</strong>. La spécification <strong>linéaire est retenue V229.3/V230</strong> pour son interprétation plus fine (différentiation Deauville 2 vs 3, 4 vs 5) et discrimination dans la zone Deauville=4 ambiguë.</p>
 
@@ -945,30 +945,30 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <li>LP V230 ajoute-t-il au score clinique ? (test de l'apport MRD)</li>
 </ul>
 
-<h4>DLBCL — IPI (N=96, 29 events)</h4>
+<h4>DLBCL — IPI (N=97, 29 events)</h4>
 <table>
 <tr><th>Modèle</th><th>C-index</th><th>AIC</th><th>Coefficients (p)</th></tr>
-<tr><td>IPI seul</td><td>0.650</td><td>248.42</td><td>β_IPI = +0.301 (<strong>p=0.007</strong>)</td></tr>
-<tr><td><strong>LP V230 seul</strong></td><td><strong>0.808</strong></td><td><strong>219.18</strong></td><td>β_LP = +0.664 (<strong>p&lt;0.001</strong>)</td></tr>
-<tr><td>IPI + LP V230</td><td>0.817</td><td>219.49</td><td>β_IPI = +0.153 (p=0.20 <strong>NS</strong>) ; β_LP = +0.636 (<strong>p&lt;0.001</strong>)</td></tr>
+<tr><td>IPI seul</td><td>0.643</td><td>249.79</td><td>β_IPI = +0.286 (<strong>p=0.010</strong>)</td></tr>
+<tr><td><strong>LP V230 seul</strong></td><td><strong>0.805</strong></td><td><strong>220.63</strong></td><td>β_LP = +0.659 (<strong>p&lt;0.001</strong>)</td></tr>
+<tr><td>IPI + LP V230</td><td>0.814</td><td>221.44</td><td>β_IPI = +0.127 (p=0.281 <strong>NS</strong>) ; β_LP = +0.634 (<strong>p&lt;0.001</strong>)</td></tr>
 </table>
 <p><strong>LR tests</strong> :</p>
 <ul>
-<li><strong>IPI ajouté à LP V230</strong> : χ² = 1.68, df = 1, <strong>p = 0.19 NS</strong> ❌ → IPI ne capture aucune information résiduelle</li>
-<li><strong>LP V230 ajouté à IPI</strong> : χ² = 30.93, df = 1, <strong>p &lt; 0.0001</strong> ✓✓✓ → MRD apporte une information massive</li>
+<li><strong>IPI ajouté à LP V230</strong> : χ² = 1.19, df = 1, <strong>p = 0.275 NS</strong> ❌ → IPI ne capture aucune information résiduelle</li>
+<li><strong>LP V230 ajouté à IPI</strong> : χ² = 30.36, df = 1, <strong>p &lt; 0.001</strong> ✓✓✓ → MRD apporte une information massive</li>
 </ul>
 
 <h4>Hodgkin classique — Hasenclever (N=110, 9 events)</h4>
 <table>
 <tr><th>Modèle</th><th>C-index</th><th>AIC</th><th>Coefficients (p)</th></tr>
-<tr><td>Hasenclever seul</td><td>0.585</td><td>83.87</td><td>β_Hsn = +0.108 (p=0.54 <strong>NS</strong>)</td></tr>
-<tr><td><strong>LP V230 seul</strong></td><td><strong>0.835</strong></td><td><strong>76.01</strong></td><td>β_LP = +0.703 (<strong>p=0.006</strong>)</td></tr>
-<tr><td>Hasenclever + LP V230</td><td>0.829</td><td>77.95</td><td>β_Hsn = +0.041 (p=0.82 <strong>NS</strong>) ; β_LP = +0.696 (<strong>p=0.007</strong>)</td></tr>
+<tr><td>Hasenclever seul</td><td>0.585</td><td>83.87</td><td>β_Hsn = +0.108 (p=0.535 <strong>NS</strong>)</td></tr>
+<tr><td><strong>LP V230 seul</strong></td><td><strong>0.835</strong></td><td><strong>75.90</strong></td><td>β_LP = +0.721 (<strong>p=0.005</strong>)</td></tr>
+<tr><td>Hasenclever + LP V230</td><td>0.832</td><td>77.84</td><td>β_Hsn = +0.042 (p=0.811 <strong>NS</strong>) ; β_LP = +0.714 (<strong>p=0.006</strong>)</td></tr>
 </table>
 <p><strong>LR tests</strong> :</p>
 <ul>
-<li><strong>Hasenclever ajouté à LP V230</strong> : χ² = 0.05, df = 1, <strong>p = 0.82 NS</strong> ❌ → Hasenclever ne capture aucune information résiduelle</li>
-<li><strong>LP V230 ajouté à Hasenclever</strong> : χ² = 7.92, df = 1, <strong>p = 0.005</strong> ✓✓ → MRD apporte une information majeure</li>
+<li><strong>Hasenclever ajouté à LP V230</strong> : χ² = 0.06, df = 1, <strong>p = 0.811 NS</strong> ❌ → Hasenclever ne capture aucune information résiduelle</li>
+<li><strong>LP V230 ajouté à Hasenclever</strong> : χ² = 8.03, df = 1, <strong>p = 0.005</strong> ✓✓ → MRD apporte une information majeure</li>
 </ul>
 
 <div class="success">
@@ -997,7 +997,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h2 id="sec-cohorte">XII. Cohorte d'entraînement</h2>
 
 <h3 id="sec-consort">XII.1 Diagramme CONSORT (flow d'inclusion)</h3>
-<p>Flow d'inclusion des patients V230 — endpoint EFS. <strong>IDES est la cohorte maître</strong> (tous les patients avec une IDES p-value calculée au diagnostic sont inclus). <strong>PV est un sous-groupe strict de IDES</strong> (phasage UMI réussi) : les 108 patients M1 PV sont inclus dans les 162 M1 IDES, les 91 M2 PV dans les 136 M2 IDES (vérifié, V15.288). Les exclusions en amont sont séparées en 2 catégories distinctes : (a) <strong>−9 « absence/aucun variants au diag »</strong> (annotation explicite dans la colonne <code>numero_run_diag</code> de la base clinique, runs 220622/231019/220420/250213/220202/251204/211110/230914/240725) ; (b) <strong>−51 données non disponibles ou perdues</strong> (échantillon perdu, séquençage échoué, autre protocole, etc.). Total = 224 − 60 = 164 patients avec IDES p-value, conduisant aux 162 M1 IDES après <strong>−2 exclusions techniques</strong> rendant le score cinétique incalculable : 1 patient absent du fichier intermédiaire à cause d'un préfixe MOABI WL incohérent entre C2J1 et C3J1 (V15.289) et 1 patient pour lequel la <code>C1J1</code> dans la base clinique est erronée (= date du C3J1+1j par erreur de saisie, alors que les Glims CXJ1 sont corrects) → <code>delai_real(C2J1) = −22 j</code> aberrant → <code>score_mono</code> rejette <code>t ≤ 0</code>. Patch documenté V15.291 dans <code>scripts/_clinical_patches.py</code> (récupère le patient si appliqué au prochain refit, 162 → 163). À noter : un patient sans <code>cfDNA</code> mesuré au CXJ1 reste inclus dans la cohorte (fallback <code>rc = 1e−7</code> dans <code>score_mono</code> équivalent à un patient polished-neg), donc le cfDNA manquant n'est pas un critère d'exclusion. Les exclusions latérales se détachent de la flèche verticale principale (convention CONSORT) :</p>
+<p>Flow d'inclusion des patients V230 — endpoint EFS. <strong>IDES est la cohorte maître</strong> (tous les patients avec une IDES p-value calculée au diagnostic sont inclus). <strong>PV est un sous-groupe strict de IDES</strong> (phasage UMI réussi) : les 109 patients M1 PV sont inclus dans les 164 M1 IDES, les 92 M2 PV dans les 138 M2 IDES (vérifié, V15.288). Les exclusions en amont sont séparées en 2 catégories distinctes : (a) <strong>−9 « absence/aucun variants au diag »</strong> (annotation explicite dans la colonne <code>numero_run_diag</code> de la base clinique, runs 220622/231019/220420/250213/220202/251204/211110/230914/240725) ; (b) <strong>−51 données non disponibles ou perdues</strong> (échantillon perdu, séquençage échoué, autre protocole, etc.). Total = 224 − 60 = 164 patients avec IDES p-value, qui constituent intégralement la cohorte M1 IDES après application des patches V15.289 (préfixe MOABI WL réharmonisé) et V15.291 (date C1J1 corrigée dans la base clinique). À noter : un patient sans <code>cfDNA</code> mesuré au CXJ1 reste inclus dans la cohorte (fallback <code>rc = 1e−7</code> dans <code>score_mono</code> équivalent à un patient polished-neg), donc le cfDNA manquant n'est pas un critère d'exclusion. Les exclusions latérales se détachent de la flèche verticale principale (convention CONSORT) :</p>
 <div class="center">
 <svg viewBox="0 0 1000 700" style="max-width:100%; height:auto; background:#fafbfc; border:1px solid #e2e8f0; border-radius:6px;">
   <defs>
@@ -1059,20 +1059,19 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <text x="500" y="189" class="t9-b" text-anchor="middle">Patients avec IDES p-value calculée</text>
   <text x="500" y="207" class="t9" text-anchor="middle">N = 164 (variants traçables au diag)</text>
 
-  <!-- Flèche verticale 2 : variants → M1 IDES master (avec branch −2) -->
+  <!-- Flèche verticale 2 : variants → M1 IDES master (patches V15.289/V15.291 applied → cohorte complète) -->
   <line class="ar" x1="500" y1="218" x2="500" y2="266"/>
-  <line class="ar-e" x1="500" y1="240" x2="660" y2="240"/>
-  <circle class="junction" cx="500" cy="240" r="2.5"/>
-  <rect class="nd-excl" x="660" y="215" width="330" height="52"/>
-  <text x="825" y="232" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−2 exclusions techniques (score cinétique incalculable)</text>
-  <text x="825" y="246" class="t9-e" text-anchor="middle">1 patient : préfixe fichier MOABI WL incohérent (V15.289)</text>
-  <text x="825" y="258" class="t9-e" text-anchor="middle">1 patient : date C1J1 erronée dans base clinique (V15.291)</text>
+  <line class="ar-sub" x1="500" y1="240" x2="660" y2="240" style="stroke:#16a34a; stroke-dasharray:4,3;"/>
+  <circle class="junction" cx="500" cy="240" r="2.5" style="fill:#16a34a;"/>
+  <rect class="nd-final" x="660" y="218" width="330" height="44" style="stroke-dasharray:4,2;"/>
+  <text x="825" y="236" class="t9-b" text-anchor="middle" style="fill:#15803d;">Patches V15.289 + V15.291 appliqués</text>
+  <text x="825" y="252" class="t9-s" text-anchor="middle" style="fill:#15803d;">Préfixe MOABI WL réharmonisé · C1J1 corrigée → cohorte complète</text>
 
   <!-- 3. Master box : M1 IDES (cohorte de référence, highlighted) -->
   <rect class="nd-master" x="320" y="271" width="360" height="58"/>
   <text x="500" y="289" class="t9-b" text-anchor="middle" style="fill:#854d0e;">M1_hEq IDES — cohorte de référence</text>
-  <text x="500" y="306" class="t9" text-anchor="middle">N = 162, ev = 32 (EFS)</text>
-  <text x="500" y="322" class="t9-s" text-anchor="middle">C-corr = 0.805 (modèle Cox sans TEP, partial pooling B′)</text>
+  <text x="500" y="306" class="t9" text-anchor="middle">N = 164, ev = 32 (EFS)</text>
+  <text x="500" y="322" class="t9-s" text-anchor="middle">C-corr = 0.804 (modèle Cox sans TEP, partial pooling B′)</text>
 
   <!-- ════════════════════════════════════════════════════════════ -->
   <!-- ═══════════════ SPLIT : IDES branch + PV subset ════════════ -->
@@ -1094,24 +1093,24 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <!-- M2 IDES ⭐ box -->
   <rect class="nd-final" x="130" y="450" width="240" height="58"/>
   <text x="250" y="468" class="t9-b" text-anchor="middle">M2_hEq IDES ⭐</text>
-  <text x="250" y="485" class="t9" text-anchor="middle">N = 136, ev = 26</text>
-  <text x="250" y="501" class="t9-s" text-anchor="middle">C-corr = 0.837 [0.77-0.93]</text>
+  <text x="250" y="485" class="t9" text-anchor="middle">N = 138, ev = 26</text>
+  <text x="250" y="501" class="t9-s" text-anchor="middle">C-corr = 0.834 [0.77-0.93]</text>
 
   <!-- ━━━━━━━━━━━━━━━━━━ PV branch (RIGHT, ⊂ IDES) ━━━━━━━━━━━━━━━━━━ -->
 
-  <!-- Flèche verticale PV : depuis M1 IDES → M1 PV (sous-groupe avec branch −54 UMI fail) -->
+  <!-- Flèche verticale PV : depuis M1 IDES → M1 PV (sous-groupe avec branch −55 UMI fail) -->
   <line class="ar" x1="750" y1="385" x2="750" y2="445"/>
   <line class="ar-e" x1="750" y1="415" x2="870" y2="415"/>
   <circle class="junction" cx="750" cy="415" r="2.5"/>
   <rect class="nd-excl" x="870" y="395" width="120" height="42"/>
-  <text x="930" y="411" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−54 phasage</text>
+  <text x="930" y="411" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−55 phasage</text>
   <text x="930" y="427" class="t9-e" text-anchor="middle">UMI échoué / quali</text>
 
   <!-- M1 PV box (⊂ M1 IDES) -->
   <rect class="nd-pv" x="630" y="450" width="240" height="58"/>
   <text x="750" y="468" class="t9-b" text-anchor="middle">M1_hEq PV (= éligibles UMI)</text>
-  <text x="750" y="485" class="t9" text-anchor="middle">N = 108, ev = 21</text>
-  <text x="750" y="500" class="t9-sub" text-anchor="middle">⊂ M1 IDES (108/162) · C-corr = 0.840</text>
+  <text x="750" y="485" class="t9" text-anchor="middle">N = 109, ev = 21</text>
+  <text x="750" y="500" class="t9-sub" text-anchor="middle">⊂ M1 IDES (109/164) · C-corr = 0.843</text>
 
   <!-- Flèche verticale PV : M1 PV → M2 PV (avec branch −17 TEP NA) -->
   <line class="ar" x1="750" y1="508" x2="750" y2="568"/>
@@ -1124,8 +1123,8 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <!-- M2 PV ⭐ box (⊂ M2 IDES) -->
   <rect class="nd-final" x="630" y="573" width="240" height="58"/>
   <text x="750" y="591" class="t9-b" text-anchor="middle">M2_hEq PV ⭐</text>
-  <text x="750" y="608" class="t9" text-anchor="middle">N = 91, ev = 16</text>
-  <text x="750" y="624" class="t9-sub" text-anchor="middle">⊂ M2 IDES (91/136) · C-corr = 0.869</text>
+  <text x="750" y="608" class="t9" text-anchor="middle">N = 92, ev = 16</text>
+  <text x="750" y="624" class="t9-sub" text-anchor="middle">⊂ M2 IDES (92/138) · C-corr = 0.872</text>
 
   <!-- Dashed annotation : M2 IDES ←→ M2 PV (subset) -->
   <line class="ar-sub" x1="370" y1="479" x2="630" y2="602"/>
@@ -1147,11 +1146,11 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <line x1="930" y1="662" x2="960" y2="662" style="stroke:#be185d; stroke-width:1.2; stroke-dasharray:2,3;"/>
   <text x="975" y="667" class="t9-sub" text-anchor="start">⊂</text>
 </svg>
-<p class="muted">Vectoriel SVG — Topologie en cascade vérifiée empiriquement (V15.288 + V15.289). <strong>IDES est la cohorte maître</strong> : tous les patients avec une IDES p-value calculable au diag (N=164) passent par l'analyse IDES, dont 162 sont éligibles Cox EFS (M1 IDES). De ces 162, deux branches indépendantes : (a) <strong>filtre TEP Deauville → M2 IDES ⭐</strong> (136 patients) ; (b) <strong>filtre UMI phasable → M1 PV</strong> (108 patients, strictement inclus dans M1 IDES). M2 PV (91 patients) est l'intersection des deux filtres et donc strictement inclus dans M2 IDES (91/136 ✓). Les 60 patients exclus en amont sont scindés en <strong>2 catégories distinctes</strong> : 9 patients « absence/aucun variants » (annotation explicite sur 9 runs au diagnostic — pas de mutations traçables pour la MRD) + 51 patients « données non disponibles » (échantillons perdus, séquençage échoué, autre protocole, sans run documenté). Les <strong>2 exclusions techniques restantes (164 → 162)</strong> correspondent à 2 patients pour lesquels le score cinétique mono-exp est incalculable : (1) un patient absent du fichier intermédiaire <code>df_p_ides.csv</code> à cause d'un préfixe MOABI WL incohérent entre C2J1 et C3J1 sur le NAS (correctif documenté V15.289) ; (2) un patient dont la colonne <code>C1J1</code> de la base clinique contient une date erronée (= date du C3J1+1j par erreur de saisie, alors que les Glims CXJ1 sont corrects) → <code>delai_real(C2J1) = 2022-10-12 − 2022-11-03 = −22 j</code> aberrant → <code>score_mono</code> retourne NaN (rejette tout <code>t ≤ 0</code>). La vraie date C1J1 du patient est <code>2022-09-21</code> (confirmé par utilisateur, cohérent avec les Glims de diag/C2/C3) ; un patch local est documenté dans <code>scripts/_clinical_patches.py</code> et inclura le patient si activé au prochain refit (162 → 163, ΔC < 0.005). <strong>Note importante</strong> : un patient sans <code>cfDNA</code> mesuré au CXJ1 (perdu au labo) reste inclus dans la cohorte — le fallback <code>rc = 1e−7</code> dans <code>score_mono</code> (déclenché quand <code>num</code> est NaN ou ≤0) le traite comme un patient avec MRD indétectable au CXJ1 (= polished-neg). La flèche pointillée violette indique la relation de sous-ensemble PV ⊂ IDES.</p>
+<p class="muted">Vectoriel SVG — Topologie en cascade vérifiée empiriquement (V15.288 + V15.289 + V15.291). <strong>IDES est la cohorte maître</strong> : les 164 patients avec une IDES p-value calculable au diag constituent intégralement la cohorte M1 IDES éligible Cox EFS, après application des deux patches techniques V15.289 (préfixe fichier MOABI WL réharmonisé entre C2J1 et C3J1 sur le NAS) et V15.291 (date <code>C1J1</code> corrigée dans la base clinique : la valeur précédente correspondait au C3J1+1j par erreur de saisie, alors que les Glims CXJ1 étaient corrects ; la vraie date C1J1 a été confirmée par l'utilisateur, cohérente avec les Glims de diag/C2/C3). De ces 164, deux branches indépendantes : (a) <strong>filtre TEP Deauville → M2 IDES ⭐</strong> (138 patients) ; (b) <strong>filtre UMI phasable → M1 PV</strong> (109 patients, strictement inclus dans M1 IDES). M2 PV (92 patients) est l'intersection des deux filtres et donc strictement inclus dans M2 IDES (92/138 ✓). Les 60 patients exclus en amont sont scindés en <strong>2 catégories distinctes</strong> : 9 patients « absence/aucun variants » (annotation explicite sur 9 runs au diagnostic — pas de mutations traçables pour la MRD) + 51 patients « données non disponibles » (échantillons perdus, séquençage échoué, autre protocole, sans run documenté). <strong>Note importante</strong> : un patient sans <code>cfDNA</code> mesuré au CXJ1 (perdu au labo) reste inclus dans la cohorte — le fallback <code>rc = 1e−7</code> dans <code>score_mono</code> (déclenché quand <code>num</code> est NaN ou ≤0) le traite comme un patient avec MRD indétectable au CXJ1 (= polished-neg). La flèche pointillée violette indique la relation de sous-ensemble PV ⊂ IDES.</p>
 </div>
 
 <h3 id="sec-table1">XII.2 Caractéristiques baseline (Table 1)</h3>
-<p>Caractéristiques de la cohorte M2_hEq IDES (N=137), ventilées par responder et histologie :</p>
+<p>Caractéristiques de la cohorte M2_hEq IDES (N=137 — snapshot pré-patches V15.289/V15.291), ventilées par responder et histologie :</p>
 <table style="font-size:13px;">
 <thead>
 <tr>
