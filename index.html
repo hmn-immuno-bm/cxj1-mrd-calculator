@@ -1381,37 +1381,64 @@ function sensitivityAnalysis() {
 
   // Display in a proper HTML modal (lisible + copiable)
   const ref_r12 = results[0].r12;
-  let stdev = null;
-  const valid = results.filter(r => r.r12 !== null).map(r => r.r12);
-  if (valid.length > 1) {
-    const mean = valid.reduce((a,b)=>a+b,0) / valid.length;
-    stdev = Math.sqrt(valid.reduce((a,b)=>a+(b-mean)**2,0) / valid.length);
+
+  // Group +10%/-10% pairs into a single row showing the range (≈ écart-type autour de la valeur de référence)
+  // Find pairs by their stem: 'VAF_diag', 'VAF_CXJ1', etc.
+  function findResult(name) { return (results.find(x => x.name === name) || {r12: null}).r12; }
+  const grouped = [
+    { label: 'Référence',          minus: null,                          plus: null,                          ref: ref_r12, isRef: true },
+    { label: 'VAF_diag',            minus: findResult('VAF_diag −10%'),    plus: findResult('VAF_diag +10%') },
+    { label: 'VAF_CXJ1',            minus: findResult('VAF_CXJ1 −10%'),    plus: findResult('VAF_CXJ1 +10%') },
+    { label: 'cfDNA_diag',          minus: findResult('cfDNA_diag −10%'),  plus: findResult('cfDNA_diag +10%') },
+    { label: 'cfDNA_CXJ1',          minus: findResult('cfDNA_CXJ1 −10%'),  plus: findResult('cfDNA_CXJ1 +10%') },
+    { label: 'Tous combinés ±10%', minus: findResult('All −10% combined'), plus: findResult('All +10% combined') },
+  ];
+
+  // For each group, compute range/half-amplitude
+  for (const g of grouped) {
+    if (g.isRef) {
+      g.lo = ref_r12; g.hi = ref_r12; g.halfAmp = 0;
+    } else if (g.minus !== null && g.plus !== null) {
+      g.lo = Math.min(g.minus, g.plus);
+      g.hi = Math.max(g.minus, g.plus);
+      g.halfAmp = Math.max(Math.abs(g.minus - ref_r12), Math.abs(g.plus - ref_r12));
+    } else {
+      g.lo = null; g.hi = null; g.halfAmp = null;
+    }
   }
 
   // Build HTML rows
   let rows = '';
-  for (const r of results) {
-    const diff = (r.r12 !== null && ref_r12 !== null) ? (r.r12 - ref_r12) : null;
-    const diff_str = diff !== null ? ((diff>=0 ? '+':'') + diff.toFixed(2) + ' pt') : '—';
-    const diff_color = diff === null ? '#94a3b8' : (Math.abs(diff) < 0.5 ? '#16a34a' : (Math.abs(diff) < 2 ? '#ca8a04' : '#dc2626'));
-    const is_ref = r.name === 'Reference';
+  for (const g of grouped) {
+    const is_ref = !!g.isRef;
+    const ampColor = (g.halfAmp === null) ? '#94a3b8'
+                   : (g.halfAmp < 0.5 ? '#16a34a'
+                     : (g.halfAmp < 2 ? '#ca8a04' : '#dc2626'));
+    const rangeStr = is_ref ? (ref_r12 !== null ? ref_r12.toFixed(2)+'%' : '—')
+                   : (g.lo !== null ? `${g.lo.toFixed(2)}% — ${g.hi.toFixed(2)}%` : '—');
+    const ampStr = is_ref ? '—'
+                   : (g.halfAmp !== null ? `±${g.halfAmp.toFixed(2)} pt` : '—');
     rows += `<tr${is_ref ? ' style="background:#f1f5f9;font-weight:600;"' : ''}>
-      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;">${r.name}</td>
-      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;">${r.r12 !== null ? r.r12.toFixed(2)+'%' : '—'}</td>
-      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;color:${diff_color};">${diff_str}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;">${g.label}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;${is_ref ? '' : 'font-family:monospace;font-size:12px;'}">${rangeStr}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:right;color:${ampColor};font-weight:600;">${ampStr}</td>
     </tr>`;
   }
 
   // Plain text version for clipboard copy
   const lines = ['Analyse de sensibilité ±10% — r12 prédit', ''];
-  lines.push('Scénario'.padEnd(28) + 'r12'.padStart(10) + '   Δ vs ref');
-  lines.push('-'.repeat(54));
-  for (const r of results) {
-    const diff = (r.r12 !== null && ref_r12 !== null) ? (r.r12 - ref_r12) : null;
-    const diff_str = diff !== null ? ((diff>=0 ? '+':'') + diff.toFixed(2) + ' pt') : '-';
-    lines.push(r.name.padEnd(28) + (r.r12 !== null ? r.r12.toFixed(2)+'%' : '-').padStart(10) + '   ' + diff_str);
+  lines.push('Variable'.padEnd(24) + 'r12 [-10% — +10%]'.padStart(20) + '  Amplitude');
+  lines.push('-'.repeat(58));
+  for (const g of grouped) {
+    const rangeStr = g.isRef ? (ref_r12 !== null ? ref_r12.toFixed(2)+'%' : '-')
+                   : (g.lo !== null ? `${g.lo.toFixed(2)}% — ${g.hi.toFixed(2)}%` : '-');
+    const ampStr = g.isRef ? '-' : (g.halfAmp !== null ? `±${g.halfAmp.toFixed(2)} pt` : '-');
+    lines.push(g.label.padEnd(24) + rangeStr.padStart(20) + '  ' + ampStr);
   }
-  if (stdev !== null) lines.push('', 'Écart-type r12 (stabilité globale) : ' + stdev.toFixed(2) + ' pt');
+  // Max half-amplitude across non-ref groups
+  const maxAmp = Math.max(...grouped.filter(g => !g.isRef && g.halfAmp !== null).map(g => g.halfAmp));
+  if (isFinite(maxAmp)) lines.push('', 'Amplitude max (worst-case ±10%) : ±' + maxAmp.toFixed(2) + ' pt');
+  const stdev = maxAmp; // for backward compat with modal text
   const plain_text = lines.join('\n');
 
   // Modal markup
@@ -1427,20 +1454,20 @@ function sensitivityAnalysis() {
         <button onclick="document.getElementById('sensitivity_modal').remove();" style="background:transparent; border:none; font-size:22px; cursor:pointer; color:#64748b; padding:0 4px; line-height:1;">×</button>
       </div>
       <div style="padding:14px 20px;">
-        <p style="margin:0 0 12px; font-size:13px; color:#475569;">Variation ±10% de chaque input pour évaluer la stabilité de r12. ${stdev !== null ? '<strong>Écart-type r12 = '+stdev.toFixed(2)+' pt</strong> sur les scénarios.' : ''}</p>
+        <p style="margin:0 0 12px; font-size:13px; color:#475569;">Variation ±10% de chaque input. Chaque ligne fusionne les deux variations en une plage [-10% → +10%] et reporte l'<strong>amplitude max</strong> autour de la référence (≈ écart-type local de r12).${isFinite(maxAmp) ? ' <strong>Amplitude max globale = ±'+maxAmp.toFixed(2)+' pt</strong>.' : ''}</p>
         <table style="width:100%; font-size:13px; border-collapse:collapse; user-select:text;">
           <thead><tr style="background:#7c3aed; color:white;">
-            <th style="padding:8px 10px; text-align:left;">Scénario</th>
-            <th style="padding:8px 10px; text-align:right;">r12 prédit</th>
-            <th style="padding:8px 10px; text-align:right;">Δ vs référence</th>
+            <th style="padding:8px 10px; text-align:left;">Variable</th>
+            <th style="padding:8px 10px; text-align:right;">r12 [-10% → +10%]</th>
+            <th style="padding:8px 10px; text-align:right;">Amplitude</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
         <div style="margin-top:14px; padding:10px; background:#f8fafc; border-radius:6px; font-size:12px; color:#475569;">
           <strong>Légende</strong> :
-          <span style="color:#16a34a;">vert</span> = très stable (|Δ| &lt; 0.5pt) ·
-          <span style="color:#ca8a04;">orange</span> = stable (|Δ| &lt; 2pt) ·
-          <span style="color:#dc2626;">rouge</span> = sensible (|Δ| ≥ 2pt).
+          <span style="color:#16a34a;">vert</span> = très stable (±&lt; 0.5pt) ·
+          <span style="color:#ca8a04;">orange</span> = stable (±&lt; 2pt) ·
+          <span style="color:#dc2626;">rouge</span> = sensible (±≥ 2pt).
         </div>
       </div>
       <div style="padding:12px 20px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; gap:10px; justify-content:flex-end;">
