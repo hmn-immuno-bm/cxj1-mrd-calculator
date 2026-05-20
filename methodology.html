@@ -266,15 +266,15 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h2 id="sec-variantes">V. Les 6 variantes V230</h2>
 <p>Le calculateur web bascule automatiquement entre 6 variantes selon la disponibilité des données cliniques :</p>
 <table>
-<tr><th>Variante</th><th>Quantification</th><th>TEP</th><th>IDES N (evt)</th><th>C-IDES</th><th>PV N (evt)</th><th>C-PV</th></tr>
-<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>hEq (VAF × cfDNA)</td><td>Deauville 1-5</td><td>138 (26)</td><td><strong>0.844</strong></td><td>92 (16)</td><td><strong>0.890</strong></td></tr>
-<tr><td>M2_hEq Delta</td><td>hEq (VAF × cfDNA)</td><td>ΔSUVmax% (fallback)</td><td>120 (25)</td><td>0.833</td><td>80 (15)</td><td>0.892</td></tr>
-<tr><td>M1_hEq</td><td>hEq (VAF × cfDNA)</td><td>— absent</td><td>164 (32)</td><td>0.812</td><td>109 (21)</td><td>0.856</td></tr>
-<tr><td>M2_VAF Deauv</td><td>VAF % seule</td><td>Deauville 1-5</td><td>138 (26)</td><td>0.821</td><td>92 (16)</td><td>0.819</td></tr>
-<tr><td>M2_VAF Delta</td><td>VAF % seule</td><td>ΔSUVmax% (fallback)</td><td>120 (25)</td><td>0.816</td><td>80 (15)</td><td>0.843</td></tr>
-<tr><td>M1_VAF</td><td>VAF % seule</td><td>— absent</td><td>164 (32)</td><td>0.780</td><td>109 (21)</td><td>0.810</td></tr>
+<tr><th>Variante</th><th>Quantification</th><th>TEP</th><th>IDES N (evt)</th><th>C-IDES (corr.)</th><th>PV N (evt)</th><th>C-PV (corr.)</th></tr>
+<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>hEq (VAF × cfDNA)</td><td>Deauville 1-5</td><td>138 (26)</td><td><strong>0.84</strong></td><td>92 (16)</td><td><strong>0.87</strong></td></tr>
+<tr><td>M2_hEq Delta</td><td>hEq (VAF × cfDNA)</td><td>ΔSUVmax% (fallback)</td><td>120 (25)</td><td>0.82</td><td>80 (15)</td><td>0.88</td></tr>
+<tr><td>M1_hEq</td><td>hEq (VAF × cfDNA)</td><td>— absent</td><td>164 (32)</td><td>0.81</td><td>109 (21)</td><td>0.85</td></tr>
+<tr><td>M2_VAF Deauv</td><td>VAF % seule</td><td>Deauville 1-5</td><td>138 (26)</td><td>0.81</td><td>92 (16)</td><td>0.81</td></tr>
+<tr><td>M2_VAF Delta</td><td>VAF % seule</td><td>ΔSUVmax% (fallback)</td><td>120 (25)</td><td>0.81</td><td>80 (15)</td><td>0.83</td></tr>
+<tr><td>M1_VAF</td><td>VAF % seule</td><td>— absent</td><td>164 (32)</td><td>0.77</td><td>109 (21)</td><td>0.79</td></tr>
 </table>
-<p>⭐ = configuration optimale (toutes les données disponibles). Bootstrap optimism-corrigé en <a href="#sec-bootstrap">§XI.1</a>.</p>
+<p>⭐ = configuration optimale (toutes les données disponibles). C-index optimism-corrected (bootstrap V230.1, B=500). Détails par variante en <a href="#sec-bootstrap">§XI.1</a>.</p>
 
 <div class="note">
 <strong>Coûts mesurés (Δ C-index, M2_hEq vs alternatives)</strong> :
@@ -305,6 +305,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <tr><td>β_v5A_gated</td><td>+0.597</td><td>+1.500</td></tr>
 <tr><td>LP_offset</td><td>+3.920</td><td>+4.094</td></tr>
 <tr><td>S₀(12)</td><td>0.8879</td><td>0.9246</td></tr>
+<tr><td>C-index (corr.)</td><td><strong>0.835</strong></td><td><strong>0.873</strong></td></tr>
 </table>
 </div>
 
@@ -318,6 +319,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <tr><td>β_v5A_gated</td><td>+0.505</td><td>+1.192</td></tr>
 <tr><td>LP_offset</td><td>+1.652</td><td>+1.748</td></tr>
 <tr><td>S₀(12)</td><td>0.8625</td><td>0.9012</td></tr>
+<tr><td>C-index (corr.)</td><td>0.824</td><td>0.875</td></tr>
 </table>
 </div>
 
@@ -330,6 +332,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <tr><td>β_v5A_gated</td><td>+0.466</td><td>+1.055</td></tr>
 <tr><td>LP_offset</td><td>+3.286</td><td>+3.365</td></tr>
 <tr><td>S₀(12)</td><td>0.8755</td><td>0.8931</td></tr>
+<tr><td>C-index (corr.)</td><td><strong>0.805</strong></td><td><strong>0.846</strong></td></tr>
 </table>
 </div>
 
@@ -343,6 +346,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <tr><td>β_v5A_gated</td><td>+0.598</td><td>+1.516</td></tr>
 <tr><td>LP_offset</td><td>+1.824</td><td>+1.975</td></tr>
 <tr><td>S₀(12)</td><td>0.8794</td><td>0.9182</td></tr>
+<tr><td>C-index (corr.)</td><td>0.808</td><td>0.809</td></tr>
 </table>
 </div>
 
@@ -356,6 +360,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <tr><td>β_v5A_gated</td><td>+0.518</td><td>+1.220</td></tr>
 <tr><td>LP_offset</td><td>−0.128</td><td>−0.064</td></tr>
 <tr><td>S₀(12)</td><td>0.8574</td><td>0.8968</td></tr>
+<tr><td>C-index (corr.)</td><td>0.806</td><td>0.829</td></tr>
 </table>
 </div>
 
@@ -368,6 +373,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <tr><td>β_v5A_gated</td><td>+0.449</td><td>+1.070</td></tr>
 <tr><td>LP_offset</td><td>+0.961</td><td>+0.999</td></tr>
 <tr><td>S₀(12)</td><td>0.8674</td><td>0.8838</td></tr>
+<tr><td>C-index (corr.)</td><td>0.767</td><td>0.794</td></tr>
 </table>
 </div>
 
@@ -696,23 +702,24 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p>Battery de tests internes du modèle Cox V230. Tous les bootstraps utilisent la méthode Harrell (B=500, optimism-corrected sur tirages avec remise) sauf indication contraire.</p>
 
 <h3 id="sec-bootstrap">XI.1 Bootstrap C-index optimism-corrigé (Harrell, B=500)</h3>
-<p>Pour les 6 variantes V230, bootstrap complet sur la cohorte d'entraînement (endpoint EFS, partial pooling B′ refitté à chaque tirage) :</p>
+<p>Bootstrap V230.1 (B=500, seed=42, endpoint EFS, optimism-corrected per Harrell) sur les 12 variantes (6 modèles × 2 pipelines). Le modèle principal M2 IDES Deauv ⭐ : C_corr = 0.835 (IC95% [0.76 − 0.92]).</p>
+<p>Pour les 6 variantes V230.1, bootstrap complet sur la cohorte d'entraînement patchée (endpoint EFS, partial pooling B′ refitté à chaque tirage) :</p>
 <table>
 <tr><th>Variante</th><th>N (events)</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95% (percentile)</th></tr>
-<tr><td><strong>M2_hEq Deauv IDES</strong> ⭐</td><td>138 (26)</td><td>0.844</td><td>+0.010</td><td><strong>0.834</strong></td><td>[0.77, 0.93]</td></tr>
-<tr><td><strong>M2_hEq Deauv PV</strong> ⭐</td><td>92 (16)</td><td>0.890</td><td>+0.018</td><td><strong>0.872</strong></td><td>[0.82, 0.97]</td></tr>
-<tr><td>M2_hEq Delta IDES</td><td>120 (25)</td><td>0.833</td><td>+0.011</td><td>0.822</td><td>[0.74, 0.91]</td></tr>
-<tr><td>M2_hEq Delta PV</td><td>80 (15)</td><td>0.892</td><td>+0.023</td><td>0.869</td><td>[0.80, 0.97]</td></tr>
-<tr><td>M1_hEq IDES</td><td>164 (32)</td><td>0.812</td><td>+0.008</td><td>0.804</td><td>[0.73, 0.88]</td></tr>
-<tr><td>M1_hEq PV</td><td>109 (21)</td><td>0.856</td><td>+0.013</td><td>0.843</td><td>[0.74, 0.93]</td></tr>
-<tr><td>M2_VAF Deauv IDES</td><td>138 (26)</td><td>0.821</td><td>+0.015</td><td>0.806</td><td>[0.76, 0.92]</td></tr>
-<tr><td>M2_VAF Deauv PV</td><td>92 (16)</td><td>0.819</td><td>+0.020</td><td>0.799</td><td>[0.74, 0.91]</td></tr>
-<tr><td>M2_VAF Delta IDES</td><td>120 (25)</td><td>0.816</td><td>+0.013</td><td>0.803</td><td>[0.74, 0.91]</td></tr>
-<tr><td>M2_VAF Delta PV</td><td>80 (15)</td><td>0.843</td><td>+0.015</td><td>0.828</td><td>[0.77, 0.96]</td></tr>
-<tr><td>M1_VAF IDES</td><td>164 (32)</td><td>0.780</td><td>+0.008</td><td>0.772</td><td>[0.67, 0.87]</td></tr>
-<tr><td>M1_VAF PV</td><td>109 (21)</td><td>0.810</td><td>+0.020</td><td>0.790</td><td>[0.70, 0.91]</td></tr>
+<tr><td><strong>M2_hEq Deauv IDES</strong> ⭐</td><td>138 (26)</td><td>0.845</td><td>+0.010</td><td><strong>0.835</strong></td><td>[0.761, 0.918]</td></tr>
+<tr><td><strong>M2_hEq Deauv PV</strong> ⭐</td><td>92 (16)</td><td>0.893</td><td>+0.020</td><td><strong>0.873</strong></td><td>[0.804, 0.971]</td></tr>
+<tr><td>M2_hEq Delta IDES</td><td>120 (25)</td><td>0.836</td><td>+0.012</td><td>0.824</td><td>[0.755, 0.918]</td></tr>
+<tr><td>M2_hEq Delta PV</td><td>80 (15)</td><td>0.891</td><td>+0.016</td><td>0.875</td><td>[0.806, 0.966]</td></tr>
+<tr><td>M1_hEq IDES</td><td>164 (32)</td><td>0.813</td><td>+0.008</td><td>0.805</td><td>[0.731, 0.892]</td></tr>
+<tr><td>M1_hEq PV</td><td>109 (21)</td><td>0.857</td><td>+0.011</td><td>0.846</td><td>[0.783, 0.943]</td></tr>
+<tr><td>M2_VAF Deauv IDES</td><td>138 (26)</td><td>0.824</td><td>+0.015</td><td>0.808</td><td>[0.737, 0.920]</td></tr>
+<tr><td>M2_VAF Deauv PV</td><td>92 (16)</td><td>0.837</td><td>+0.027</td><td>0.809</td><td>[0.725, 0.964]</td></tr>
+<tr><td>M2_VAF Delta IDES</td><td>120 (25)</td><td>0.820</td><td>+0.014</td><td>0.806</td><td>[0.737, 0.906]</td></tr>
+<tr><td>M2_VAF Delta PV</td><td>80 (15)</td><td>0.849</td><td>+0.020</td><td>0.829</td><td>[0.739, 0.962]</td></tr>
+<tr><td>M1_VAF IDES</td><td>164 (32)</td><td>0.776</td><td>+0.009</td><td>0.767</td><td>[0.688, 0.872]</td></tr>
+<tr><td>M1_VAF PV</td><td>109 (21)</td><td>0.815</td><td>+0.021</td><td>0.794</td><td>[0.710, 0.923]</td></tr>
 </table>
-<p class="muted"><strong>Optimism très faible</strong> (max +0.023, médiane +0.014) → bonne généralisation. Δ V229.3 PFS → V230 EFS : M2_hEq IDES C_corr 0.848 → 0.834 (−0.014), PV 0.891 → 0.872 (−0.019). Cette légère baisse est attendue : EFS exclut 3 morts non-lymphome bien prédites par TEP, donc plus difficile à discriminer (cf. <a href="#sec-endpoint">§XI.10</a>).</p>
+<p class="muted"><strong>Optimism très faible</strong> (max +0.027, médiane +0.015) → bonne généralisation. Δ V229.3 PFS → V230.1 EFS : M2_hEq IDES C_corr 0.848 → 0.835 (−0.013), PV 0.891 → 0.873 (−0.018). Cette légère baisse est attendue : EFS exclut 3 morts non-lymphome bien prédites par TEP, donc plus difficile à discriminer (cf. <a href="#sec-endpoint">§XI.10</a>).</p>
 
 <h3 id="sec-linearite">XI.2 Linéarité du LP (martingale + splines RCS)</h3>
 <table>
@@ -756,10 +763,10 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 
 <h4>1) C-index par niveau de modèle</h4>
 <table>
-<tr><th>Modèle</th><th>Covariables</th><th>N (events)</th><th>C-index (IDES / PV)</th></tr>
+<tr><th>Modèle</th><th>Covariables</th><th>N (events)</th><th>C-index corr. (IDES / PV)</th></tr>
 <tr><td>🩻 <strong>TEP seul</strong> (baseline clinique)</td><td>1 (TEP2_pos binaire)</td><td>183 (34)</td><td><strong>0.646</strong> (pooled)</td></tr>
-<tr><td>🧬 <strong>M1_hEq</strong> (MRD seule, sans TEP)</td><td>3 (score, burden, v5A)</td><td>164 / 109 (32 / 21)</td><td><strong>0.812 / 0.856</strong></td></tr>
-<tr><td>🩻🧬 <strong>M2_hEq Deauv</strong> ⭐ (MRD + TEP)</td><td>4 (score, burden, v5A, Deauville)</td><td>138 / 92 (26 / 16)</td><td><strong>0.844 / 0.890</strong></td></tr>
+<tr><td>🧬 <strong>M1_hEq</strong> (MRD seule, sans TEP)</td><td>3 (score, burden, v5A)</td><td>164 / 109 (32 / 21)</td><td><strong>0.805 / 0.846</strong></td></tr>
+<tr><td>🩻🧬 <strong>M2_hEq Deauv</strong> ⭐ (MRD + TEP)</td><td>4 (score, burden, v5A, Deauville)</td><td>138 / 92 (26 / 16)</td><td><strong>0.835 / 0.873</strong></td></tr>
 </table>
 <ul>
 <li>Apport <strong>MRD ajoutée au TEP</strong> : ΔC-index ≈ <strong>+0.20</strong> (énorme amélioration)</li>
@@ -997,156 +1004,142 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h2 id="sec-cohorte">XII. Cohorte d'entraînement</h2>
 
 <h3 id="sec-consort">XII.1 Diagramme CONSORT (flow d'inclusion)</h3>
-<p>Flow d'inclusion des patients V230 — endpoint EFS. <strong>IDES est la cohorte maître</strong> (tous les patients avec une IDES p-value calculée au diagnostic sont inclus). <strong>PV est un sous-groupe strict de IDES</strong> (phasage UMI réussi) : les 109 patients M1 PV sont inclus dans les 164 M1 IDES, les 92 M2 PV dans les 138 M2 IDES (vérifié, V15.288). Les exclusions en amont sont séparées en 2 catégories distinctes : (a) <strong>−9 « absence/aucun variants au diag »</strong> (annotation explicite dans la colonne <code>numero_run_diag</code> de la base clinique, runs 220622/231019/220420/250213/220202/251204/211110/230914/240725) ; (b) <strong>−51 données non disponibles ou perdues</strong> (échantillon perdu, séquençage échoué, autre protocole, etc.). Total = 224 − 60 = 164 patients avec IDES p-value, qui constituent intégralement la cohorte M1 IDES après application des patches V15.289 (préfixe MOABI WL réharmonisé) et V15.291 (date C1J1 corrigée dans la base clinique). À noter : un patient sans <code>cfDNA</code> mesuré au CXJ1 reste inclus dans la cohorte (fallback <code>rc = 1e−7</code> dans <code>score_mono</code> équivalent à un patient polished-neg), donc le cfDNA manquant n'est pas un critère d'exclusion. Les exclusions latérales se détachent de la flèche verticale principale (convention CONSORT) :</p>
+<p>Flow d'inclusion CONSORT pour le modèle V230 (endpoint EFS). Cascade d'inclusion en haut ; le modèle Cox principal est <strong>M2 IDES Deauv ⭐</strong> (TEP-2 Deauville renseigné). La sous-cohorte PV (phasage UMI réussi) est strictement incluse dans IDES (PV ⊂ IDES, vérifié V15.288) et sert d'analyse de sensibilité indépendante.</p>
 <div class="center">
-<svg viewBox="0 0 1000 700" style="max-width:100%; height:auto; background:#fafbfc; border:1px solid #e2e8f0; border-radius:6px;">
+<svg viewBox="0 0 1000 640" style="max-width:100%; height:auto; background:#fafbfc; border:1px solid #e2e8f0; border-radius:6px;">
   <defs>
-    <marker id="arr9" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    <marker id="arrM" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#334155"/>
     </marker>
-    <marker id="arr9e" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L9,3 z" fill="#d97706"/>
+    <marker id="arrE" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/>
     </marker>
   </defs>
   <style>
-    .nd { fill: #ffffff; stroke: #475569; stroke-width: 1.5; rx: 6; }
-    .nd-top { fill: #fef3c7; stroke: #d97706; stroke-width: 2; }
-    .nd-mid { fill: #dbeafe; stroke: #1e40af; stroke-width: 1.5; }
-    .nd-pv  { fill: #fce7f3; stroke: #be185d; stroke-width: 1.5; rx: 6; }
-    .nd-final { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
-    .nd-excl { fill: #fee2e2; stroke: #dc2626; stroke-width: 1.5; stroke-dasharray: 4,2; rx: 6; }
-    .nd-master { fill: #fef9c3; stroke: #ca8a04; stroke-width: 2; rx: 6; }
-    .t9 { font-family: 'Segoe UI', sans-serif; font-size: 12px; fill: #1e293b; }
-    .t9-b { font-weight: 600; font-size: 12.5px; fill: #1e293b; }
-    .t9-s { font-size: 11px; fill: #64748b; }
-    .t9-e { font-size: 10.5px; fill: #7f1d1d; }
-    .t9-sub { font-size: 10.5px; fill: #be185d; font-style: italic; }
-    .ar { stroke: #475569; stroke-width: 1.6; fill: none; marker-end: url(#arr9); }
-    .ar-e { stroke: #d97706; stroke-width: 1.3; fill: none; stroke-dasharray: 4,3; marker-end: url(#arr9e); }
-    .ar-sub { stroke: #be185d; stroke-width: 1.2; fill: none; stroke-dasharray: 2,3; }
-    .junction { fill: #475569; }
+    /* clean publication palette : white boxes + 1 accent for primary */
+    .nd       { fill: #ffffff; stroke: #334155; stroke-width: 1.5; rx: 4; }
+    .nd-main  { fill: #ecfdf5; stroke: #047857; stroke-width: 2;   rx: 4; }   /* primary model M2 IDES Deauv */
+    .nd-sub   { fill: #fafafa; stroke: #94a3b8; stroke-width: 1.2; stroke-dasharray: 5,3; rx: 4; }  /* PV subset */
+    .nd-ex    { fill: #fef2f2; stroke: #dc2626; stroke-width: 1.2; rx: 4; }   /* exclusions */
+    .t        { font-family: 'Segoe UI', Roboto, sans-serif; font-size: 12.5px; fill: #1e293b; }
+    .t-b      { font-weight: 600; font-size: 13px; fill: #0f172a; }
+    .t-s      { font-size: 11px; fill: #64748b; }
+    .t-e      { font-size: 11px; fill: #b91c1c; }
+    .t-sub    { font-size: 11px; fill: #475569; font-style: italic; }
+    .ar       { stroke: #334155; stroke-width: 1.5; fill: none; marker-end: url(#arrM); }
+    .ar-e     { stroke: #94a3b8; stroke-width: 1.2; fill: none; marker-end: url(#arrE); }
+    .junc     { fill: #334155; }
   </style>
 
-  <!-- Title -->
-  <text x="500" y="22" class="t9-b" text-anchor="middle">Cohorte CXJ1 — flow chart d'inclusion (V230 EFS)</text>
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════════════════ Title ═══════════════════════════════ -->
+  <text x="500" y="22" class="t-b" text-anchor="middle">Cohorte CXJ1 — Flow chart d'inclusion (V230, endpoint EFS)</text>
 
-  <!-- ════════════════════════════════════════════════════════════ -->
-  <!-- ═══════════════ TOP CHAIN : screening cascade ══════════════ -->
-  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- TOP CASCADE (centered single column)                              -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
 
-  <!-- 1. Top box : cohorte clinique screenée -->
-  <rect class="nd-top" x="340" y="35" width="320" height="48" rx="6"/>
-  <text x="500" y="55" class="t9-b" text-anchor="middle">Cohorte clinique screenée</text>
-  <text x="500" y="72" class="t9" text-anchor="middle">N = 224 (NGS diag + CXJ1)</text>
+  <!-- Box 1 : Screened -->
+  <rect class="nd" x="370" y="40" width="260" height="50"/>
+  <text x="500" y="60" class="t-b" text-anchor="middle">Patients screenés</text>
+  <text x="500" y="78" class="t" text-anchor="middle">N = 224 (NGS diag + CXJ1)</text>
 
-  <!-- Flèche verticale 1 : screening → après −9 "absence variants" -->
-  <line class="ar" x1="500" y1="83" x2="500" y2="148"/>
-  <line class="ar-e" x1="500" y1="105" x2="660" y2="105"/>
-  <circle class="junction" cx="500" cy="105" r="2.5"/>
-  <rect class="nd-excl" x="660" y="85" width="330" height="42"/>
-  <text x="825" y="102" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−9 absence/aucun variants au diag</text>
-  <text x="825" y="118" class="t9-e" text-anchor="middle">Runs annotés : 220622, 231019, 220420, 250213, 220202, 251204, 211110, 230914, 240725</text>
+  <!-- Vertical with branch right : −60 -->
+  <line class="ar" x1="500" y1="90" x2="500" y2="160"/>
+  <line class="ar-e" x1="500" y1="120" x2="700" y2="120"/>
+  <circle class="junc" cx="500" cy="120" r="2.5"/>
+  <rect class="nd-ex" x="700" y="92" width="290" height="62"/>
+  <text x="845" y="110" class="t-b" text-anchor="middle">Exclus (n = 60)</text>
+  <text x="710" y="126" class="t-e">▸ 9 absence/aucun variants traçables au diag</text>
+  <text x="710" y="141" class="t-e">▸ 51 données indisponibles (échantillon perdu,</text>
+  <text x="710" y="153" class="t-e">  séquençage échoué, autre protocole)</text>
 
-  <!-- Branche horizontale −51 "data lost / not available" -->
-  <line class="ar-e" x1="500" y1="135" x2="660" y2="135"/>
-  <circle class="junction" cx="500" cy="135" r="2.5"/>
-  <rect class="nd-excl" x="660" y="130" width="330" height="32"/>
-  <text x="825" y="146" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−51 données non disponibles / perdues</text>
-  <text x="825" y="158" class="t9-e" text-anchor="middle">Sample lost, séquençage échoué, autre protocole, etc.</text>
+  <!-- Box 2 : Analysable -->
+  <rect class="nd" x="370" y="165" width="260" height="50"/>
+  <text x="500" y="184" class="t-b" text-anchor="middle">Cohorte analysable</text>
+  <text x="500" y="202" class="t" text-anchor="middle">N = 164 (≥ 1 variant traçable)</text>
 
-  <!-- 2. Box : patients avec variants détectés -->
-  <rect class="nd-mid" x="340" y="170" width="320" height="48" rx="6"/>
-  <text x="500" y="189" class="t9-b" text-anchor="middle">Patients avec IDES p-value calculée</text>
-  <text x="500" y="207" class="t9" text-anchor="middle">N = 164 (variants traçables au diag)</text>
+  <!-- Vertical down to split point -->
+  <line class="ar" x1="500" y1="215" x2="500" y2="265"/>
 
-  <!-- Flèche verticale 2 : variants → M1 IDES master (patches V15.289/V15.291 applied → cohorte complète) -->
-  <line class="ar" x1="500" y1="218" x2="500" y2="266"/>
-  <line class="ar-sub" x1="500" y1="240" x2="660" y2="240" style="stroke:#16a34a; stroke-dasharray:4,3;"/>
-  <circle class="junction" cx="500" cy="240" r="2.5" style="fill:#16a34a;"/>
-  <rect class="nd-final" x="660" y="218" width="330" height="44" style="stroke-dasharray:4,2;"/>
-  <text x="825" y="236" class="t9-b" text-anchor="middle" style="fill:#15803d;">Patches V15.289 + V15.291 appliqués</text>
-  <text x="825" y="252" class="t9-s" text-anchor="middle" style="fill:#15803d;">Préfixe MOABI WL réharmonisé · C1J1 corrigée → cohorte complète</text>
+  <!-- Split label : split into IDES path (left) and PV subset (right) -->
+  <text x="500" y="280" class="t-s" text-anchor="middle">↙ Pipeline IDES (cohorte maître)     Sous-groupe PV (phasage UMI réussi) ↘</text>
 
-  <!-- 3. Master box : M1 IDES (cohorte de référence, highlighted) -->
-  <rect class="nd-master" x="320" y="271" width="360" height="58"/>
-  <text x="500" y="289" class="t9-b" text-anchor="middle" style="fill:#854d0e;">M1_hEq IDES — cohorte de référence</text>
-  <text x="500" y="306" class="t9" text-anchor="middle">N = 164, ev = 32 (EFS)</text>
-  <text x="500" y="322" class="t9-s" text-anchor="middle">C-corr = 0.804 (modèle Cox sans TEP, partial pooling B′)</text>
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- TWO PARALLEL COLUMNS : IDES (left) + PV subset (right)            -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
 
-  <!-- ════════════════════════════════════════════════════════════ -->
-  <!-- ═══════════════ SPLIT : IDES branch + PV subset ════════════ -->
-  <!-- ════════════════════════════════════════════════════════════ -->
-  <!-- Split arrows from master box -->
-  <line class="ar" x1="430" y1="329" x2="250" y2="385"/>
-  <line class="ar" x1="570" y1="329" x2="750" y2="385"/>
+  <!-- Split arrows from y=265 to top of two columns -->
+  <line class="ar" x1="450" y1="265" x2="270" y2="305"/>
+  <line class="ar" x1="550" y1="265" x2="730" y2="305"/>
 
-  <!-- ━━━━━━━━━━━━━━━━━━ IDES branch (LEFT) ━━━━━━━━━━━━━━━━━━ -->
+  <!-- ━━━━━━━━━━━━━━━ IDES column (left, x=130-410) ━━━━━━━━━━━━━━━ -->
 
-  <!-- Flèche verticale IDES : éligibles → M2 (avec branch −26 TEP NA) -->
-  <line class="ar" x1="250" y1="385" x2="250" y2="445"/>
-  <line class="ar-e" x1="250" y1="415" x2="130" y2="415"/>
-  <circle class="junction" cx="250" cy="415" r="2.5"/>
-  <rect class="nd-excl" x="10" y="395" width="120" height="42"/>
-  <text x="70" y="411" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−26 TEP NA</text>
-  <text x="70" y="427" class="t9-e" text-anchor="middle">routés vers M1</text>
+  <!-- M1 IDES box (regular) -->
+  <rect class="nd" x="130" y="310" width="280" height="64"/>
+  <text x="270" y="328" class="t-b" text-anchor="middle">M1 IDES (sans TEP)</text>
+  <text x="270" y="346" class="t" text-anchor="middle">N = 164 · events = 32</text>
+  <text x="270" y="363" class="t-s" text-anchor="middle">C-corr = 0.81 [0.73 − 0.89] · variante de secours</text>
 
-  <!-- M2 IDES ⭐ box -->
-  <rect class="nd-final" x="130" y="450" width="240" height="58"/>
-  <text x="250" y="468" class="t9-b" text-anchor="middle">M2_hEq IDES ⭐</text>
-  <text x="250" y="485" class="t9" text-anchor="middle">N = 138, ev = 26</text>
-  <text x="250" y="501" class="t9-s" text-anchor="middle">C-corr = 0.834 [0.77-0.93]</text>
+  <!-- Vertical M1 → M2 IDES with TEP NA branch -->
+  <line class="ar" x1="270" y1="374" x2="270" y2="438"/>
+  <line class="ar-e" x1="270" y1="402" x2="120" y2="402"/>
+  <circle class="junc" cx="270" cy="402" r="2.5"/>
+  <rect class="nd-ex" x="10" y="383" width="110" height="40"/>
+  <text x="65" y="400" class="t-b" text-anchor="middle">− 26</text>
+  <text x="65" y="415" class="t-e" text-anchor="middle">TEP-2 non fait</text>
 
-  <!-- ━━━━━━━━━━━━━━━━━━ PV branch (RIGHT, ⊂ IDES) ━━━━━━━━━━━━━━━━━━ -->
+  <!-- M2 IDES Deauv ⭐ (primary model, accent color) -->
+  <rect class="nd-main" x="130" y="443" width="280" height="80"/>
+  <text x="270" y="461" class="t-b" text-anchor="middle" style="fill:#065f46;">M2 IDES Deauville ⭐</text>
+  <text x="270" y="479" class="t-s" text-anchor="middle" style="fill:#065f46; font-weight:600;">MODÈLE PRINCIPAL V230</text>
+  <text x="270" y="497" class="t" text-anchor="middle">N = 138 · events = 26</text>
+  <text x="270" y="514" class="t-s" text-anchor="middle">C-corr = 0.84 [0.76 − 0.92] · bootstrap B=500</text>
 
-  <!-- Flèche verticale PV : depuis M1 IDES → M1 PV (sous-groupe avec branch −55 UMI fail) -->
-  <line class="ar" x1="750" y1="385" x2="750" y2="445"/>
-  <line class="ar-e" x1="750" y1="415" x2="870" y2="415"/>
-  <circle class="junction" cx="750" cy="415" r="2.5"/>
-  <rect class="nd-excl" x="870" y="395" width="120" height="42"/>
-  <text x="930" y="411" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−55 phasage</text>
-  <text x="930" y="427" class="t9-e" text-anchor="middle">UMI échoué / quali</text>
+  <!-- ━━━━━━━━━━━━━━━ PV column (right, x=590-870) — same structure, dashed border ━━━━━━━━━━━━━━━ -->
 
-  <!-- M1 PV box (⊂ M1 IDES) -->
-  <rect class="nd-pv" x="630" y="450" width="240" height="58"/>
-  <text x="750" y="468" class="t9-b" text-anchor="middle">M1_hEq PV (= éligibles UMI)</text>
-  <text x="750" y="485" class="t9" text-anchor="middle">N = 109, ev = 21</text>
-  <text x="750" y="500" class="t9-sub" text-anchor="middle">⊂ M1 IDES (109/164) · C-corr = 0.843</text>
+  <!-- M1 PV box (subset of M1 IDES) -->
+  <rect class="nd-sub" x="590" y="310" width="280" height="64"/>
+  <text x="730" y="328" class="t-b" text-anchor="middle">M1 PV (sans TEP)</text>
+  <text x="730" y="346" class="t" text-anchor="middle">N = 109 · events = 21</text>
+  <text x="730" y="363" class="t-sub" text-anchor="middle">⊂ M1 IDES (109/164) · C-corr = 0.85 [0.78 − 0.94]</text>
 
-  <!-- Flèche verticale PV : M1 PV → M2 PV (avec branch −17 TEP NA) -->
-  <line class="ar" x1="750" y1="508" x2="750" y2="568"/>
-  <line class="ar-e" x1="750" y1="538" x2="870" y2="538"/>
-  <circle class="junction" cx="750" cy="538" r="2.5"/>
-  <rect class="nd-excl" x="870" y="518" width="120" height="42"/>
-  <text x="930" y="534" class="t9-b" text-anchor="middle" style="fill:#7f1d1d;">−17 TEP NA</text>
-  <text x="930" y="550" class="t9-e" text-anchor="middle">routés vers M1 PV</text>
+  <!-- Vertical M1 PV → M2 PV with TEP NA branch -->
+  <line class="ar" x1="730" y1="374" x2="730" y2="438"/>
+  <line class="ar-e" x1="730" y1="402" x2="880" y2="402"/>
+  <circle class="junc" cx="730" cy="402" r="2.5"/>
+  <rect class="nd-ex" x="880" y="383" width="110" height="40"/>
+  <text x="935" y="400" class="t-b" text-anchor="middle">− 17</text>
+  <text x="935" y="415" class="t-e" text-anchor="middle">TEP-2 non fait</text>
 
-  <!-- M2 PV ⭐ box (⊂ M2 IDES) -->
-  <rect class="nd-final" x="630" y="573" width="240" height="58"/>
-  <text x="750" y="591" class="t9-b" text-anchor="middle">M2_hEq PV ⭐</text>
-  <text x="750" y="608" class="t9" text-anchor="middle">N = 92, ev = 16</text>
-  <text x="750" y="624" class="t9-sub" text-anchor="middle">⊂ M2 IDES (92/138) · C-corr = 0.872</text>
+  <!-- M2 PV Deauv (sensitivity analysis, dashed border) -->
+  <rect class="nd-sub" x="590" y="443" width="280" height="80"/>
+  <text x="730" y="461" class="t-b" text-anchor="middle">M2 PV Deauville</text>
+  <text x="730" y="479" class="t-s" text-anchor="middle" style="font-style:italic;">Sensitivity analysis</text>
+  <text x="730" y="497" class="t" text-anchor="middle">N = 92 · events = 16</text>
+  <text x="730" y="514" class="t-sub" text-anchor="middle">⊂ M2 IDES (92/138) · C-corr = 0.87 [0.80 − 0.97]</text>
 
-  <!-- Dashed annotation : M2 IDES ←→ M2 PV (subset) -->
-  <line class="ar-sub" x1="370" y1="479" x2="630" y2="602"/>
-  <text x="500" y="555" class="t9-sub" text-anchor="middle">PV ⊂ IDES (sous-groupe UMI phasable)</text>
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- BOTTOM : Legend                                                   -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <rect class="nd" x="200" y="565" width="16" height="14"/>
+  <text x="222" y="577" class="t-s">Cohorte / variante</text>
+  <rect class="nd-main" x="350" y="565" width="16" height="14"/>
+  <text x="372" y="577" class="t-s">Modèle principal V230 ⭐</text>
+  <rect class="nd-sub" x="540" y="565" width="16" height="14"/>
+  <text x="562" y="577" class="t-s">Sous-groupe PV (⊂ IDES, sensibilité)</text>
+  <rect class="nd-ex" x="770" y="565" width="16" height="14"/>
+  <text x="792" y="577" class="t-s">Exclusion</text>
 
-  <!-- ═══════ LEGEND ═══════ -->
-  <rect class="nd-top" x="10" y="655" width="14" height="14" rx="3"/>
-  <text x="30" y="667" class="t9-s">Screening</text>
-  <rect class="nd-mid" x="115" y="655" width="14" height="14" rx="3"/>
-  <text x="135" y="667" class="t9-s">Étape intermédiaire</text>
-  <rect class="nd-master" x="275" y="655" width="14" height="14"/>
-  <text x="295" y="667" class="t9-s">Cohorte maître (M1 IDES)</text>
-  <rect class="nd-pv" x="450" y="655" width="14" height="14" rx="3"/>
-  <text x="470" y="667" class="t9-s">Sous-groupe PV (⊂ IDES)</text>
-  <rect class="nd-final" x="640" y="655" width="14" height="14" rx="3"/>
-  <text x="660" y="667" class="t9-s">Variante optimale ⭐</text>
-  <rect class="nd-excl" x="820" y="655" width="14" height="14"/>
-  <text x="840" y="667" class="t9-s">Exclusion</text>
-  <line x1="930" y1="662" x2="960" y2="662" style="stroke:#be185d; stroke-width:1.2; stroke-dasharray:2,3;"/>
-  <text x="975" y="667" class="t9-sub" text-anchor="start">⊂</text>
+  <!-- Footnote inside SVG -->
+  <text x="500" y="612" class="t-s" text-anchor="middle" style="font-style:italic;">
+    Patches techniques (V15.289 préfixe MOABI WL · V15.291 date C1J1) appliqués → 0 exclusion technique restante.
+  </text>
+  <text x="500" y="628" class="t-s" text-anchor="middle" style="font-style:italic;">
+    Patient sans cfDNA<tspan dy="-3" font-size="9">CXJ1</tspan><tspan dy="3"> mesuré reste inclus (fallback ratio = 10⁻⁷ équivalent polished-neg, V15.290).</tspan>
+  </text>
 </svg>
-<p class="muted">Vectoriel SVG — Topologie en cascade vérifiée empiriquement (V15.288 + V15.289 + V15.291). <strong>IDES est la cohorte maître</strong> : les 164 patients avec une IDES p-value calculable au diag constituent intégralement la cohorte M1 IDES éligible Cox EFS, après application des deux patches techniques V15.289 (préfixe fichier MOABI WL réharmonisé entre C2J1 et C3J1 sur le NAS) et V15.291 (date <code>C1J1</code> corrigée dans la base clinique : la valeur précédente correspondait au C3J1+1j par erreur de saisie, alors que les Glims CXJ1 étaient corrects ; la vraie date C1J1 a été confirmée par l'utilisateur, cohérente avec les Glims de diag/C2/C3). De ces 164, deux branches indépendantes : (a) <strong>filtre TEP Deauville → M2 IDES ⭐</strong> (138 patients) ; (b) <strong>filtre UMI phasable → M1 PV</strong> (109 patients, strictement inclus dans M1 IDES). M2 PV (92 patients) est l'intersection des deux filtres et donc strictement inclus dans M2 IDES (92/138 ✓). Les 60 patients exclus en amont sont scindés en <strong>2 catégories distinctes</strong> : 9 patients « absence/aucun variants » (annotation explicite sur 9 runs au diagnostic — pas de mutations traçables pour la MRD) + 51 patients « données non disponibles » (échantillons perdus, séquençage échoué, autre protocole, sans run documenté). <strong>Note importante</strong> : un patient sans <code>cfDNA</code> mesuré au CXJ1 (perdu au labo) reste inclus dans la cohorte — le fallback <code>rc = 1e−7</code> dans <code>score_mono</code> (déclenché quand <code>num</code> est NaN ou ≤0) le traite comme un patient avec MRD indétectable au CXJ1 (= polished-neg). La flèche pointillée violette indique la relation de sous-ensemble PV ⊂ IDES.</p>
+<p class="muted">Diagramme CONSORT vectoriel — modèle V230 (endpoint EFS = rechute OR progression). Sur 224 patients screenés, 60 sont exclus en amont (9 sans variant traçable au diag confirmé par annotation explicite dans <code>numero_run_diag</code>, 51 données indisponibles). Les 164 patients restants constituent la cohorte de référence (M1 IDES, modèle Cox sans TEP). Le modèle principal V230 est <strong>M2 IDES Deauville ⭐</strong> (N=138 après exclusion des 26 patients sans TEP-2 interprétable). La sous-cohorte PV (phasage UMI réussi) est <strong>strictement incluse</strong> dans IDES et sert d'analyse de sensibilité indépendante : 109/164 en M1 PV et 92/138 en M2 PV (cf. §VIII pour la justification statistique du partial pooling B′ qui exploite cette inclusion).</p>
 </div>
 
 <h3 id="sec-table1">XII.2 Caractéristiques baseline (Table 1)</h3>
