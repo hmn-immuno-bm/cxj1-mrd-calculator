@@ -1004,7 +1004,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <h3 id="sec-consort">XII.1 Diagramme CONSORT (flow d'inclusion)</h3>
 <p>Flow d'inclusion CONSORT pour le modèle V230 (endpoint EFS). <strong>Cascade verticale haute</strong> : screenés → données disponibles → ctDNA détectable. Puis la branche IDES (à gauche) continue directement (longue flèche, pas de filtre additionnel), tandis que la branche PV (à droite) ajoute 2 étapes intermédiaires (données PV disponibles → variants PV détectés). Les 4 cohortes finales (M1/M2 × IDES/PV) sont <strong>alignées horizontalement par paires</strong>, avec une annotation centrale indiquant le nombre de patients communs (PV ⊂ IDES).</p>
 <div class="center">
-<svg viewBox="0 0 1000 950" style="max-width:100%; height:auto; background:#fafbfc; border:1px solid #e2e8f0; border-radius:6px;">
+<svg viewBox="0 0 1000 970" style="max-width:100%; height:auto; background:#fafbfc; border:1px solid #e2e8f0; border-radius:6px;">
   <defs>
     <marker id="arrM" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
       <path d="M0,0 L0,6 L8,3 z" fill="#334155"/>
@@ -1014,15 +1014,15 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
     </marker>
   </defs>
   <style>
+    /* Uniform palette : same style for IDES and PV cohort boxes — no more dashed PV */
     .nd       { fill: #ffffff; stroke: #334155; stroke-width: 1.5; rx: 4; }
-    .nd-main  { fill: #ecfdf5; stroke: #047857; stroke-width: 2;   rx: 4; }
-    .nd-sub   { fill: #fafafa; stroke: #94a3b8; stroke-width: 1.2; stroke-dasharray: 5,3; rx: 4; }
+    .nd-main  { fill: #ecfdf5; stroke: #047857; stroke-width: 2;   rx: 4; }    /* M2 IDES Deauv ⭐ primary */
     .nd-ex    { fill: #fef2f2; stroke: #dc2626; stroke-width: 1.2; rx: 4; }
-    .nd-pvs   { fill: #f8fafc; stroke: #475569; stroke-width: 1.5; rx: 4; }
     .t        { font-family: 'Segoe UI', Roboto, sans-serif; font-size: 12.5px; fill: #1e293b; }
     .t-b      { font-weight: 600; font-size: 13px; fill: #0f172a; }
     .t-s      { font-size: 11px; fill: #64748b; }
     .t-e      { font-size: 11px; fill: #b91c1c; }
+    .t-tp     { font-size: 10.5px; fill: #475569; }
     .t-sub    { font-size: 11px; fill: #475569; font-style: italic; }
     .t-link   { font-size: 11.5px; fill: #047857; font-weight: 600; }
     .ar       { stroke: #334155; stroke-width: 1.5; fill: none; marker-end: url(#arrM); }
@@ -1036,162 +1036,165 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <!-- ════════════════ TOP CASCADE (3 boxes centered) ════════════════ -->
 
   <!-- Step 1 : Screened (N=224) -->
-  <rect class="nd" x="370" y="40" width="260" height="50"/>
-  <text x="500" y="60" class="t-b" text-anchor="middle">Patients screenés</text>
-  <text x="500" y="78" class="t" text-anchor="middle">N = 224 (NGS diag + CXJ1)</text>
+  <rect class="nd" x="370" y="40" width="260" height="56"/>
+  <text x="500" y="59" class="t-b" text-anchor="middle">Patients screenés</text>
+  <text x="500" y="76" class="t" text-anchor="middle">N = 224 (NGS diag + CXJ1)</text>
+  <text x="500" y="90" class="t-tp" text-anchor="middle">(102 C2 + 122 C3)</text>
 
   <!-- Arrow Screened → Données dispo, with −51 branch -->
-  <line class="ar" x1="500" y1="90" x2="500" y2="148"/>
-  <line class="ar-e" x1="500" y1="118" x2="700" y2="118"/>
-  <circle class="junc" cx="500" cy="118" r="2.5"/>
-  <rect class="nd-ex" x="700" y="100" width="290" height="38"/>
-  <text x="710" y="117" class="t-b" style="fill:#b91c1c;">− 51 données indisponibles</text>
-  <text x="710" y="131" class="t-e">échantillon perdu · séquençage échoué · autre protocole</text>
+  <line class="ar" x1="500" y1="96" x2="500" y2="154"/>
+  <line class="ar-e" x1="500" y1="124" x2="700" y2="124"/>
+  <circle class="junc" cx="500" cy="124" r="2.5"/>
+  <rect class="nd-ex" x="700" y="106" width="290" height="38"/>
+  <text x="710" y="123" class="t-b" style="fill:#b91c1c;">− 51 données indisponibles  <tspan class="t-tp" style="fill:#b91c1c;">(2 C2 + 49 C3)</tspan></text>
+  <text x="710" y="137" class="t-e">échantillon perdu · séquençage échoué · autre protocole</text>
 
   <!-- Step 2 : Données disponibles (N=173) -->
-  <rect class="nd" x="370" y="153" width="260" height="50"/>
-  <text x="500" y="173" class="t-b" text-anchor="middle">Patients données disponibles</text>
-  <text x="500" y="191" class="t" text-anchor="middle">N = 173</text>
+  <rect class="nd" x="370" y="159" width="260" height="56"/>
+  <text x="500" y="178" class="t-b" text-anchor="middle">Patients données disponibles</text>
+  <text x="500" y="195" class="t" text-anchor="middle">N = 173</text>
+  <text x="500" y="209" class="t-tp" text-anchor="middle">(100 C2 + 73 C3)</text>
 
   <!-- Arrow Données dispo → ctDNA détectable, with −9 branch -->
-  <line class="ar" x1="500" y1="203" x2="500" y2="261"/>
-  <line class="ar-e" x1="500" y1="231" x2="700" y2="231"/>
-  <circle class="junc" cx="500" cy="231" r="2.5"/>
-  <rect class="nd-ex" x="700" y="213" width="290" height="38"/>
-  <text x="710" y="230" class="t-b" style="fill:#b91c1c;">− 9 ctDNA non détectable au diag</text>
-  <text x="710" y="244" class="t-e">annotation <tspan style="font-family:monospace; font-size:10px;">numero_run_diag</tspan> (absence/aucun variant)</text>
+  <line class="ar" x1="500" y1="215" x2="500" y2="273"/>
+  <line class="ar-e" x1="500" y1="243" x2="700" y2="243"/>
+  <circle class="junc" cx="500" cy="243" r="2.5"/>
+  <rect class="nd-ex" x="700" y="225" width="290" height="38"/>
+  <text x="710" y="242" class="t-b" style="fill:#b91c1c;">− 9 ctDNA non détectable au diag  <tspan class="t-tp" style="fill:#b91c1c;">(4 C2 + 5 C3)</tspan></text>
+  <text x="710" y="256" class="t-e">annotation <tspan style="font-family:monospace; font-size:10px;">numero_run_diag</tspan> (absence/aucun variant)</text>
 
   <!-- Step 3 : ctDNA détectable (N=164) -->
-  <rect class="nd" x="370" y="266" width="260" height="50"/>
-  <text x="500" y="286" class="t-b" text-anchor="middle">Patients avec ctDNA détectable</text>
-  <text x="500" y="304" class="t" text-anchor="middle">N = 164 (≥ 1 variant traçable au diag)</text>
+  <rect class="nd" x="370" y="278" width="260" height="56"/>
+  <text x="500" y="297" class="t-b" text-anchor="middle">Patients avec ctDNA détectable</text>
+  <text x="500" y="314" class="t" text-anchor="middle">N = 164 (≥ 1 variant traçable au diag)</text>
+  <text x="500" y="328" class="t-tp" text-anchor="middle">(96 C2 + 68 C3)</text>
 
   <!-- Split into IDES (left) and PV (right) -->
-  <line class="ar" x1="450" y1="316" x2="270" y2="350"/>
-  <line class="ar" x1="550" y1="316" x2="730" y2="350"/>
+  <line class="ar" x1="450" y1="334" x2="270" y2="365"/>
+  <line class="ar" x1="550" y1="334" x2="730" y2="365"/>
 
   <!-- ════════════════ LEFT branch (IDES — long direct arrow) ════════════════ -->
 
-  <text x="270" y="345" class="t-sub" text-anchor="middle">Pipeline IDES (cohorte maître)</text>
+  <text x="270" y="360" class="t-sub" text-anchor="middle">Pipeline IDES (cohorte maître)</text>
 
-  <!-- LONG vertical IDES from y=355 down to M1 IDES at y=580 — no intermediate filter -->
-  <line class="ar" x1="270" y1="358" x2="270" y2="580"/>
-  <text x="290" y="475" class="t-sub" style="font-style:italic;">→ aucun filtre additionnel</text>
+  <!-- LONG vertical IDES from y=370 down to M1 IDES at y=600 — no intermediate filter -->
+  <line class="ar" x1="270" y1="370" x2="270" y2="600"/>
+  <text x="290" y="485" class="t-sub" style="font-style:italic;">→ aucun filtre additionnel</text>
 
   <!-- ════════════════ RIGHT branch (PV — 2 extra filter steps) ════════════════ -->
 
-  <text x="730" y="345" class="t-sub" text-anchor="middle">Pipeline PV (sous-groupe filtré au diag)</text>
+  <text x="730" y="360" class="t-sub" text-anchor="middle">Pipeline PV (sous-groupe filtré au diag)</text>
 
   <!-- Vertical PV → "Données PV dispo" with −31 branch -->
-  <line class="ar" x1="730" y1="358" x2="730" y2="408"/>
-  <line class="ar-e" x1="730" y1="378" x2="880" y2="378"/>
-  <circle class="junc" cx="730" cy="378" r="2.5"/>
-  <rect class="nd-ex" x="880" y="360" width="110" height="38"/>
-  <text x="935" y="378" class="t-b" text-anchor="middle">− 31</text>
-  <text x="935" y="391" class="t-e" text-anchor="middle">données PV indispo.</text>
+  <line class="ar" x1="730" y1="370" x2="730" y2="418"/>
+  <line class="ar-e" x1="730" y1="390" x2="880" y2="390"/>
+  <circle class="junc" cx="730" cy="390" r="2.5"/>
+  <rect class="nd-ex" x="880" y="372" width="110" height="38"/>
+  <text x="935" y="389" class="t-b" text-anchor="middle">− 31</text>
+  <text x="935" y="402" class="t-e" text-anchor="middle">(21 C2 + 10 C3)</text>
 
   <!-- PV-step 1 : Données PV disponibles (N=133) -->
-  <rect class="nd-pvs" x="610" y="413" width="240" height="48"/>
-  <text x="730" y="432" class="t-b" text-anchor="middle">Données PV disponibles</text>
-  <text x="730" y="450" class="t" text-anchor="middle">N = 133</text>
+  <rect class="nd" x="610" y="423" width="240" height="56"/>
+  <text x="730" y="442" class="t-b" text-anchor="middle">Données PV disponibles</text>
+  <text x="730" y="459" class="t" text-anchor="middle">N = 133</text>
+  <text x="730" y="473" class="t-tp" text-anchor="middle">(75 C2 + 58 C3)</text>
 
   <!-- Vertical PV → "Variants PV détectés" with −24 branch -->
-  <line class="ar" x1="730" y1="461" x2="730" y2="514"/>
-  <line class="ar-e" x1="730" y1="484" x2="880" y2="484"/>
-  <circle class="junc" cx="730" cy="484" r="2.5"/>
-  <rect class="nd-ex" x="880" y="466" width="110" height="38"/>
-  <text x="935" y="484" class="t-b" text-anchor="middle">− 24</text>
-  <text x="935" y="497" class="t-e" text-anchor="middle">pas variants PV</text>
+  <line class="ar" x1="730" y1="479" x2="730" y2="528"/>
+  <line class="ar-e" x1="730" y1="500" x2="880" y2="500"/>
+  <circle class="junc" cx="730" cy="500" r="2.5"/>
+  <rect class="nd-ex" x="880" y="482" width="110" height="38"/>
+  <text x="935" y="499" class="t-b" text-anchor="middle">− 24</text>
+  <text x="935" y="512" class="t-e" text-anchor="middle">(11 C2 + 13 C3)</text>
 
   <!-- PV-step 2 : Variants PV détectés (N=109) -->
-  <rect class="nd-pvs" x="610" y="519" width="240" height="48"/>
-  <text x="730" y="538" class="t-b" text-anchor="middle">Variants PV détectés</text>
-  <text x="730" y="556" class="t" text-anchor="middle">N = 109 (filtre ≥ 10 UMI + ratio &gt; 0.3)</text>
+  <rect class="nd" x="610" y="533" width="240" height="56"/>
+  <text x="730" y="552" class="t-b" text-anchor="middle">Variants PV détectés</text>
+  <text x="730" y="569" class="t" text-anchor="middle">N = 109 (filtre ≥ 10 UMI + ratio &gt; 0.3)</text>
+  <text x="730" y="583" class="t-tp" text-anchor="middle">(64 C2 + 45 C3)</text>
 
-  <line class="ar" x1="730" y1="567" x2="730" y2="582"/>
+  <line class="ar" x1="730" y1="589" x2="730" y2="600"/>
 
-  <!-- ════════════════ M1 ROW (IDES + PV aligned at y=585) ════════════════ -->
+  <!-- ════════════════ M1 ROW (IDES + PV aligned at y=605) ════════════════ -->
 
   <!-- M1 IDES box (left) -->
-  <rect class="nd" x="130" y="585" width="280" height="68"/>
-  <text x="270" y="603" class="t-b" text-anchor="middle">M1 IDES (sans TEP)</text>
-  <text x="270" y="621" class="t" text-anchor="middle">N = 164 · events = 32 (EFS)</text>
-  <text x="270" y="638" class="t-s" text-anchor="middle">C-corr = 0.81 [0.73 − 0.89]</text>
-  <text x="270" y="651" class="t-s" text-anchor="middle" style="font-style:italic;">cohorte de référence</text>
+  <rect class="nd" x="130" y="605" width="280" height="74"/>
+  <text x="270" y="623" class="t-b" text-anchor="middle">M1 IDES (sans TEP)</text>
+  <text x="270" y="640" class="t" text-anchor="middle">N = 164 · events = 32 (EFS)</text>
+  <text x="270" y="654" class="t-tp" text-anchor="middle">(96 C2 + 68 C3)</text>
+  <text x="270" y="668" class="t-s" text-anchor="middle">C-corr = 0.81 [0.73 − 0.89]</text>
+  <text x="270" y="678" class="t-s" text-anchor="middle" style="font-style:italic; font-size:10.5px;">cohorte de référence</text>
 
-  <!-- M1 PV box (right, aligned) -->
-  <rect class="nd-sub" x="590" y="585" width="280" height="68"/>
-  <text x="730" y="603" class="t-b" text-anchor="middle">M1 PV (sans TEP)</text>
-  <text x="730" y="621" class="t" text-anchor="middle">N = 109 · events = 21 (EFS)</text>
-  <text x="730" y="638" class="t-s" text-anchor="middle">C-corr = 0.85 [0.78 − 0.94]</text>
-  <text x="730" y="651" class="t-sub" text-anchor="middle">⊂ M1 IDES</text>
+  <!-- M1 PV box (right, aligned, same style as IDES — no more dashed) -->
+  <rect class="nd" x="590" y="605" width="280" height="74"/>
+  <text x="730" y="623" class="t-b" text-anchor="middle">M1 PV (sans TEP)</text>
+  <text x="730" y="640" class="t" text-anchor="middle">N = 109 · events = 21 (EFS)</text>
+  <text x="730" y="654" class="t-tp" text-anchor="middle">(64 C2 + 45 C3)</text>
+  <text x="730" y="668" class="t-s" text-anchor="middle">C-corr = 0.85 [0.78 − 0.94]</text>
+  <text x="730" y="678" class="t-sub" text-anchor="middle" style="font-size:10.5px;">⊂ M1 IDES</text>
 
   <!-- Central annotation : 109 communs (PV ⊂ IDES) -->
-  <line class="ar-link" x1="410" y1="619" x2="590" y2="619"/>
-  <rect x="430" y="606" width="140" height="28" fill="#ecfdf5" stroke="#047857" stroke-width="1" rx="14"/>
-  <text x="500" y="618" class="t-link" text-anchor="middle">109 communs</text>
-  <text x="500" y="630" class="t-s" text-anchor="middle" style="fill:#047857;">PV ⊂ IDES (109 / 164)</text>
+  <line class="ar-link" x1="410" y1="642" x2="590" y2="642"/>
+  <rect x="430" y="629" width="140" height="28" fill="#ecfdf5" stroke="#047857" stroke-width="1" rx="14"/>
+  <text x="500" y="641" class="t-link" text-anchor="middle">109 communs</text>
+  <text x="500" y="653" class="t-s" text-anchor="middle" style="fill:#047857;">PV ⊂ IDES (109 / 164)</text>
 
   <!-- ════════════════ M1 → M2 verticals with TEP branches ════════════════ -->
 
   <!-- IDES side : M1 → M2 with −26 TEP -->
-  <line class="ar" x1="270" y1="653" x2="270" y2="728"/>
-  <line class="ar-e" x1="270" y1="685" x2="120" y2="685"/>
-  <circle class="junc" cx="270" cy="685" r="2.5"/>
-  <rect class="nd-ex" x="10" y="666" width="110" height="40"/>
-  <text x="65" y="683" class="t-b" text-anchor="middle">− 26</text>
-  <text x="65" y="698" class="t-e" text-anchor="middle">TEP-2 non fait</text>
+  <line class="ar" x1="270" y1="679" x2="270" y2="754"/>
+  <line class="ar-e" x1="270" y1="711" x2="120" y2="711"/>
+  <circle class="junc" cx="270" cy="711" r="2.5"/>
+  <rect class="nd-ex" x="10" y="692" width="110" height="42"/>
+  <text x="65" y="708" class="t-b" text-anchor="middle">− 26 TEP-2 non fait</text>
+  <text x="65" y="722" class="t-e" text-anchor="middle">(15 C2 + 11 C3)</text>
 
   <!-- PV side : M1 PV → M2 PV with −17 TEP -->
-  <line class="ar" x1="730" y1="653" x2="730" y2="728"/>
-  <line class="ar-e" x1="730" y1="685" x2="880" y2="685"/>
-  <circle class="junc" cx="730" cy="685" r="2.5"/>
-  <rect class="nd-ex" x="880" y="666" width="110" height="40"/>
-  <text x="935" y="683" class="t-b" text-anchor="middle">− 17</text>
-  <text x="935" y="698" class="t-e" text-anchor="middle">TEP-2 non fait</text>
+  <line class="ar" x1="730" y1="679" x2="730" y2="754"/>
+  <line class="ar-e" x1="730" y1="711" x2="880" y2="711"/>
+  <circle class="junc" cx="730" cy="711" r="2.5"/>
+  <rect class="nd-ex" x="880" y="692" width="110" height="42"/>
+  <text x="935" y="708" class="t-b" text-anchor="middle">− 17 TEP-2 non fait</text>
+  <text x="935" y="722" class="t-e" text-anchor="middle">(10 C2 + 7 C3)</text>
 
-  <!-- ════════════════ M2 ROW (IDES ⭐ + PV aligned at y=733) ════════════════ -->
+  <!-- ════════════════ M2 ROW (IDES ⭐ + PV aligned at y=759) ════════════════ -->
 
-  <!-- M2 IDES Deauv ⭐ (left, primary) -->
-  <rect class="nd-main" x="130" y="733" width="280" height="88"/>
-  <text x="270" y="752" class="t-b" text-anchor="middle" style="fill:#065f46;">M2 IDES Deauville ⭐</text>
-  <text x="270" y="769" class="t-s" text-anchor="middle" style="fill:#065f46; font-weight:600;">MODÈLE PRINCIPAL V230</text>
-  <text x="270" y="788" class="t" text-anchor="middle">N = 138 · events = 26 (EFS)</text>
-  <text x="270" y="806" class="t-s" text-anchor="middle">C-corr = 0.84 [0.76 − 0.92]</text>
-  <text x="270" y="819" class="t-s" text-anchor="middle" style="font-style:italic;">bootstrap B=500</text>
+  <!-- M2 IDES Deauv ⭐ (left, primary, green accent) -->
+  <rect class="nd-main" x="130" y="759" width="280" height="92"/>
+  <text x="270" y="778" class="t-b" text-anchor="middle" style="fill:#065f46;">M2 IDES Deauville ⭐</text>
+  <text x="270" y="795" class="t-s" text-anchor="middle" style="fill:#065f46; font-weight:600;">MODÈLE PRINCIPAL V230</text>
+  <text x="270" y="813" class="t" text-anchor="middle">N = 138 · events = 26 (EFS)</text>
+  <text x="270" y="827" class="t-tp" text-anchor="middle">(81 C2 + 57 C3)</text>
+  <text x="270" y="841" class="t-s" text-anchor="middle">C-corr = 0.84 [0.76 − 0.92] · bootstrap B=500</text>
 
-  <!-- M2 PV (right, aligned) -->
-  <rect class="nd-sub" x="590" y="733" width="280" height="88"/>
-  <text x="730" y="752" class="t-b" text-anchor="middle">M2 PV Deauville</text>
-  <text x="730" y="769" class="t-s" text-anchor="middle" style="font-style:italic;">Analyse de sensibilité</text>
-  <text x="730" y="788" class="t" text-anchor="middle">N = 92 · events = 16 (EFS)</text>
-  <text x="730" y="806" class="t-s" text-anchor="middle">C-corr = 0.87 [0.80 − 0.97]</text>
-  <text x="730" y="819" class="t-sub" text-anchor="middle">⊂ M2 IDES</text>
+  <!-- M2 PV (right, aligned, same style as IDES — no more dashed) -->
+  <rect class="nd" x="590" y="759" width="280" height="92"/>
+  <text x="730" y="778" class="t-b" text-anchor="middle">M2 PV Deauville</text>
+  <text x="730" y="795" class="t-s" text-anchor="middle" style="font-style:italic;">Analyse de sensibilité</text>
+  <text x="730" y="813" class="t" text-anchor="middle">N = 92 · events = 16 (EFS)</text>
+  <text x="730" y="827" class="t-tp" text-anchor="middle">(54 C2 + 38 C3)</text>
+  <text x="730" y="841" class="t-s" text-anchor="middle">C-corr = 0.87 [0.80 − 0.97] · ⊂ M2 IDES</text>
 
   <!-- Central annotation : 92 communs -->
-  <line class="ar-link" x1="410" y1="775" x2="590" y2="775"/>
-  <rect x="430" y="762" width="140" height="28" fill="#ecfdf5" stroke="#047857" stroke-width="1" rx="14"/>
-  <text x="500" y="774" class="t-link" text-anchor="middle">92 communs</text>
-  <text x="500" y="786" class="t-s" text-anchor="middle" style="fill:#047857;">PV ⊂ IDES (92 / 138)</text>
+  <line class="ar-link" x1="410" y1="805" x2="590" y2="805"/>
+  <rect x="430" y="792" width="140" height="28" fill="#ecfdf5" stroke="#047857" stroke-width="1" rx="14"/>
+  <text x="500" y="804" class="t-link" text-anchor="middle">92 communs</text>
+  <text x="500" y="816" class="t-s" text-anchor="middle" style="fill:#047857;">PV ⊂ IDES (92 / 138)</text>
 
   <!-- ════════════════ LEGEND + QUALITY FILTER FOOTNOTE ════════════════ -->
-  <rect class="nd" x="10" y="848" width="14" height="12"/>
-  <text x="30" y="859" class="t-s">Cohorte IDES</text>
-  <rect class="nd-pvs" x="120" y="848" width="14" height="12"/>
-  <text x="140" y="859" class="t-s">Étape PV intermédiaire</text>
-  <rect class="nd-main" x="280" y="848" width="14" height="12"/>
-  <text x="300" y="859" class="t-s">Modèle principal V230 ⭐</text>
-  <rect class="nd-sub" x="455" y="848" width="14" height="12"/>
-  <text x="475" y="859" class="t-s">Sous-groupe PV (⊂ IDES)</text>
-  <rect class="nd-ex" x="620" y="848" width="14" height="12"/>
-  <text x="640" y="859" class="t-s">Exclusion</text>
-  <line x1="725" y1="854" x2="750" y2="854" class="ar-link"/>
-  <text x="755" y="859" class="t-s" style="fill:#047857;">Communs (PV ⊂ IDES)</text>
+  <rect class="nd" x="10" y="878" width="14" height="12"/>
+  <text x="30" y="889" class="t-s">Cohorte (IDES ou PV, même style)</text>
+  <rect class="nd-main" x="240" y="878" width="14" height="12"/>
+  <text x="260" y="889" class="t-s">Modèle principal V230 ⭐</text>
+  <rect class="nd-ex" x="425" y="878" width="14" height="12"/>
+  <text x="445" y="889" class="t-s">Exclusion</text>
+  <line x1="530" y1="884" x2="555" y2="884" class="ar-link"/>
+  <text x="560" y="889" class="t-s" style="fill:#047857;">Communs (PV ⊂ IDES)</text>
+  <text x="720" y="889" class="t-tp" style="font-style:italic;">(X C2 + Y C3) = répartition timepoint</text>
 
-  <text x="10" y="885" class="t-s" style="font-weight:600;">Filtre qualité au diagnostic :</text>
-  <text x="10" y="900" class="t-s">▸ <strong>IDES</strong> : ≥ 10 UMI au diag <tspan style="font-style:italic;">(appliqué EN AMONT lors de la construction des watchlists patient-spécifiques)</tspan></text>
-  <text x="10" y="915" class="t-s">▸ <strong>PV</strong> : ≥ 10 UMI au diag <strong>+ ratio VAF &gt; 0.3</strong> (filtre supplémentaire requis pour le phasage des doublets)</text>
-  <text x="10" y="935" class="t-s" style="font-style:italic;">Patches techniques V15.289 + V15.291 appliqués → 0 exclusion technique résiduelle. Patient sans cfDNA<tspan dy="-3" font-size="9">CXJ1</tspan><tspan dy="3"> reste inclus (fallback <tspan style="font-family:monospace; font-size:10px;">rc=10⁻⁷</tspan>, V15.290).</tspan></text>
+  <text x="10" y="912" class="t-s" style="font-weight:600;">Filtre qualité au diagnostic :</text>
+  <text x="10" y="927" class="t-s">▸ <strong>IDES</strong> : ≥ 10 UMI au diag <tspan style="font-style:italic;">(appliqué EN AMONT lors de la construction des watchlists patient-spécifiques)</tspan></text>
+  <text x="10" y="942" class="t-s">▸ <strong>PV</strong> : ≥ 10 UMI au diag <strong>+ ratio VAF &gt; 0.3</strong> (filtre supplémentaire requis pour le phasage des doublets)</text>
 </svg>
 <p class="muted">Diagramme CONSORT vectoriel — modèle V230 (endpoint EFS = rechute OR progression). <strong>Cascade haute en 3 étapes</strong> : 224 patients screenés → −51 données indisponibles → 173 avec données disponibles → −9 ctDNA non détectable au diag (annotation explicite) → <strong>164 patients avec ctDNA détectable</strong>. <strong>Branche IDES (gauche)</strong> : longue flèche directe (aucun filtre additionnel — le filtre ≥10 UMI est intégré en amont dans les watchlists IDES). <strong>Branche PV (droite)</strong> : 2 étapes intermédiaires explicites car les filtres qualité PV sont appliqués au pipeline (≥10 UMI + ratio VAF&gt;0.3) → 164 → −31 → <strong>133 avec données PV</strong> → −24 → <strong>109 avec variants PV détectés</strong>. Les 2 cohortes <strong>M1 sont alignées horizontalement</strong> (IDES 164 / PV 109) avec annotation centrale « 109 communs » (PV ⊂ IDES strict). Après le filtre TEP-2 Deauville, idem : <strong>M2 IDES ⭐ 138 / M2 PV 92 alignés</strong> avec « 92 communs » au centre. La nature des « 109 communs » : il s'agit littéralement des 109 patients M1 PV, tous strictement inclus dans les 164 M1 IDES (validation V15.288).</p>
 </div>
