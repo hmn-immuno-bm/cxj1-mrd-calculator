@@ -418,8 +418,8 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p class="muted">Les λ sont remarquablement similaires entre modes hEq et VAF (Δ &lt; 0.02), indiquant que la dynamique de décroissance ctDNA suit la VAF — le cfDNA module la magnitude mais pas la pente.</p>
 
 <div class="center">
-<img class="figure" src="figs/publication/Fig_trajectories.png" alt="Mono-exp trajectories" style="max-width: 80%;">
-<p class="muted">Visualisation des trajectoires mono-exponentielles. Bandes verticales = C2J1 (J21) et C3J1 (J42).</p>
+<img class="figure" src="figs/publication/Fig_trajectories.svg" alt="Mono-exp trajectories" style="max-width: 80%;">
+<p class="muted">Visualisation des trajectoires mono-exponentielles en SVG vectorisé. Axe Y = $\log_{10}$(ratio ctDNA / ctDNA diag) sur échelle linéaire → trajectoires apparaissent comme des droites parfaites (pente = −λ/ln 10). Axe Y secondaire à droite = valeur absolue du ratio (10⁰ à 10⁻⁷). Bandes verticales = C2J1 (J21) et C3J1 (J42).</p>
 </div>
 </div>
 
@@ -937,56 +937,54 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <p class="muted">Scripts : <code>_v15_272_VPN_technique_M1_empirical.py</code>, <code>_v15_273_depth_cfDNA_confounding.py</code>.</p>
 
 <h3 id="sec-clinical-scores">XI.16 Indépendance vs scores cliniques classiques (IPI / Hasenclever)</h3>
-<p>Le modèle V230 capture-t-il une information pronostique <strong>indépendante</strong> des scores cliniques de référence (IPI pour DLBCL, Hasenclever pour Hodgkin classique) ? Test sur cohorte M2_hEq Deauv V230 EFS (pipelines IDES + PV poolés, scores cliniques renseignés) :</p>
+<p>Le modèle V230.1 capture-t-il une information pronostique <strong>indépendante</strong> des scores cliniques de référence (IPI pour DLBCL, Hasenclever pour Hodgkin classique) ? Test sur cohorte poolée IDES+PV (endpoint EFS), répliqué sur les <strong>6 variantes de production</strong>.</p>
 
 <h4>Pipeline d'analyse</h4>
-<p>Pour chaque histologie, 3 modèles Cox emboîtés :</p>
+<p>Pour chaque variante × histologie, 3 modèles Cox emboîtés :</p>
 <ol>
 <li><strong>Score clinique seul</strong> : EFS ~ IPI (ou Hasenclever)</li>
-<li><strong>LP V230 seul</strong> : EFS ~ LP (LP = β·X centré, score + log_burden + Deauville + v5A_gated)</li>
-<li><strong>Combiné</strong> : EFS ~ score clinique + LP V230</li>
+<li><strong>LP V230.1 seul</strong> : EFS ~ LP (LP = β·X centré, coefs production de la variante : score_kin + log_burden + v5A_gated [+ Deauville_num ou DeltaSUV si M2])</li>
+<li><strong>Combiné</strong> : EFS ~ score clinique + LP V230.1</li>
 </ol>
-<p>Deux LR tests bidirectionnels :</p>
+<p>Deux LR tests bidirectionnels par variante :</p>
 <ul>
-<li>Score clinique ajoute-t-il à LP V230 ? (test du score résiduel)</li>
-<li>LP V230 ajoute-t-il au score clinique ? (test de l'apport MRD)</li>
+<li><strong>Score clinique ajouté à LP V230.1</strong> : p<sub>score+</sub> = test d'information résiduelle du score clinique</li>
+<li><strong>LP V230.1 ajouté au score clinique</strong> : p<sub>LP+</sub> = test de l'apport MRD au-delà du score</li>
 </ul>
 
-<h4>DLBCL — IPI (N=97, 29 events)</h4>
+<h4>DLBCL — IPI (6 variantes)</h4>
 <table>
-<tr><th>Modèle</th><th>C-index</th><th>AIC</th><th>Coefficients (p)</th></tr>
-<tr><td>IPI seul</td><td>0.643</td><td>249.79</td><td>β_IPI = +0.286 (<strong>p=0.010</strong>)</td></tr>
-<tr><td><strong>LP V230 seul</strong></td><td><strong>0.805</strong></td><td><strong>220.63</strong></td><td>β_LP = +0.659 (<strong>p&lt;0.001</strong>)</td></tr>
-<tr><td>IPI + LP V230</td><td>0.814</td><td>221.44</td><td>β_IPI = +0.127 (p=0.281 <strong>NS</strong>) ; β_LP = +0.634 (<strong>p&lt;0.001</strong>)</td></tr>
+<tr><th>Variante</th><th>N</th><th>evt</th><th>C (LP seul)</th><th>C (LP+IPI)</th><th>AIC (LP+IPI)</th><th>p<sub>LP+</sub></th><th>p<sub>IPI+</sub></th></tr>
+<tr><td><strong>M2_hEq_Deauv ⭐</strong></td><td>99</td><td>30</td><td>0.817</td><td>0.832</td><td>222.36</td><td><strong>&lt;0.001</strong></td><td>0.249 NS</td></tr>
+<tr><td>M2_hEq_Delta</td><td>93</td><td>30</td><td>0.837</td><td>0.842</td><td>220.46</td><td><strong>&lt;0.001</strong></td><td>0.253 NS</td></tr>
+<tr><td>M1_hEq</td><td>131</td><td>37</td><td>0.789</td><td>0.799</td><td>310.46</td><td><strong>&lt;0.001</strong></td><td>0.300 NS</td></tr>
+<tr><td>M2_VAF_Deauv</td><td>99</td><td>30</td><td>0.774</td><td>0.818</td><td>225.40</td><td><strong>&lt;0.001</strong></td><td>0.105 NS</td></tr>
+<tr><td>M2_VAF_Delta</td><td>93</td><td>30</td><td>0.816</td><td>0.832</td><td>222.03</td><td><strong>&lt;0.001</strong></td><td>0.124 NS</td></tr>
+<tr><td>M1_VAF</td><td>131</td><td>37</td><td>0.758</td><td>0.790</td><td>313.03</td><td><strong>&lt;0.001</strong></td><td>0.093 NS</td></tr>
 </table>
-<p><strong>LR tests</strong> :</p>
-<ul>
-<li><strong>IPI ajouté à LP V230</strong> : χ² = 1.19, df = 1, <strong>p = 0.275 NS</strong> ❌ → IPI ne capture aucune information résiduelle</li>
-<li><strong>LP V230 ajouté à IPI</strong> : χ² = 30.36, df = 1, <strong>p &lt; 0.001</strong> ✓✓✓ → MRD apporte une information massive</li>
-</ul>
+<p>p<sub>LP+</sub> ∈ [3.4×10⁻¹⁰, 4.3×10⁻⁸] sur les 6 variantes (massivement significatif) ; p<sub>IPI+</sub> ∈ [0.093, 0.300] (toutes NS).</p>
 
-<h4>Hodgkin classique — Hasenclever (N=110, 9 events)</h4>
+<h4>Hodgkin classique — Hasenclever (6 variantes)</h4>
 <table>
-<tr><th>Modèle</th><th>C-index</th><th>AIC</th><th>Coefficients (p)</th></tr>
-<tr><td>Hasenclever seul</td><td>0.585</td><td>83.87</td><td>β_Hsn = +0.108 (p=0.535 <strong>NS</strong>)</td></tr>
-<tr><td><strong>LP V230 seul</strong></td><td><strong>0.835</strong></td><td><strong>75.90</strong></td><td>β_LP = +0.721 (<strong>p=0.005</strong>)</td></tr>
-<tr><td>Hasenclever + LP V230</td><td>0.832</td><td>77.84</td><td>β_Hsn = +0.042 (p=0.811 <strong>NS</strong>) ; β_LP = +0.714 (<strong>p=0.006</strong>)</td></tr>
+<tr><th>Variante</th><th>N</th><th>evt</th><th>C (LP seul)</th><th>C (LP+Hsn)</th><th>AIC (LP+Hsn)</th><th>p<sub>LP+</sub></th><th>p<sub>Hsn+</sub></th></tr>
+<tr><td><strong>M2_hEq_Deauv ⭐</strong></td><td>110</td><td>9</td><td>0.856</td><td>0.849</td><td>73.67</td><td><strong>&lt;0.001</strong></td><td>0.704 NS</td></tr>
+<tr><td>M2_hEq_Delta</td><td>92</td><td>9</td><td>0.800</td><td>0.795</td><td>70.84</td><td><strong>&lt;0.001</strong></td><td>0.759 NS</td></tr>
+<tr><td>M1_hEq</td><td>111</td><td>9</td><td>0.782</td><td>0.790</td><td>79.73</td><td>0.012</td><td>0.671 NS</td></tr>
+<tr><td>M2_VAF_Deauv</td><td>110</td><td>9</td><td>0.860</td><td>0.865</td><td>72.14</td><td><strong>&lt;0.001</strong></td><td>0.591 NS</td></tr>
+<tr><td>M2_VAF_Delta</td><td>92</td><td>9</td><td>0.783</td><td>0.794</td><td>70.05</td><td><strong>&lt;0.001</strong></td><td>0.726 NS</td></tr>
+<tr><td>M1_VAF</td><td>111</td><td>9</td><td>0.775</td><td>0.784</td><td>79.38</td><td>0.010</td><td>0.562 NS</td></tr>
 </table>
-<p><strong>LR tests</strong> :</p>
-<ul>
-<li><strong>Hasenclever ajouté à LP V230</strong> : χ² = 0.06, df = 1, <strong>p = 0.811 NS</strong> ❌ → Hasenclever ne capture aucune information résiduelle</li>
-<li><strong>LP V230 ajouté à Hasenclever</strong> : χ² = 8.03, df = 1, <strong>p = 0.005</strong> ✓✓ → MRD apporte une information majeure</li>
-</ul>
+<p>p<sub>LP+</sub> ∈ [2.1×10⁻⁴, 0.012] sur les 6 variantes (toutes significatives) ; p<sub>Hsn+</sub> ∈ [0.562, 0.759] (toutes NS).</p>
 
 <div class="success">
-<strong>Conclusion</strong> :
+<strong>Conclusion (6 variantes)</strong> :
 <ul style="margin-top:6px;">
-<li>Le modèle V230 <strong>capture l'intégralité de l'information pronostique de l'IPI</strong> (DLBCL) et du Hasenclever (Hodgkin) — leurs coefficients deviennent non significatifs lorsqu'on les ajoute au LP V230 (p≥0.20).</li>
-<li>Réciproquement, le LP V230 <strong>apporte un gain pronostique massif au-delà</strong> des scores cliniques classiques : Δ C-index = +0.16 (DLBCL) et +0.25 (Hodgkin), LR test p ≤ 0.005 dans les deux cohortes.</li>
-<li>Cette indépendance justifie de ne pas inclure IPI/Hasenclever comme covariables supplémentaires dans le modèle V230 : leur information est déjà encodée via la trajectoire mono-exp (score_kin) + la charge tumorale baseline (log_burden) + l'évaluation métabolique interim (Deauville) + le signal driver oncogénique (v5A_gated).</li>
+<li>Sur les 6 variantes du modèle V230.1, <strong>IPI et Hasenclever sont absorbés par LP V230.1</strong> (toutes p<sub>score+</sub> &gt; 0.09 en DLBCL, &gt; 0.56 en Hodgkin), validant l'indépendance du modèle MRD vs scores cliniques classiques.</li>
+<li>Réciproquement, le LP V230.1 <strong>apporte un gain pronostique consistant au-delà</strong> des scores cliniques : DLBCL p<sub>LP+</sub> &lt; 0.001 sur les 6/6 variantes ; Hodgkin p<sub>LP+</sub> ≤ 0.012 sur les 6/6 variantes.</li>
+<li>Cette indépendance justifie de ne pas inclure IPI/Hasenclever comme covariables supplémentaires dans le modèle V230.1 : leur information est déjà encodée via la trajectoire mono-exp (score_kin) + la charge tumorale baseline (log_burden) + l'évaluation métabolique interim (Deauville/DeltaSUV) + le signal driver oncogénique (v5A_gated).</li>
 </ul>
 </div>
-<p class="muted">Script : <code>scripts/_v15_285_IPI_Hasenclever_independence.py</code>. À reproduire sur cohorte externe pour confirmer.</p>
+<p class="muted">Scripts : <code>scripts/_v15_285_IPI_Hasenclever_independence.py</code> (test initial sur M2_hEq_Deauv), <code>scripts/_v15_296_IPI_Hasenclever_all_variants.py</code> (extension aux 6 variantes V230.1, mai 2026). À reproduire sur cohorte externe pour confirmer.</p>
 
 <h3 id="sec-deltasuv-explo">XI.17 DeltaSUVmax% vs Deauville TEP2 — analyse exploratoire</h3>
 <p>Le Deauville TEP2 (ordinal 1-5) est le standard clinique. Question : le DeltaSUVmax% (continu, baisse relative du SUVmax diag→TEP2) apporterait-il de l'info supplémentaire ?</p>
