@@ -1022,6 +1022,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
     .t-b      { font-weight: 600; font-size: 13px; fill: #0f172a; }
     .t-s      { font-size: 11px; fill: #64748b; }
     .t-e      { font-size: 11px; fill: #b91c1c; }
+    .t-ex-b   { font-weight: 600; font-size: 12px; fill: #b91c1c; }  /* exclusion box title (uniform red bold) */
     .t-tp     { font-size: 10.5px; fill: #475569; }
     .t-sub    { font-size: 11px; fill: #475569; font-style: italic; }
     .t-link   { font-size: 11.5px; fill: #047857; font-weight: 600; }
@@ -1046,7 +1047,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <line class="ar-e" x1="500" y1="124" x2="700" y2="124"/>
   <circle class="junc" cx="500" cy="124" r="2.5"/>
   <rect class="nd-ex" x="700" y="106" width="290" height="38"/>
-  <text x="710" y="123" class="t-b" style="fill:#b91c1c;">− 51 données indisponibles  <tspan class="t-tp" style="fill:#b91c1c;">(2 C2 + 49 C3)</tspan></text>
+  <text x="710" y="123" class="t-ex-b">− 51 données indisponibles  <tspan class="t-tp" style="fill:#b91c1c;">(2 C2 + 49 C3)</tspan></text>
   <text x="710" y="137" class="t-e">échantillon perdu · séquençage échoué · autre protocole</text>
 
   <!-- Step 2 : Données disponibles (N=173) -->
@@ -1060,7 +1061,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <line class="ar-e" x1="500" y1="243" x2="700" y2="243"/>
   <circle class="junc" cx="500" cy="243" r="2.5"/>
   <rect class="nd-ex" x="700" y="225" width="290" height="38"/>
-  <text x="710" y="242" class="t-b" style="fill:#b91c1c;">− 9 ctDNA non détectable au diag  <tspan class="t-tp" style="fill:#b91c1c;">(4 C2 + 5 C3)</tspan></text>
+  <text x="710" y="242" class="t-ex-b">− 9 ctDNA non détectable au diag  <tspan class="t-tp" style="fill:#b91c1c;">(4 C2 + 5 C3)</tspan></text>
   <text x="710" y="256" class="t-e">annotation <tspan style="font-family:monospace; font-size:10px;">numero_run_diag</tspan> (absence/aucun variant)</text>
 
   <!-- Step 3 : ctDNA détectable (N=164) -->
@@ -1090,8 +1091,8 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <line class="ar-e" x1="730" y1="390" x2="880" y2="390"/>
   <circle class="junc" cx="730" cy="390" r="2.5"/>
   <rect class="nd-ex" x="870" y="370" width="125" height="44"/>
-  <text x="932" y="385" class="t-b" text-anchor="middle">− 31 données</text>
-  <text x="932" y="397" class="t-b" text-anchor="middle">PV indispo.</text>
+  <text x="932" y="385" class="t-ex-b" text-anchor="middle">− 31 données</text>
+  <text x="932" y="397" class="t-ex-b" text-anchor="middle">PV indispo.</text>
   <text x="932" y="409" class="t-e" text-anchor="middle">(21 C2 + 10 C3)</text>
 
   <!-- PV-step 1 : Données PV disponibles (N=133) -->
@@ -1105,8 +1106,8 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <line class="ar-e" x1="730" y1="500" x2="880" y2="500"/>
   <circle class="junc" cx="730" cy="500" r="2.5"/>
   <rect class="nd-ex" x="870" y="480" width="125" height="44"/>
-  <text x="932" y="495" class="t-b" text-anchor="middle">− 24 pas de</text>
-  <text x="932" y="507" class="t-b" text-anchor="middle">variants PV</text>
+  <text x="932" y="495" class="t-ex-b" text-anchor="middle">− 24 pas de</text>
+  <text x="932" y="507" class="t-ex-b" text-anchor="middle">variants PV</text>
   <text x="932" y="519" class="t-e" text-anchor="middle">(11 C2 + 13 C3)</text>
 
   <!-- PV-step 2 : Variants PV détectés (N=109) -->
@@ -1148,7 +1149,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <line class="ar-e" x1="270" y1="711" x2="120" y2="711"/>
   <circle class="junc" cx="270" cy="711" r="2.5"/>
   <rect class="nd-ex" x="10" y="692" width="110" height="42"/>
-  <text x="65" y="708" class="t-b" text-anchor="middle">− 26 TEP-2 non fait</text>
+  <text x="65" y="708" class="t-ex-b" text-anchor="middle">− 26 TEP-2 non fait</text>
   <text x="65" y="722" class="t-e" text-anchor="middle">(15 C2 + 11 C3)</text>
 
   <!-- PV side : M1 PV → M2 PV with −17 TEP -->
@@ -1156,7 +1157,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
   <line class="ar-e" x1="730" y1="711" x2="880" y2="711"/>
   <circle class="junc" cx="730" cy="711" r="2.5"/>
   <rect class="nd-ex" x="880" y="692" width="110" height="42"/>
-  <text x="935" y="708" class="t-b" text-anchor="middle">− 17 TEP-2 non fait</text>
+  <text x="935" y="708" class="t-ex-b" text-anchor="middle">− 17 TEP-2 non fait</text>
   <text x="935" y="722" class="t-e" text-anchor="middle">(10 C2 + 7 C3)</text>
 
   <!-- ════════════════ M2 ROW (IDES ⭐ + PV aligned at y=759) ════════════════ -->
