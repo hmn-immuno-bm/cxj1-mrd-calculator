@@ -163,6 +163,13 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 <div class="note" style="background:#dcfce7; border-color:#16a34a; margin:12px 0; font-size:13px;">
 <strong>📌 V230 (mai 2026)</strong> — Passage de l'endpoint <strong>PFS</strong> (toute cause) à <strong>EFS</strong>. Les 3 morts strictement non-lymphome (2 COVID + 1 ulcère hémorragique chez témoin de Jéhova) sont désormais censurées, pas comptées comme événement. Architecture inchangée (Deauville LINÉAIRE 1-5 + DeltaSUV fallback, partial pooling B′ IDES=PV). Justification empirique : <a href="#sec-endpoint">§XII.10</a> (sensibilité PFS vs R/R).
 </div>
+
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Le modèle V230.1 prédit l'EFS (Event-Free Survival = Rechute OR Progression) à 12 et 24 mois chez les lymphomes B agressifs et Hodgkin classiques adultes, à partir d'une évaluation MRD ctDNA réalisée au point CXJ1 mi-traitement (C2J1 ou C3J1). Le passage V230 de PFS toute-cause à EFS (3 morts non-lymphome censurées) renforce l'interprétabilité oncologique stricte sans dégrader la performance prédictive (Δ C-index ≤ 0.03 partout).
+</div>
+
 </div>
 
 <!-- ════════════ SECTION II : COHORTE (re-positionnée pour flow article) ════════════ -->
@@ -520,6 +527,13 @@ Cohorte CXJ1 V230.1 = 224 patients screenés → 164 patients avec ctDNA détect
   <li><strong>Histologie</strong> (Hodgkin classique vs lymphomes B agressifs ; détermine la trajectoire mono-exp à utiliser)</li>
   <li><strong>Délai réel</strong> entre J1 cycle 1 et prélèvement CXJ1 (jours, calculé depuis Glims)</li>
 </ul>
+
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Le calculateur accepte 7 variables d'entrée et bascule automatiquement entre 6 variantes du modèle selon les données disponibles (TEP / Qubit cfDNA / quantification VAF). Cette architecture permet de prédire l'EFS même avec un sous-ensemble réduit de variables, au prix d'une perte de C-index documentée (−0.02 à −0.07 par variable manquante).
+</div>
+
 </div>
 
 <!-- ════════════ SECTION 3 : SYNTHÈSE FORMULES ════════════ -->
@@ -649,6 +663,13 @@ LP = LP_raw − LP_offset                          (centrage cohorte)
 S(t | x) = S₀(t)<sup>exp(LP)</sup>      avec S₀ stratifiée pipeline IDES/PV
 <strong>r(t) = 1 − S(t | x)</strong>
 </div>
+
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Le risque prédit r(t) = 1 − S₀(t)^exp(LP) est calculé en 5 étapes : (1) score_kin par mono-exp histo×responder, (2) log_burden tumeur baseline, (3) v5A_gated signal driver D11, (4) terme TEP optionnel, (5) centrage LP_offset. La validation JS ⇔ Python est à 1e-6 près (V213 fix critique). Toutes les formules sont reproductibles depuis les coefs publiés en §VIII.
+</div>
+
 </div>
 
 <!-- ════════════ SECTION 5 : LES 6 VARIANTES V230 ════════════ -->
@@ -1634,6 +1655,13 @@ Battery de tests internes V230.1 confirmant la robustesse : bootstrap optimism f
 
 <h3>XIII.4 Confidentialité des données</h3>
 <p>Aucune donnée patient n'est transmise au serveur. Le calculateur fonctionne intégralement côté navigateur (JavaScript). Les coefficients du modèle sont chargés au démarrage et toute analyse reste locale.</p>
+
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+4 garanties techniques cruciales : (1) LP_offset = β·X̄ centré sur la moyenne cohorte (sans ce centrage, S₀^exp(LP) sur-estime systématiquement), (2) penalizer L2 = 0.05 (Ridge) pour stabilité numérique avec events rares, (3) cohérence JS ⇔ Python à 1e-6 (validation V213), (4) privacy client-side (aucune donnée patient transmise au serveur).
+</div>
+
 </div>
 
 <!-- ════════════ SECTION 14 : TRIPOD+AI ════════════ -->
@@ -1646,6 +1674,13 @@ Battery de tests internes V230.1 confirmant la robustesse : bootstrap optimism f
 <li>4/30 items ❌ pendants : PPI (Patient & Public Involvement), funding détaillé, COI, <strong>validation externe</strong> (en cours)</li>
 </ul>
 <p>📄 <a href="TRIPOD_AI_checklist.md">Voir checklist complète (Markdown)</a></p>
+
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Le modèle suit la checklist TRIPOD+AI 2024 (Collins et al., BMJ 2024) pour le reporting des modèles de prédiction clinique. 20/30 items entièrement reportés (validation interne rigoureuse, open science, code transparency, PPV/NPV time-dependent, decision curves). 4/30 items en attente : PPI, funding détaillé, COI, et surtout la validation externe (en cours).
+</div>
+
 </div>
 
 <!-- ════════════ SECTION 15 : LIMITES & DISCLAIMER ════════════ -->
@@ -1656,6 +1691,13 @@ Battery de tests internes V230.1 confirmant la robustesse : bootstrap optimism f
 <p>La calibration aux extrêmes de risque (r12 &gt; 75% ou ctDNA_diag &lt; 500 hEq/mL) est limitée par la taille de la cohorte de développement. Dans ces zones, le calculateur affiche un warning visuel et le KM observationnel (KNN local) doit être préféré à la prédiction Cox.</p>
 <p><strong>Validation externe sur cohorte indépendante en cours.</strong> Les chiffres de C-index et calibration reportés ici sont des estimations <em>internes</em> avec optimism-correction par bootstrap Harrell, mais ne garantissent pas la performance sur une cohorte externe.</p>
 </div>
+
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Cohorte d'entraînement mono-centrique (224 patients GHU Mondor 2020-2026). Effectif events limité (26-32 par variante) → bootstrap optimism faible (+0.01-0.03) mais IC95% larges aux extrêmes. Le calculateur est un prototype de recherche : il n'est PAS validé pour la prise en charge clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante d'un hématologue qualifié. Validation externe sur cohorte indépendante en cours.
+</div>
+
 </div>
 
 <!-- ────────────────────────────────────────────────────── -->
@@ -1671,6 +1713,13 @@ Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculair
   <a href="index.html">← Retour au calculateur</a> ·
   <a href="https://github.com/hmn-immuno-bm/cxj1-mrd-calculator">GitHub repo</a>
 </p>
+
+
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Toute citation académique du modèle ou du calculateur doit référencer la version V230.1 (mai 2026) et le repo public hmn-immuno-bm/cxj1-mrd-calculator. Le code est licencié MIT, les coefficients du modèle et la méthodologie sont en open access pour reproduction et adaptation.
+</div>
 
 </div>
 </body>
