@@ -54,7 +54,7 @@ input[type="number"]:focus, select:focus { outline: none; border-color: #2E75B6;
 .risk-mid { background: #fef3c7; color: #92400e; border-left: 6px solid #f59e0b; }
 .risk-high { background: #fee2e2; color: #991b1b; border-left: 6px solid #ef4444; }
 .risk-gauge { margin-top: 32px; }  /* assez d'espace pour le label du marqueur qui dépasse de 22px au-dessus du bar */
-.risk-gauge-track { height: 12px; background: linear-gradient(to right, #22c55e 0%, #22c55e 5%, #f59e0b 5%, #f59e0b 35%, #ef4444 35%, #ef4444 100%);
+.risk-gauge-track { height: 12px; background: linear-gradient(to right, #22c55e 0%, #22c55e 8%, #f59e0b 8%, #f59e0b 60%, #ef4444 60%, #ef4444 100%);
                      border-radius: 6px; position: relative; }
 .risk-gauge-marker { position: absolute; top: -4px; width: 4px; height: 20px; background: #0f172a; border-radius: 2px; }
 .risk-gauge-marker::after { content: attr(data-val); position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
@@ -807,30 +807,28 @@ function calculate(doScroll) {
   }
   const r12 = risk(12), r24 = risk(24);
 
-  // Classification 3-zones CLINIQUES (Tern 5/35, V15.284 V230)
-  // Seuils 5% et 35% recalibrés sur cohorte V230 EFS : maximisent la séparation
-  // Faible/Modéré (χ²_pair=4.10 IDES / 5.00 PV) tout en gardant Élevé bien marqué
-  // (N=20 IDES EFS@24=21%, N=9 PV EFS@24=0%).
+  // Classification 3-zones CLINIQUES (Tern 8/60, V15.319 — seuils garantissant
+  // Vert > Orange > Rouge à M24 sur les 12 KM ET maximisant gap Faible/Modéré).
   let zone, zoneLabel, zoneCSS, action;
   // 'action' = phrase courte affichée dans le bandeau résultat
   // 'zoneStats' = stat globale de la zone, affichée dans la carte "Zone Tern" ci-dessous
   let zoneStats;
-  if (r12 <= 0.05) {
+  if (r12 <= 0.08) {
     zone = 'low';  zoneLabel = 'FAIBLE'; zoneCSS = 'low';
     action = 'Surveillance standard.';
-    zoneStats = 'Dans la cohorte d\'entraînement (N=40 IDES / N=43 PV), EFS@12mo ≈ 97.5-97.7% et EFS@24mo ≈ 97.5-97.7% (courbe quasi-plate, 1 seul événement par pipeline).';
-  } else if (r12 <= 0.35) {
+    zoneStats = 'Dans la cohorte d\'entraînement (M2_hEq Deauv : N=71 IDES / N=61 PV), EFS@24mo ≈ 95-96% (1-4 événements selon variante).';
+  } else if (r12 <= 0.60) {
     zone = 'mid';  zoneLabel = 'MODÉRÉ'; zoneCSS = 'mid';
     action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière).';
-    zoneStats = 'Dans la cohorte d\'entraînement (N=76 IDES / N=39 PV), EFS@12mo ≈ 88-91% et EFS@24mo ≈ 80-85% — gap nette vs Faible (>13pt à 24mo).';
+    zoneStats = 'Dans la cohorte d\'entraînement (N=58 IDES / N=22 PV), EFS@24mo ≈ 72% — séparation ≥ 16 pt vs Faible à M24.';
   } else {
     zone = 'high'; zoneLabel = 'ÉLEVÉ'; zoneCSS = 'high';
     action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai).';
-    zoneStats = 'Dans la cohorte d\'entraînement (N=20 IDES / N=9 PV), EFS@12mo ≈ 0-31% (PV : 0%, IDES : 31%) et EFS@24mo ≈ 0-21% — rechute quasi-systématique.';
+    zoneStats = 'Dans la cohorte d\'entraînement (N=9 IDES / N=9 PV), EFS@24mo ≈ 0% — rechute systématique.';
   }
 
   // (groupe binaire conservé pour référence, non utilisé dans drawKM nouvelle version)
-  const grpKey = (r12 > 0.35) ? 'high' : 'low';
+  const grpKey = (r12 > 0.60) ? 'high' : 'low';
 
   // ─── Calibration locale KNN adaptatif V208 (radius 1.0 + K_min 8 + K_max 40) ───
   const _neighbors = knn(pipe, lp);
@@ -872,8 +870,8 @@ function calculate(doScroll) {
         `<div class="risk-gauge-marker" style="left:${gaugeLeft}%" data-val="${(r12*100).toFixed(1)}%"></div>` +
       `</div>` +
       `<div class="risk-gauge-labels">` +
-        `<span>0%</span><span style="position:absolute; left:5%; transform:translateX(-50%);">5%</span>` +
-        `<span style="position:absolute; left:35%; transform:translateX(-50%);">35%</span>` +
+        `<span>0%</span><span style="position:absolute; left:8%; transform:translateX(-50%);">8%</span>` +
+        `<span style="position:absolute; left:60%; transform:translateX(-50%);">60%</span>` +
         `<span>100%</span>` +
       `</div>` +
     `</div>` +
@@ -986,10 +984,10 @@ function drawKM(pipe, lp) {
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
 
   // Zone colorées HORIZONTALES (risque) : à 12mo
-  // Calcule les survies du patient qui correspondent aux seuils Risque 5% et 35% (V15.284 Tern 5/35)
+  // V15.319 Tern 8/60 : seuils garantissant Vert > Orange > Rouge à M24 sur les 12 KMs
   // Y-axis is survival (S), high S = low risk → vert en haut
-  const sBoundLow  = 0.95; // S=95% correspond à 5% risk (borne low/mid)
-  const sBoundHigh = 0.65; // S=65% correspond à 35% risk (borne mid/high)
+  const sBoundLow  = 0.92; // S=92% correspond à 8% risk (borne low/mid)
+  const sBoundHigh = 0.40; // S=40% correspond à 60% risk (borne mid/high)
   // Fond zones (très clair)
   svg += `<rect x="${mL}" y="${y(1)}"  width="${W-mL-mR}" height="${y(sBoundLow)-y(1)}" fill="#dcfce7" opacity="0.4"/>`;
   svg += `<rect x="${mL}" y="${y(sBoundLow)}" width="${W-mL-mR}" height="${y(sBoundHigh)-y(sBoundLow)}" fill="#fef3c7" opacity="0.4"/>`;

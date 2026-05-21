@@ -104,15 +104,18 @@ Histology is binarized: **Hodgkin classical** uses the Hodgkin trajectory; all o
 
 **Fallback for Hodgkin/bad PV → DLBCL/good** (V229.1 decision) : the PV cohort has 0 calibration patients in the Hodgkin × bad-responder cell (7 Hodgkin classical patients with EFS=1, all with VAF_diag undetectable in PV). The chosen fallback is `λ_bad_Hodgkin_PV = λ_good_DLBCL_PV` (≈ 0.36 j⁻¹), consistent with IDES where empirically `λ_bad_Hodgkin ≈ λ_good_DLBCL ≈ 0.37`.
 
-## Clinical risk stratification (Tern 5/35, V230)
+## Clinical risk stratification (Tern 8/60, V230.1)
 
 | Zone | r12 range | Suggested action |
 |---|---|---|
-| 🟢 **Low** | r12 ≤ 5% | Standard surveillance |
-| 🟡 **Intermediate** | 5% < r12 ≤ 35% | Closer surveillance (additional PET, regular MRD) |
-| 🔴 **High** | r12 > 35% | Mandatory MDT discussion (consolidation, CAR-T, trial) |
+| 🟢 **Low** | r12 ≤ 8% | Standard surveillance |
+| 🟡 **Intermediate** | 8% < r12 ≤ 60% | Closer surveillance (additional PET, regular MRD) |
+| 🔴 **High** | r12 > 60% | Mandatory MDT discussion (consolidation, CAR-T, trial) |
 
-Thresholds **5/35** selected by exhaustive scan of 117 candidate (lo, hi) couples on the V230 EFS cohort (V15.283/284). 5/35 is Pareto-optimal: it maximizes the χ² separation Low ↔ Intermediate on both IDES (χ²=4.10, p=0.043) and PV (χ²=5.00, p=0.025) while keeping the High zone strongly marked (N=20 IDES with EFS@24=21%, N=9 PV with EFS@24=0%).
+Thresholds **8/60** selected by exhaustive scan on the V230.1 EFS cohort (V15.319). 8/60 is the **only Pareto-optimal threshold** that simultaneously :
+- Maintains the correct ordering of the 3 KM curves at 24 months (Green > Orange > Red) **across all 12 KMs** (6 variants × 2 pipelines),
+- Maximizes the **gap Faible-Modéré at 24 months** (≥ 16 percentage points, vs −0.5 pt at 5/35 due to one inverted variant),
+- Keeps the High zone universally marked (EFS@24 = 0% in every variant).
 
 ## Local calibration (adaptive KNN)
 
@@ -125,6 +128,24 @@ Alongside the Cox prediction, the calculator displays a **non-parametric KM esti
 Validated empirically (V208 leave-one-out): ACE_tail divided by ~10× vs a fixed K=30. Empty/sparse neighborhoods are flagged with a visual warning so the clinician knows the Cox model is extrapolating.
 
 The KM 95% Greenwood log-log confidence interval is reported numerically below the survival plot.
+
+## PV vs IDES on overlap cohort N=92
+
+When comparing both pipelines on the **same 92 patients** (M2_hEq Deauv overlap, PV ⊂ IDES strict), the C-index is essentially identical (IDES 0.893 vs PV 0.890, Δ = −0.002). The per-variant C-index gap (0.844 vs 0.890) reported in the variants table comes mostly from a **cohort-selection effect** (PV excludes 46 IDES-positive patients without PV-detectable variants — typically harder-to-predict cases), not from a discriminatory edge of the PV pipeline.
+
+PV's real advantages on the same cohort :
+
+| Metric (overlap N=92) | IDES | PV | Δ |
+|---|---|---|---|
+| Calibration slope (target = 1.0) | 1.43 | **1.09** | −0.34 |
+| Brier R² @ 12mo (higher = better) | 0.47 | **0.57** | +0.10 |
+| Continuous NRI (PV vs IDES) | — | +0.97 | ⭐ |
+| IDI | — | +0.025 | + |
+| HR per 1 SD of LP | 3.98 | 5.39 | +1.41 |
+| **PPV zone Élevé (r12 ≥ 60%)** | 67 % | **100 %** | +33 pt |
+| **Specificity zone Élevé** | 92 % | **100 %** | +8 pt |
+
+→ PV is more parsimonious (9 vs 17 patients in the High zone) but each flag is certified by an EFS event. See methodology §VI.bis.
 
 ## Validation (V230.1, May 2026)
 
