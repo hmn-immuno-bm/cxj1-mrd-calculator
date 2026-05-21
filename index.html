@@ -54,7 +54,7 @@ input[type="number"]:focus, select:focus { outline: none; border-color: #2E75B6;
 .risk-mid { background: #fef3c7; color: #92400e; border-left: 6px solid #f59e0b; }
 .risk-high { background: #fee2e2; color: #991b1b; border-left: 6px solid #ef4444; }
 .risk-gauge { margin-top: 32px; }  /* assez d'espace pour le label du marqueur qui dépasse de 22px au-dessus du bar */
-.risk-gauge-track { height: 12px; background: linear-gradient(to right, #22c55e 0%, #22c55e 10%, #f59e0b 10%, #f59e0b 45%, #ef4444 45%, #ef4444 100%);
+.risk-gauge-track { height: 12px; background: linear-gradient(to right, #22c55e 0%, #22c55e 15%, #f59e0b 15%, #f59e0b 75%, #ef4444 75%, #ef4444 100%);
                      border-radius: 6px; position: relative; }
 .risk-gauge-marker { position: absolute; top: -4px; width: 4px; height: 20px; background: #0f172a; border-radius: 2px; }
 .risk-gauge-marker::after { content: attr(data-val); position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
@@ -691,10 +691,10 @@ function drawVPPVPNCurves(pipe, patient_r12) {
   const y = v => mT + (1 - v) * plotH;   // value axis 0..1
 
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:${H}px;">`;
-  // Background bands (Tern zones) — match calculator 10/45
-  svg += `<rect x="${x(0)}" y="${mT}" width="${x(0.10) - x(0)}" height="${plotH}" fill="#dcfce7" opacity="0.4"/>`;
-  svg += `<rect x="${x(0.10)}" y="${mT}" width="${x(0.45) - x(0.10)}" height="${plotH}" fill="#fef3c7" opacity="0.4"/>`;
-  svg += `<rect x="${x(0.45)}" y="${mT}" width="${x(1) - x(0.45)}" height="${plotH}" fill="#fee2e2" opacity="0.4"/>`;
+  // Background bands (Tern zones) — match calculator 15/75
+  svg += `<rect x="${x(0)}" y="${mT}" width="${x(0.15) - x(0)}" height="${plotH}" fill="#dcfce7" opacity="0.4"/>`;
+  svg += `<rect x="${x(0.15)}" y="${mT}" width="${x(0.75) - x(0.15)}" height="${plotH}" fill="#fef3c7" opacity="0.4"/>`;
+  svg += `<rect x="${x(0.75)}" y="${mT}" width="${x(1) - x(0.75)}" height="${plotH}" fill="#fee2e2" opacity="0.4"/>`;
   // Axes
   svg += `<line x1="${mL}" y1="${y(0)}" x2="${mL+plotW}" y2="${y(0)}" stroke="#475569" stroke-width="1"/>`;
   svg += `<line x1="${mL}" y1="${y(0)}" x2="${mL}" y2="${mT}" stroke="#475569" stroke-width="1"/>`;
@@ -704,7 +704,7 @@ function drawVPPVPNCurves(pipe, patient_r12) {
     svg += `<text x="${mL-7}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="#64748b">${(v*100).toFixed(0)}%</text>`;
   });
   // X ticks
-  [0, 0.10, 0.25, 0.45, 0.60, 0.80, 1].forEach(c => {
+  [0, 0.15, 0.40, 0.75, 1].forEach(c => {
     if (c <= 1) {
       svg += `<line x1="${x(c)}" y1="${y(0)}" x2="${x(c)}" y2="${y(0)+4}" stroke="#94a3b8" stroke-width="1"/>`;
       svg += `<text x="${x(c)}" y="${y(0)+15}" text-anchor="middle" font-size="10" fill="#64748b">${(c*100).toFixed(0)}%</text>`;
@@ -765,9 +765,9 @@ function drawVPPVPNCurves(pipe, patient_r12) {
   svg += `<line x1="${legX}" y1="${mT+76}" x2="${legX+14}" y2="${mT+76}" stroke="#1e3a8a" stroke-width="2" stroke-dasharray="3,2"/>`;
   svg += `<text x="${legX+18}" y="${mT+80}" font-size="10" fill="#1e3a8a">Patient</text>`;
   // Tern bands legend
-  svg += `<text x="${legX}" y="${mT+110}" font-size="9" fill="#15803d">🟢 Faible ≤ 10%</text>`;
-  svg += `<text x="${legX}" y="${mT+125}" font-size="9" fill="#92400e">🟡 Modéré 10-45%</text>`;
-  svg += `<text x="${legX}" y="${mT+140}" font-size="9" fill="#b91c1c">🔴 Élevé > 45%</text>`;
+  svg += `<text x="${legX}" y="${mT+110}" font-size="9" fill="#15803d">🟢 Faible ≤ 15%</text>`;
+  svg += `<text x="${legX}" y="${mT+125}" font-size="9" fill="#92400e">🟡 Modéré 15-75%</text>`;
+  svg += `<text x="${legX}" y="${mT+140}" font-size="9" fill="#b91c1c">🔴 Élevé > 75%</text>`;
 
   svg += `</svg>`;
   container.innerHTML = svg;
@@ -955,28 +955,28 @@ function calculate(doScroll) {
   }
   const r12 = risk(12), r24 = risk(24);
 
-  // Classification 3-zones CLINIQUES (Tern 10/45, V15.326 — seuils RONDS garantissant
-  // Vert > Orange > Rouge à M24 sur les 12 KM avec gap Modéré-Élevé maximal).
+  // Classification 3-zones CLINIQUES (Tern 15/75, V15.332 — seuils RONDS garantissant
+  // Vert > Orange > Rouge à 12mo ET 24mo sur les 12 KMs).
   let zone, zoneLabel, zoneCSS, action;
   // 'action' = phrase courte affichée dans le bandeau résultat
   // 'zoneStats' = stat globale de la zone, affichée dans la carte "Zone Tern" ci-dessous
   let zoneStats;
-  if (r12 <= 0.10) {
+  if (r12 <= 0.15) {
     zone = 'low';  zoneLabel = 'FAIBLE'; zoneCSS = 'low';
     action = 'Surveillance standard.';
-    zoneStats = 'Dans la cohorte d\'entraînement (M2_hEq Deauv : N=83 IDES / N=64 PV), EFS@24mo ≈ 92-94% (séparation ≥ 9 pt vs Modéré à M24).';
-  } else if (r12 <= 0.45) {
+    zoneStats = 'Dans la cohorte d\'entraînement (M2_hEq Deauv : N=94 IDES / N=74 PV), EFS@12mo ≈ 92-94%, EFS@24mo ≈ 91-93% (gap Faible-Modéré ≥ 18 pt à 12mo, ≥ 32 pt à 24mo).';
+  } else if (r12 <= 0.75) {
     zone = 'mid';  zoneLabel = 'MODÉRÉ'; zoneCSS = 'mid';
     action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière).';
-    zoneStats = 'Dans la cohorte d\'entraînement (N=40 IDES / N=19 PV), EFS@24mo ≈ 77-82% — gap M-É ≈ 58 pt à M24.';
+    zoneStats = 'Dans la cohorte d\'entraînement (N=37 IDES / N=12 PV en M2_Deauv), EFS@12mo ≈ 70-74%, EFS@24mo ≈ 58-60% — gap M-É ≥ 33 pt à 24mo.';
   } else {
     zone = 'high'; zoneLabel = 'ÉLEVÉ'; zoneCSS = 'high';
     action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai).';
-    zoneStats = 'Dans la cohorte d\'entraînement (N=15 IDES / N=9 PV), EFS@24mo ≈ 0% — rechute systématique.';
+    zoneStats = 'Dans la cohorte d\'entraînement (N=7 IDES / N=6 PV en M2_Deauv), EFS@12mo ≈ 0% et EFS@24mo = 0% — rechute systématique.';
   }
 
   // (groupe binaire conservé pour référence, non utilisé dans drawKM nouvelle version)
-  const grpKey = (r12 > 0.45) ? 'high' : 'low';
+  const grpKey = (r12 > 0.75) ? 'high' : 'low';
 
   // ─── Calibration locale KNN adaptatif V208 (radius 1.0 + K_min 8 + K_max 40) ───
   const _neighbors = knn(pipe, lp);
@@ -1018,8 +1018,8 @@ function calculate(doScroll) {
         `<div class="risk-gauge-marker" style="left:${gaugeLeft}%" data-val="${(r12*100).toFixed(1)}%"></div>` +
       `</div>` +
       `<div class="risk-gauge-labels">` +
-        `<span>0%</span><span style="position:absolute; left:10%; transform:translateX(-50%);">10%</span>` +
-        `<span style="position:absolute; left:45%; transform:translateX(-50%);">45%</span>` +
+        `<span>0%</span><span style="position:absolute; left:15%; transform:translateX(-50%);">15%</span>` +
+        `<span style="position:absolute; left:75%; transform:translateX(-50%);">75%</span>` +
         `<span>100%</span>` +
       `</div>` +
     `</div>` +
@@ -1132,10 +1132,10 @@ function drawKM(pipe, lp) {
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
 
   // Zone colorées HORIZONTALES (risque) : à 12mo
-  // V15.326 Tern 10/45 : seuils RONDS garantissant Vert > Orange > Rouge à M24 sur les 12 KMs
+  // V15.332 Tern 15/75 : seuils RONDS garantissant Vert > Orange > Rouge à 12mo ET 24mo sur les 12 KMs
   // Y-axis is survival (S), high S = low risk → vert en haut
-  const sBoundLow  = 0.90; // S=90% correspond à 10% risk (borne low/mid)
-  const sBoundHigh = 0.55; // S=55% correspond à 45% risk (borne mid/high)
+  const sBoundLow  = 0.85; // S=85% correspond à 15% risk (borne low/mid)
+  const sBoundHigh = 0.25; // S=25% correspond à 75% risk (borne mid/high)
   // Fond zones (très clair)
   svg += `<rect x="${mL}" y="${y(1)}"  width="${W-mL-mR}" height="${y(sBoundLow)-y(1)}" fill="#dcfce7" opacity="0.4"/>`;
   svg += `<rect x="${mL}" y="${y(sBoundLow)}" width="${W-mL-mR}" height="${y(sBoundHigh)-y(sBoundLow)}" fill="#fef3c7" opacity="0.4"/>`;
