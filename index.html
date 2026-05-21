@@ -54,7 +54,7 @@ input[type="number"]:focus, select:focus { outline: none; border-color: #2E75B6;
 .risk-mid { background: #fef3c7; color: #92400e; border-left: 6px solid #f59e0b; }
 .risk-high { background: #fee2e2; color: #991b1b; border-left: 6px solid #ef4444; }
 .risk-gauge { margin-top: 32px; }  /* assez d'espace pour le label du marqueur qui dépasse de 22px au-dessus du bar */
-.risk-gauge-track { height: 12px; background: linear-gradient(to right, #22c55e 0%, #22c55e 8%, #f59e0b 8%, #f59e0b 60%, #ef4444 60%, #ef4444 100%);
+.risk-gauge-track { height: 12px; background: linear-gradient(to right, #22c55e 0%, #22c55e 10%, #f59e0b 10%, #f59e0b 45%, #ef4444 45%, #ef4444 100%);
                      border-radius: 6px; position: relative; }
 .risk-gauge-marker { position: absolute; top: -4px; width: 4px; height: 20px; background: #0f172a; border-radius: 2px; }
 .risk-gauge-marker::after { content: attr(data-val); position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
@@ -320,6 +320,16 @@ svg { width: 100%; height: 100%; overflow: visible; }
         <span id="grp_le_v12_inline">--</span> n'ont pas rechuté à 12 mois (VPN). Parmi les <span id="grp_ge_n_inline">--</span> patients à risque
         <strong>supérieur ou égal</strong> au vôtre, <span id="grp_ge_v12_inline">--</span> ont rechuté à 12 mois (VPP)."
         Le patient appartient aux DEUX groupes car sa valeur est son propre seuil.
+      </p>
+
+      <!-- V15.328 — VPP / VPN curves as functions of cutoff, with vertical line at patient -->
+      <h3 style="font-size:13px; color:#444; margin:14px 0 6px; font-weight:600;">📈 Courbes VPP & VPN selon le seuil r12 (cohorte d'entraînement)</h3>
+      <div id="vppvpnChart" style="width:100%; height:280px; margin-top:6px;"></div>
+      <p style="font-size:11px; color:#64748b; font-style:italic; margin-top:4px;">
+        Courbes calculées par Kaplan-Meier dans chaque sous-cohorte définie par le cutoff c (méthode Heagerty 2000) :
+        <span style="color:#dc2626; font-weight:600;">VPP(c)</span> = 1 − S_KM(12) sur les patients avec r12 ≥ c.
+        <span style="color:#15803d; font-weight:600;">VPN(c)</span> = S_KM(12) sur les patients avec r12 &lt; c.
+        Ligne pointillée verticale = position du patient sur l'axe r12. Plus le patient est à droite (haut risque), plus la VPP locale est forte.
       </p>
     </div>
 
@@ -623,6 +633,144 @@ function updateRankBasedVPN(pipe, patient_r12) {
   document.getElementById('grp_le_v12_inline').textContent = fmt_p(vpn);
   document.getElementById('grp_ge_n_inline').textContent   = km_ge.N.toString();
   document.getElementById('grp_ge_v12_inline').textContent = fmt_p(vpp);
+
+  // V15.328 — Draw VPP/VPN curves as function of cutoff
+  drawVPPVPNCurves(pipe, patient_r12);
+}
+
+// V15.328 — VPP(c) and VPN(c) curves (Heagerty 2000 KM-based)
+// X-axis : cutoff c on predicted r12 (0 to 1)
+// Y-axis : VPP and VPN values (%)
+// Vertical line at patient's r12
+function drawVPPVPNCurves(pipe, patient_r12) {
+  const container = document.getElementById('vppvpnChart');
+  if (!container) return;
+  const cohort = pickCohort()[pipe].cohort;  // [[LP, r12, T, E], ...]
+  if (!cohort || cohort.length === 0) { container.innerHTML = ''; return; }
+
+  // Build cutoff grid : 50 evenly spaced cutoffs from 0 to max observed r12
+  const maxR12 = Math.max(...cohort.map(p => p[1]));
+  const minR12 = Math.min(...cohort.map(p => p[1]));
+  const lo = Math.max(0.01, minR12);
+  const hi = Math.min(0.99, maxR12);
+  const N_GRID = 60;
+  const cutoffs = [];
+  for (let i = 0; i < N_GRID; i++) {
+    cutoffs.push(lo + (hi - lo) * i / (N_GRID - 1));
+  }
+  // For each cutoff, compute VPP and VPN via KM on subgroups
+  const ppvs = [], npvs = [], ppv_lo_arr = [], ppv_hi_arr = [], npv_lo_arr = [], npv_hi_arr = [];
+  for (const c of cutoffs) {
+    const high = cohort.filter(p => p[1] >= c).map(p => ({lp:p[0], r12:p[1], t:p[2], e:p[3]}));
+    const low  = cohort.filter(p => p[1] <  c).map(p => ({lp:p[0], r12:p[1], t:p[2], e:p[3]}));
+    const km_h = high.length >= 3 ? km(high) : null;
+    const km_l = low.length  >= 3 ? km(low)  : null;
+    if (km_h) {
+      ppvs.push(1 - km_h.S12);
+      // Use last KM step's bounds at 12mo
+      const step = km_h.steps.filter(s => s.t <= 12).slice(-1)[0] || km_h.steps[0];
+      ppv_lo_arr.push(1 - step.hi); ppv_hi_arr.push(1 - step.lo);
+    } else {
+      ppvs.push(NaN); ppv_lo_arr.push(NaN); ppv_hi_arr.push(NaN);
+    }
+    if (km_l) {
+      npvs.push(km_l.S12);
+      const step = km_l.steps.filter(s => s.t <= 12).slice(-1)[0] || km_l.steps[0];
+      npv_lo_arr.push(step.lo); npv_hi_arr.push(step.hi);
+    } else {
+      npvs.push(NaN); npv_lo_arr.push(NaN); npv_hi_arr.push(NaN);
+    }
+  }
+
+  // Render SVG
+  const W = container.clientWidth || 540;
+  const H = 280;
+  const mL = 50, mR = 100, mT = 16, mB = 40;
+  const plotW = W - mL - mR, plotH = H - mT - mB;
+  const x = c => mL + (c / 1) * plotW;   // cutoff axis 0..1
+  const y = v => mT + (1 - v) * plotH;   // value axis 0..1
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:${H}px;">`;
+  // Background bands (Tern zones) — match calculator 10/45
+  svg += `<rect x="${x(0)}" y="${mT}" width="${x(0.10) - x(0)}" height="${plotH}" fill="#dcfce7" opacity="0.4"/>`;
+  svg += `<rect x="${x(0.10)}" y="${mT}" width="${x(0.45) - x(0.10)}" height="${plotH}" fill="#fef3c7" opacity="0.4"/>`;
+  svg += `<rect x="${x(0.45)}" y="${mT}" width="${x(1) - x(0.45)}" height="${plotH}" fill="#fee2e2" opacity="0.4"/>`;
+  // Axes
+  svg += `<line x1="${mL}" y1="${y(0)}" x2="${mL+plotW}" y2="${y(0)}" stroke="#475569" stroke-width="1"/>`;
+  svg += `<line x1="${mL}" y1="${y(0)}" x2="${mL}" y2="${mT}" stroke="#475569" stroke-width="1"/>`;
+  // Y ticks
+  [0, 0.25, 0.5, 0.75, 1].forEach(v => {
+    svg += `<line x1="${mL-4}" y1="${y(v)}" x2="${mL}" y2="${y(v)}" stroke="#94a3b8" stroke-width="1"/>`;
+    svg += `<text x="${mL-7}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="#64748b">${(v*100).toFixed(0)}%</text>`;
+  });
+  // X ticks
+  [0, 0.10, 0.25, 0.45, 0.60, 0.80, 1].forEach(c => {
+    if (c <= 1) {
+      svg += `<line x1="${x(c)}" y1="${y(0)}" x2="${x(c)}" y2="${y(0)+4}" stroke="#94a3b8" stroke-width="1"/>`;
+      svg += `<text x="${x(c)}" y="${y(0)+15}" text-anchor="middle" font-size="10" fill="#64748b">${(c*100).toFixed(0)}%</text>`;
+    }
+  });
+  // X-axis label
+  svg += `<text x="${mL + plotW/2}" y="${y(0)+34}" text-anchor="middle" font-size="11" fill="#475569">Cutoff r12 prédit (%)</text>`;
+  // Y-axis label
+  svg += `<text x="${mL-32}" y="${mT + plotH/2}" text-anchor="middle" font-size="11" fill="#475569" transform="rotate(-90 ${mL-32} ${mT+plotH/2})">Valeur prédictive (%)</text>`;
+  // VPP confidence band (red, transparent)
+  let bandStrPPV = '';
+  for (let i = 0; i < cutoffs.length; i++) {
+    if (!isNaN(ppv_hi_arr[i])) bandStrPPV += `${i === 0 ? 'M' : 'L'} ${x(cutoffs[i])} ${y(ppv_hi_arr[i])} `;
+  }
+  for (let i = cutoffs.length - 1; i >= 0; i--) {
+    if (!isNaN(ppv_lo_arr[i])) bandStrPPV += `L ${x(cutoffs[i])} ${y(ppv_lo_arr[i])} `;
+  }
+  bandStrPPV += 'Z';
+  svg += `<path d="${bandStrPPV}" fill="#fca5a5" opacity="0.25"/>`;
+  // VPN confidence band (green, transparent)
+  let bandStrNPV = '';
+  for (let i = 0; i < cutoffs.length; i++) {
+    if (!isNaN(npv_hi_arr[i])) bandStrNPV += `${i === 0 ? 'M' : 'L'} ${x(cutoffs[i])} ${y(npv_hi_arr[i])} `;
+  }
+  for (let i = cutoffs.length - 1; i >= 0; i--) {
+    if (!isNaN(npv_lo_arr[i])) bandStrNPV += `L ${x(cutoffs[i])} ${y(npv_lo_arr[i])} `;
+  }
+  bandStrNPV += 'Z';
+  svg += `<path d="${bandStrNPV}" fill="#86efac" opacity="0.25"/>`;
+
+  // VPP curve (red)
+  let pathPPV = '';
+  for (let i = 0; i < cutoffs.length; i++) {
+    if (!isNaN(ppvs[i])) pathPPV += `${pathPPV === '' ? 'M' : 'L'} ${x(cutoffs[i])} ${y(ppvs[i])} `;
+  }
+  svg += `<path d="${pathPPV}" stroke="#dc2626" stroke-width="2.2" fill="none"/>`;
+
+  // VPN curve (green)
+  let pathNPV = '';
+  for (let i = 0; i < cutoffs.length; i++) {
+    if (!isNaN(npvs[i])) pathNPV += `${pathNPV === '' ? 'M' : 'L'} ${x(cutoffs[i])} ${y(npvs[i])} `;
+  }
+  svg += `<path d="${pathNPV}" stroke="#15803d" stroke-width="2.2" fill="none"/>`;
+
+  // Vertical line at patient's r12
+  const patient_x = x(Math.min(1, Math.max(0, patient_r12)));
+  svg += `<line x1="${patient_x}" y1="${mT}" x2="${patient_x}" y2="${y(0)}" stroke="#1e3a8a" stroke-width="2" stroke-dasharray="4,3"/>`;
+  svg += `<text x="${patient_x}" y="${mT - 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#1e3a8a">Patient (r12=${(patient_r12*100).toFixed(1)}%)</text>`;
+
+  // Legend in right margin
+  const legX = mL + plotW + 10;
+  svg += `<rect x="${legX}" y="${mT}" width="14" height="3" fill="#dc2626"/>`;
+  svg += `<text x="${legX+18}" y="${mT+5}" font-size="11" fill="#dc2626" font-weight="700">VPP(c)</text>`;
+  svg += `<text x="${legX+18}" y="${mT+18}" font-size="9" fill="#475569">= P(événement | r12 ≥ c)</text>`;
+  svg += `<rect x="${legX}" y="${mT+38}" width="14" height="3" fill="#15803d"/>`;
+  svg += `<text x="${legX+18}" y="${mT+43}" font-size="11" fill="#15803d" font-weight="700">VPN(c)</text>`;
+  svg += `<text x="${legX+18}" y="${mT+56}" font-size="9" fill="#475569">= P(non-événement | r12 &lt; c)</text>`;
+  svg += `<line x1="${legX}" y1="${mT+76}" x2="${legX+14}" y2="${mT+76}" stroke="#1e3a8a" stroke-width="2" stroke-dasharray="3,2"/>`;
+  svg += `<text x="${legX+18}" y="${mT+80}" font-size="10" fill="#1e3a8a">Patient</text>`;
+  // Tern bands legend
+  svg += `<text x="${legX}" y="${mT+110}" font-size="9" fill="#15803d">🟢 Faible ≤ 10%</text>`;
+  svg += `<text x="${legX}" y="${mT+125}" font-size="9" fill="#92400e">🟡 Modéré 10-45%</text>`;
+  svg += `<text x="${legX}" y="${mT+140}" font-size="9" fill="#b91c1c">🔴 Élevé > 45%</text>`;
+
+  svg += `</svg>`;
+  container.innerHTML = svg;
 }
 
 // VPN(depth) section retirée (V15.272-273) : la depth n'est pas un prédicteur direct de la VPN
@@ -807,28 +955,28 @@ function calculate(doScroll) {
   }
   const r12 = risk(12), r24 = risk(24);
 
-  // Classification 3-zones CLINIQUES (Tern 8/60, V15.319 — seuils garantissant
-  // Vert > Orange > Rouge à M24 sur les 12 KM ET maximisant gap Faible/Modéré).
+  // Classification 3-zones CLINIQUES (Tern 10/45, V15.326 — seuils RONDS garantissant
+  // Vert > Orange > Rouge à M24 sur les 12 KM avec gap Modéré-Élevé maximal).
   let zone, zoneLabel, zoneCSS, action;
   // 'action' = phrase courte affichée dans le bandeau résultat
   // 'zoneStats' = stat globale de la zone, affichée dans la carte "Zone Tern" ci-dessous
   let zoneStats;
-  if (r12 <= 0.08) {
+  if (r12 <= 0.10) {
     zone = 'low';  zoneLabel = 'FAIBLE'; zoneCSS = 'low';
     action = 'Surveillance standard.';
-    zoneStats = 'Dans la cohorte d\'entraînement (M2_hEq Deauv : N=71 IDES / N=61 PV), EFS@24mo ≈ 95-96% (1-4 événements selon variante).';
-  } else if (r12 <= 0.60) {
+    zoneStats = 'Dans la cohorte d\'entraînement (M2_hEq Deauv : N=83 IDES / N=64 PV), EFS@24mo ≈ 92-94% (séparation ≥ 9 pt vs Modéré à M24).';
+  } else if (r12 <= 0.45) {
     zone = 'mid';  zoneLabel = 'MODÉRÉ'; zoneCSS = 'mid';
     action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière).';
-    zoneStats = 'Dans la cohorte d\'entraînement (N=58 IDES / N=22 PV), EFS@24mo ≈ 72% — séparation ≥ 16 pt vs Faible à M24.';
+    zoneStats = 'Dans la cohorte d\'entraînement (N=40 IDES / N=19 PV), EFS@24mo ≈ 77-82% — gap M-É ≈ 58 pt à M24.';
   } else {
     zone = 'high'; zoneLabel = 'ÉLEVÉ'; zoneCSS = 'high';
     action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai).';
-    zoneStats = 'Dans la cohorte d\'entraînement (N=9 IDES / N=9 PV), EFS@24mo ≈ 0% — rechute systématique.';
+    zoneStats = 'Dans la cohorte d\'entraînement (N=15 IDES / N=9 PV), EFS@24mo ≈ 0% — rechute systématique.';
   }
 
   // (groupe binaire conservé pour référence, non utilisé dans drawKM nouvelle version)
-  const grpKey = (r12 > 0.60) ? 'high' : 'low';
+  const grpKey = (r12 > 0.45) ? 'high' : 'low';
 
   // ─── Calibration locale KNN adaptatif V208 (radius 1.0 + K_min 8 + K_max 40) ───
   const _neighbors = knn(pipe, lp);
@@ -870,8 +1018,8 @@ function calculate(doScroll) {
         `<div class="risk-gauge-marker" style="left:${gaugeLeft}%" data-val="${(r12*100).toFixed(1)}%"></div>` +
       `</div>` +
       `<div class="risk-gauge-labels">` +
-        `<span>0%</span><span style="position:absolute; left:8%; transform:translateX(-50%);">8%</span>` +
-        `<span style="position:absolute; left:60%; transform:translateX(-50%);">60%</span>` +
+        `<span>0%</span><span style="position:absolute; left:10%; transform:translateX(-50%);">10%</span>` +
+        `<span style="position:absolute; left:45%; transform:translateX(-50%);">45%</span>` +
         `<span>100%</span>` +
       `</div>` +
     `</div>` +
@@ -984,10 +1132,10 @@ function drawKM(pipe, lp) {
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
 
   // Zone colorées HORIZONTALES (risque) : à 12mo
-  // V15.319 Tern 8/60 : seuils garantissant Vert > Orange > Rouge à M24 sur les 12 KMs
+  // V15.326 Tern 10/45 : seuils RONDS garantissant Vert > Orange > Rouge à M24 sur les 12 KMs
   // Y-axis is survival (S), high S = low risk → vert en haut
-  const sBoundLow  = 0.92; // S=92% correspond à 8% risk (borne low/mid)
-  const sBoundHigh = 0.40; // S=40% correspond à 60% risk (borne mid/high)
+  const sBoundLow  = 0.90; // S=90% correspond à 10% risk (borne low/mid)
+  const sBoundHigh = 0.55; // S=55% correspond à 45% risk (borne mid/high)
   // Fond zones (très clair)
   svg += `<rect x="${mL}" y="${y(1)}"  width="${W-mL-mR}" height="${y(sBoundLow)-y(1)}" fill="#dcfce7" opacity="0.4"/>`;
   svg += `<rect x="${mL}" y="${y(sBoundLow)}" width="${W-mL-mR}" height="${y(sBoundHigh)-y(sBoundLow)}" fill="#fef3c7" opacity="0.4"/>`;

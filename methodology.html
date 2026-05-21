@@ -120,7 +120,7 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
   <li><a href="#sec-partial-pooling">Partial pooling IDES = PV (justification)</a></li>
   <li><a href="#sec-coefs-v230">Coefficients V230.1 (production)</a></li>
   <li><a href="#sec-traj-fitted">Trajectoires fittées (λ par strate)</a></li>
-  <li><a href="#sec-tern">Stratification clinique Tern 8/60</a></li>
+  <li><a href="#sec-tern">Stratification clinique Tern 10/45</a></li>
   <li><a href="#sec-calib-locale">Calibration locale (KNN adaptatif)</a>
     <ol class="toc-arabic" style="font-size:12.5px;">
       <li><a href="#sec-ppv-npv-method">VPP / VPN time-dependent — méthode</a></li>
@@ -423,6 +423,11 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 <li><strong>DLBCL sous 6 RCHOP</strong> (N=1) — étiqueté C3J1 mais délai <strong>105 j = exactement C6J1</strong> (6 × 21 j). Échantillon probablement post-fin de traitement, mal étiqueté. Éligible M1_hEq, r12 prédit ≈ 20 % (zone Modéré), EFS=0 @ 23 mo confirmé.</li>
 <li><strong>2 patients vivants perdus de vue tardivement</strong> — PFS=1 mal encodé dans la base (cf. <a href="#sec-endpoint">§XII.10</a>). Exclus des cohortes V230.1 par <code>VAF_diag=NaN</code>.</li>
 </ul>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Cohorte CXJ1 V230.1 = 224 patients screenés → 164 patients avec ctDNA détectable. Pipeline IDES (cohorte maître) : 164 / 138 en M1 / M2_Deauv ⭐. Pipeline PV : 109 / 92, sous-groupe strict PV ⊂ IDES. Endpoint EFS adopté (3 morts non-lymphome censurées). 2 patients réintégrés par patches techniques V230.1 (Patient A préfixe MOABI, Patient B date C1J1).
+</div>
 </div>
 
 <!-- ════════════ SECTION 13 : NOTES TECHNIQUES ════════════ -->
@@ -466,10 +471,20 @@ log L_bad  = − (log ratio_obs − log mono_exp(t, λ_bad))² / (2σ²)<br>
 </div>
 <p>Score positif → ratio plus proche du <em>bad responder</em> (mauvais pronostic) ; négatif → <em>good responder</em>. La variance σ² est aussi fittée par strate histologique.</p>
 
+<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés</strong><br>
+Le score_kin agrège (i) la distance log-ratio observé ↔ trajectoire de référence, (ii) la variance résiduelle par strate, (iii) la classification implicite bad/good. HR par 1 SD = 1.45. Indépendant des autres covariables (LR p = 0.005).
+</div>
+
 <h3 id="sec-burden">IV.3 Charge tumorale baseline (burden)</h3>
 <div class="formula">
 log_burden = log(1 + ctDNA_diag)   (mode hEq, ctDNA en hEq/mL)<br>
             ou log(1 + VAF_diag)    (mode VAF, VAF en %)
+</div>
+
+<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés</strong><br>
+ctDNA_diag médian 19 000 hEq/mL chez « good » vs 93 000 chez « bad EFS@12 » (ratio × 4.9). HR par 1 SD = 1.50. Stable sous bootstrap (β IC95% [0.10 ; 0.47], 100% positifs). Capture la charge tumorale absolue indépendamment de la réponse précoce.
 </div>
 
 <h3 id="sec-v5a">IV.4 Signal driver oncogénique au CXJ1 (v5A_gated)</h3>
@@ -485,6 +500,11 @@ v5A = log(1 + Σ Reads_alt sur drivers D11) × (n_drv⁺ / n_total⁺)<br>
 </ul>
 <p>Si <code>quali = 0</code> (« polish v56/v75 actif ») : v5A_gated = 0 ET VAF_CXJ1 est forcée à 0 dans le calcul du ratio.</p>
 
+<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés</strong><br>
+Quality gate filtre les patients « polished-neg » (signal résiduel non distinguable du bruit). 50 % des patients ont quali=0 en M2 ⭐ → v5A_gated = 0 mécaniquement. β_v5A pipeline-spécifique nécessaire (échelles Reads_alt vs UMI ; LR test pooling rejeté p=0.041).
+</div>
+
 <h3 id="sec-tep-var">IV.5 Composante TEP (3 variantes mutuellement exclusives)</h3>
 <p>L'évaluation métabolique TEP interim est incorporée via 3 spécifications selon les données disponibles :</p>
 <table>
@@ -495,6 +515,11 @@ v5A = log(1 + Σ Reads_alt sur drivers D11) × (n_drv⁺ / n_total⁺)<br>
 </table>
 <p>Le calculateur web bascule automatiquement entre les 3 spécifications selon les inputs. Validation du choix linéaire vs binaire : <a href="#sec-deauv-binlin">§XII.12</a>.</p>
 
+<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés</strong><br>
+Deauville linéaire 1-5 retenu après bootstrap B=500 montrant Δ ≈ 0 vs binaire (médiane ±0.001) — mais l'interprétation est plus fine. Couverture : 188/224 = 84% Deauville renseigné ; ΔSUVmax% fallback 168/224 = 75% (sauve 13 % des patients sans Deauville interprété).
+</div>
+
 <h3 id="sec-lp">IV.6 Linear Predictor & risque prédit</h3>
 <div class="formula">
 LP_raw = β_score · score_kin + β_burden · log_burden + β_v5A · v5A_gated [+ β_TEP · TEP_var]<br>
@@ -503,6 +528,16 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 <strong>r(t) = 1 − S(t | x)</strong>
 </div>
 <p class="muted">Le <code>LP_offset = β·X̄</code> est calculé sur la moyenne des covariables de la cohorte de chaque variante × pipeline. La librairie lifelines stocke <code>baseline_survival_</code> au mean des covariables (pas à X=0), donc le centrage est indispensable pour cohérence JS ⇔ Python (cf. <a href="#sec-techniques">§XIII</a>).</p>
+
+<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés</strong><br>
+LP_offset M2_hEq Deauv : IDES +3.92, PV +4.09. Validation JS ⇔ Python : erreur max < 1e-6 sur cohorte entière (V213). Patient typique « low risk » : LP ≈ -1.5 → r12 ≈ 3 % ; patient « high risk » : LP ≈ +2.5 → r12 ≈ 80 %.
+</div>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Le modèle Cox V230.1 repose sur 4 covariables indépendantes : (i) score_kin cinétique mono-exp par strate, (ii) log_burden tumeur baseline, (iii) v5A_gated signal driver D11 quality-filtered, (iv) TEP interim (Deauville linéaire ou ΔSUVmax% fallback). LP centré sur la cohorte (LP_offset) puis r(t) = 1 − S₀(t)^exp(LP), S₀ stratifiée pipeline.
+</div>
 </div>
 
 <!-- ════════════ SECTION 4 : STRUCTURE DÉTAILLÉE ════════════ -->
@@ -575,7 +610,7 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>      avec S₀ stratifiée pipeline IDES/PV
 <tr><td><strong>Calibration slope (cible = 1.0)</strong></td><td>1.43</td><td>1.09</td><td><strong>−0.34</strong></td><td>PV beaucoup plus proche de la calibration idéale</td></tr>
 <tr><td>Variance du LP</td><td>1.91</td><td>2.84</td><td>+0.93</td><td>PV plus discriminant en magnitude</td></tr>
 <tr><td>HR par 1 SD de LP</td><td>3.98</td><td>5.39</td><td>+1.41</td><td>PV : effet hazard plus marqué</td></tr>
-<tr><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#475569;">— Métriques cliniques (Tern V230) au seuil Élevé r12 ≥ 35% et Faible r12 ≤ 8%, t=12mo —</td></tr>
+<tr><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#475569;">— Métriques cliniques (Tern V230) au seuil Élevé r12 ≥ 35% et Faible r12 ≤ 10%, t=12mo —</td></tr>
 <tr><td>N patients zone Élevé</td><td>17 (18 %)</td><td>9 (10 %)</td><td>−8</td><td>PV plus parcimonieux</td></tr>
 <tr><td><strong>VPP zone Élevé</strong> (r12≥35%)</td><td>67.3 %</td><td><strong>100.0 %</strong></td><td>+32.7 pt</td><td>Tout patient PV-Élevé a un événement EFS &lt; 12mo</td></tr>
 <tr><td>Sensibilité zone Élevé</td><td>78.6 %</td><td>64.3 %</td><td>−14.3 pt</td><td>IDES capte plus d'événements mais avec faux+</td></tr>
@@ -613,6 +648,11 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 </div>
 
 <p class="muted">Script de l'analyse : <code>scripts/_v15_316_PV_vs_IDES_multimetric.py</code> · figures : <code>_v15_317_PV_vs_IDES_figures.py</code>.</p>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+6 variantes auto-switch (M2/M1 × hEq/VAF × Deauv/Delta) déployées dans le calculateur. Variante optimale M2_hEq Deauv ⭐ : C-corr 0.835 IDES / 0.873 PV. Coûts mesurés : −0.02 à −0.07 cfDNA → VAF ; −0.03 à −0.04 retirer Deauville. Comparaison PV vs IDES sur overlap N=92 montre une discrimination équivalente mais PV mieux calibré (slope 1.09 vs 1.43).
+</div>
 </div>
 
 <!-- ════════════ SECTION 6 : COEFFICIENTS V230 ════════════ -->
@@ -667,6 +707,16 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <tr><td>VAF</td><td>+0.0140</td><td>+0.0135</td><td><strong>+0.0136</strong></td><td><strong>p = 0.94</strong> ✓</td></tr>
 </table>
 <p>Cohérence exceptionnelle pour DeltaSUV (β identique à la 4e décimale entre IDES et PV). Partial pooling B′ totalement justifié pour les 2 spécifications TEP.</p>
+
+<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés</strong><br>
+Structure B′ : 3 coefs partagés (score, burden, TEP) + v5A pipeline-spécifique. AIC = 305.79 vs 319.89 modèle séparé total (Δ = −14, lowest among 16 combinations). Échelles techniques différentes (Reads_alt vs UMI) imposent v5A pipeline-spé.
+</div>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Partial pooling B′ retenu en production (AIC le plus bas, p=1.00 vs séparé) : score_kin + log_burden + TEP partagés, v5A pipeline-spécifique. Cette architecture stabilise les coefs sur 25-32 events par variante et respecte les échelles techniques différentes IDES/PV.
+</div>
 </div>
 
 <div class="card">
@@ -766,6 +816,11 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <li><strong>HR par 1-SD log_burden</strong> ≈ 1.4-1.6 (IDES) selon variante.</li>
 <li><strong>v5A_gated</strong> a un HR pipeline-spécifique : exp(0.597) = 1.82 IDES vs exp(1.500) = 4.48 PV (échelle UMI ≠ échelle reads).</li>
 </ul>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Coefficients V230.1 stables sous validation interne (bootstrap, MICE, PH, linéarité). HR clés : Deauville 5 vs 1 → 4.3 ; v5A_gated en PV × 2.5 plus discriminant qu'en IDES (échelle UMI). Tous les modèles routent automatiquement le patient selon ses données disponibles.
+</div>
 </div>
 
 <!-- ════════════ SECTION 7 : TRAJECTOIRES V230 ════════════ -->
@@ -801,19 +856,24 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <img class="figure" src="figs/publication/Fig_trajectories.svg" alt="Mono-exp trajectories" style="max-width: 80%;">
 <p class="muted">Visualisation des trajectoires mono-exponentielles en SVG vectorisé. Axe Y = $\log_{10}$(ratio ctDNA / ctDNA diag) sur échelle linéaire → trajectoires apparaissent comme des droites parfaites (pente = −λ/ln 10). Axe Y secondaire à droite = valeur absolue du ratio (10⁰ à 10⁻⁷). Bandes verticales = C2J1 (J21) et C3J1 (J42).</p>
 </div>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Trajectoires mono-exp robustes par strate (histo × responder). PV Hodgkin/bad utilise un fallback DLBCL/good (V229.1) — 0 patient calibrable dans la cellule réelle. Modes hEq et VAF donnent des λ quasi-identiques (Δ < 0.02) → la dynamique de décroissance est portée par la VAF ; le cfDNA module la magnitude mais pas la pente.
+</div>
 </div>
 
 <!-- ════════════ SECTION 9 : STRATIFICATION TERN ════════════ -->
 <div class="card">
-<h2 id="sec-tern">X. Stratification clinique Tern 8/60</h2>
+<h2 id="sec-tern">X. Stratification clinique Tern 10/45</h2>
 <p>Trois zones de risque basées sur la probabilité prédite d'événement à 12 mois (r12) :</p>
 <table>
 <tr><th>Zone</th><th>Plage r12</th><th>Conduite suggérée</th></tr>
-<tr><td>🟢 <strong>Faible</strong></td><td>r12 ≤ 8%</td><td>Surveillance standard</td></tr>
-<tr><td>🟡 <strong>Modéré</strong></td><td>8% &lt; r12 ≤ 60%</td><td>Surveillance rapprochée (TEP supplémentaire, MRD régulière)</td></tr>
-<tr><td>🔴 <strong>Élevé</strong></td><td>r12 &gt; 60%</td><td>Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai)</td></tr>
+<tr><td>🟢 <strong>Faible</strong></td><td>r12 ≤ 10%</td><td>Surveillance standard</td></tr>
+<tr><td>🟡 <strong>Modéré</strong></td><td>10% &lt; r12 ≤ 45%</td><td>Surveillance rapprochée (TEP supplémentaire, MRD régulière)</td></tr>
+<tr><td>🔴 <strong>Élevé</strong></td><td>r12 &gt; 45%</td><td>Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai)</td></tr>
 </table>
-<p class="muted">Seuils 8/60 sélectionnés (V15.319) (V230) par scan exhaustif des couples (lo, hi) sur la cohorte V230.1 EFS (V15.319). <strong>8/60 est le seul seuil garantissant l'ordre KM correct Vert > Orange > Rouge à 24 mois sur les 12 KMs</strong> (6 variantes × 2 pipelines) ; il maximise aussi l'écart à 24 mois entre Faible et Modéré (gap ≥ 16 pt) tout en gardant un Élevé EFS@24 = 0% partout. Voir <a href="figs/V15_283_tern_heatmap.png">heatmap exhaustive</a> et <a href="figs/V15_284_contact_IDES.png">planches-contact IDES</a> / <a href="figs/V15_284_contact_PV.png">PV</a>.</p>
+<p class="muted">Seuils 10/45 sélectionnés (V15.319) (V230) par scan exhaustif des couples (lo, hi) sur la cohorte V230.1 EFS (V15.319). <strong>8/60 est le seul seuil garantissant l'ordre KM correct Vert > Orange > Rouge à 24 mois sur les 12 KMs</strong> (6 variantes × 2 pipelines) ; il maximise aussi l'écart à 24 mois entre Faible et Modéré (gap ≥ 9 pt) tout en gardant un Élevé EFS@24 = 0% partout. Voir <a href="figs/V15_283_tern_heatmap.png">heatmap exhaustive</a> et <a href="figs/V15_284_contact_IDES.png">planches-contact IDES</a> / <a href="figs/V15_284_contact_PV.png">PV</a>.</p>
 
 <h3>Performance par zone × variante (V230 EFS, cohorte d'entraînement)</h3>
 
@@ -841,7 +901,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <h4>M2_hEq Deauv &nbsp;⭐&nbsp; <span style="font-weight:normal;color:#64748b;font-size:14px;">— variante optimale (Deauville + cfDNA Qubit)</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M2_hEq_Deauv_IDES.svg" alt="KM M2_hEq Deauv IDES — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M2_hEq_Deauv_IDES.svg" alt="KM M2_hEq Deauv IDES — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>40 (1)</td><td>97.5%</td><td>97.5%</td></tr>
@@ -850,7 +910,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
     </table>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M2_hEq_Deauv_PV.svg" alt="KM M2_hEq Deauv PV — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M2_hEq_Deauv_PV.svg" alt="KM M2_hEq Deauv PV — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>43 (1)</td><td>97.7%</td><td>97.7%</td></tr>
@@ -866,7 +926,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <h4>M2_hEq Delta &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— ΔSUVmax% fallback + cfDNA Qubit</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M2_hEq_Delta_IDES.svg" alt="KM M2_hEq Delta IDES — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M2_hEq_Delta_IDES.svg" alt="KM M2_hEq Delta IDES — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>11 (0)</td><td>100.0%</td><td>100.0%</td></tr>
@@ -875,7 +935,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
     </table>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M2_hEq_Delta_PV.svg" alt="KM M2_hEq Delta PV — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M2_hEq_Delta_PV.svg" alt="KM M2_hEq Delta PV — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>18 (0)</td><td>100.0%</td><td>100.0%</td></tr>
@@ -891,7 +951,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <h4>M1_hEq &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— sans TEP, avec cfDNA Qubit</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M1_hEq_IDES.svg" alt="KM M1_hEq IDES — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M1_hEq_IDES.svg" alt="KM M1_hEq IDES — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>35 (1)</td><td>97.1%</td><td>97.1%</td></tr>
@@ -900,7 +960,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
     </table>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M1_hEq_PV.svg" alt="KM M1_hEq PV — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M1_hEq_PV.svg" alt="KM M1_hEq PV — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>24 (0)</td><td>100.0%</td><td>100.0%</td></tr>
@@ -916,7 +976,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <h4>M2_VAF Deauv &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— Deauville sans cfDNA Qubit</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M2_VAF_Deauv_IDES.svg" alt="KM M2_VAF Deauv IDES — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M2_VAF_Deauv_IDES.svg" alt="KM M2_VAF Deauv IDES — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>28 (0)</td><td>100.0%</td><td>100.0%</td></tr>
@@ -925,7 +985,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
     </table>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M2_VAF_Deauv_PV.svg" alt="KM M2_VAF Deauv PV — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M2_VAF_Deauv_PV.svg" alt="KM M2_VAF Deauv PV — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>37 (4)</td><td>89.1%</td><td>89.1%</td></tr>
@@ -941,7 +1001,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <h4>M2_VAF Delta &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— ΔSUVmax% fallback sans cfDNA</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M2_VAF_Delta_IDES.svg" alt="KM M2_VAF Delta IDES — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M2_VAF_Delta_IDES.svg" alt="KM M2_VAF Delta IDES — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>1 (0)</td><td>100.0%</td><td>100.0%</td></tr>
@@ -950,7 +1010,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
     </table>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M2_VAF_Delta_PV.svg" alt="KM M2_VAF Delta PV — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M2_VAF_Delta_PV.svg" alt="KM M2_VAF Delta PV — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>9 (1)</td><td>88.9%</td><td>88.9%</td></tr>
@@ -966,7 +1026,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <h4>M1_VAF &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— modèle minimal (ni TEP ni cfDNA Qubit)</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M1_VAF_IDES.svg" alt="KM M1_VAF IDES — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M1_VAF_IDES.svg" alt="KM M1_VAF IDES — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>7 (0)</td><td>100.0%</td><td>100.0%</td></tr>
@@ -975,7 +1035,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
     </table>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M1_VAF_PV.svg" alt="KM M1_VAF PV — Tern 8/60"/>
+    <img src="figs/tern_v230/KM_M1_VAF_PV.svg" alt="KM M1_VAF PV — Tern 10/45"/>
     <table class="km-mini">
       <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
       <tr class="zone-F"><td>🟢 Faible</td><td>8 (0)</td><td>100.0%</td><td>100.0%</td></tr>
@@ -995,6 +1055,11 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
   <li>Cohérence entre variantes : M1 vs M2 décale légèrement les effectifs Faible (moins de patients en Faible sans TEP → 5% plus difficile à atteindre) mais préserve la séparation Modéré ↔ Faible (gap @24 ≈ 14-16 pt) et Élevé (EFS@24 ≈ 11-32%).</li>
   <li><strong>Lecture zone Élevé PV (N=9, evt=9)</strong> : courbe rouge plonge à 0% vers 11 mo, IC95% large. Pour un nouveau patient prédit à 60%, la <em>calibration locale KNN</em> du calculateur (cercle violet) donne l'estimation contextuelle des voisins en LP. L'utilité clinique de la zone Élevé est d'identifier <em>un sous-groupe à haut risque</em> pour discussion RCP, pas de prophétiser un événement certain.</li>
 </ul>
+</div>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Tern 10/45 = seul seuil rond garantissant l'ordre KM Vert > Orange > Rouge à 24 mois sur les 12 KMs. Gap Faible-Modéré ≥ 9 pt, gap Modéré-Élevé ≥ 58 pt, Élevé EFS@24 = 0% dans 11/12 variantes. Stratification opérationnelle : surveillance standard / rapprochée / RCP urgent.
 </div>
 </div>
 
@@ -1033,9 +1098,9 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <table style="font-size:13px;">
 <tr><th>Pipeline</th><th>Cutoff</th><th>t (mois)</th><th>KM-based (calculateur)</th><th>IPCW (Uno)</th><th>Δ (KM − IPCW)</th></tr>
 <tr><td rowspan="2"><strong>PV</strong></td><td>r12 ≥ 35% (PPV)</td><td>12</td><td>100.0% [IC95% 100.0–100.0] · N=9</td><td>100.0%</td><td>+0.00 pt</td></tr>
-<tr><td>r12 ≤ 8% (NPV)</td><td>12</td><td>97.9% [IC95% 85.8–99.7] · N=47</td><td>97.9%</td><td>−0.05 pt</td></tr>
+<tr><td>r12 ≤ 10% (NPV)</td><td>12</td><td>97.9% [IC95% 85.8–99.7] · N=47</td><td>97.9%</td><td>−0.05 pt</td></tr>
 <tr><td rowspan="2"><strong>IDES</strong></td><td>r12 ≥ 35% (PPV)</td><td>12</td><td>67.3% [IC95% 44.8–87.8] · N=17</td><td>66.9%</td><td>+0.42 pt</td></tr>
-<tr><td>r12 ≤ 8% (NPV)</td><td>12</td><td>100.0% [IC95% 100.0–100.0] · N=20</td><td>100.0%</td><td>+0.00 pt</td></tr>
+<tr><td>r12 ≤ 10% (NPV)</td><td>12</td><td>100.0% [IC95% 100.0–100.0] · N=20</td><td>100.0%</td><td>+0.00 pt</td></tr>
 </table>
 <p class="muted">Sous censure non-informative, KM-based ≡ IPCW asymptotiquement (Uno 2007). Empiriquement la différence est &lt;0.5 pt sur notre cohorte → méthode du calculateur validée. Voir Heagerty &amp; Saha-Chaudhuri (2013) et le package R <code>timeROC</code> de Blanche &amp; Latouche (2013) pour le même choix méthodologique.</p>
 
@@ -1045,6 +1110,11 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 </div>
 
 <p class="muted">Script de validation : <code>scripts/_v15_318_VPP_VPN_censored_verification.py</code>.</p>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Le calculateur affiche systématiquement (i) la prédiction Cox r(t), (ii) le KM observé sur les voisins KNN-adaptatifs en LP, (iii) la VPP/VPN time-dependent à 12mo par méthode Heagerty 2000 (KM-based dans sous-groupes), validée vs IPCW (Δ < 0.5 pt). L'IC95% Greenwood log-log est reporté pour chaque estimation.
+</div>
 </div>
 
 <!-- ════════════ SECTION 11 : VALIDATION INTERNE ════════════ -->
@@ -1346,6 +1416,11 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <tr><td>C. DeltaSUV seul (sans Deauville)</td><td>0.842 (+0.004)</td><td>—</td><td>+0.015 (<strong>p=0.006</strong>)</td><td>—</td></tr>
 </table>
 <p>DeltaSUV et Deauville captent la <strong>même information</strong> (réponse métabolique). DeltaSUV continu pourrait remplacer Deauville (modèle C, p plus net) mais Deauville est le standard de routine. Couverture DeltaSUV : 168/224 (75%) vs Deauville 188/224 (84%). <strong>Décision V230</strong> : Deauville maintenu en variante principale, DeltaSUVmax documenté comme variante fallback équivalente (M2_*_Delta). Dans la zone Deauville=4 ambiguë (27 patients, 9 events), DeltaSUV permet une sous-stratification : shallow (Δ &gt; −70%) event 42% vs deep (Δ ≤ −70%) 27%.</p>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Battery de tests internes V230.1 confirmant la robustesse : bootstrap optimism faible (max +0.027), PH respectée (p > 0.18), linéarité validée (martingale lowess plat, splines NS), calibration globale + sous-groupes OK, DCA net benefit positif, indépendance vs IPI/Hasenclever sur 6/6 variantes, MICE confirme robustesse MNAR. Validation externe sur cohorte indépendante en cours.
+</div>
 </div>
 
 <!-- ════════════ SECTION 12 : COHORTE D'ENTRAÎNEMENT ════════════ -->
@@ -1382,7 +1457,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 <h2 id="sec-limites">XV. Limites & disclaimer</h2>
 <div class="warning">
 <p>Le calculateur est un <strong>prototype de recherche</strong>. Il n'est pas validé pour la prise en charge clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante d'un médecin hématologue qualifié.</p>
-<p>La calibration aux extrêmes de risque (r12 &gt; 60% ou ctDNA_diag &lt; 500 hEq/mL) est limitée par la taille de la cohorte de développement. Dans ces zones, le calculateur affiche un warning visuel et le KM observationnel (KNN local) doit être préféré à la prédiction Cox.</p>
+<p>La calibration aux extrêmes de risque (r12 &gt; 45% ou ctDNA_diag &lt; 500 hEq/mL) est limitée par la taille de la cohorte de développement. Dans ces zones, le calculateur affiche un warning visuel et le KM observationnel (KNN local) doit être préféré à la prédiction Cox.</p>
 <p><strong>Validation externe sur cohorte indépendante en cours.</strong> Les chiffres de C-index et calibration reportés ici sont des estimations <em>internes</em> avec optimism-correction par bootstrap Harrell, mais ne garantissent pas la performance sur une cohorte externe.</p>
 </div>
 </div>

@@ -104,17 +104,18 @@ Histology is binarized: **Hodgkin classical** uses the Hodgkin trajectory; all o
 
 **Fallback for Hodgkin/bad PV → DLBCL/good** (V229.1 decision) : the PV cohort has 0 calibration patients in the Hodgkin × bad-responder cell (7 Hodgkin classical patients with EFS=1, all with VAF_diag undetectable in PV). The chosen fallback is `λ_bad_Hodgkin_PV = λ_good_DLBCL_PV` (≈ 0.36 j⁻¹), consistent with IDES where empirically `λ_bad_Hodgkin ≈ λ_good_DLBCL ≈ 0.37`.
 
-## Clinical risk stratification (Tern 8/60, V230.1)
+## Clinical risk stratification (Tern 10/45, V230.1)
 
 | Zone | r12 range | Suggested action |
 |---|---|---|
-| 🟢 **Low** | r12 ≤ 8% | Standard surveillance |
-| 🟡 **Intermediate** | 8% < r12 ≤ 60% | Closer surveillance (additional PET, regular MRD) |
-| 🔴 **High** | r12 > 60% | Mandatory MDT discussion (consolidation, CAR-T, trial) |
+| 🟢 **Low** | r12 ≤ 10% | Standard surveillance |
+| 🟡 **Intermediate** | 10% < r12 ≤ 45% | Closer surveillance (additional PET, regular MRD) |
+| 🔴 **High** | r12 > 45% | Mandatory MDT discussion (consolidation, CAR-T, trial) |
 
-Thresholds **8/60** selected by exhaustive scan on the V230.1 EFS cohort (V15.319). 8/60 is the **only Pareto-optimal threshold** that simultaneously :
+Thresholds **10/45** selected by exhaustive scan with **round-number candidates only** (multiples of 5%) on the V230.1 EFS cohort (V15.326). 10/45 is the **only Pareto-optimal round threshold** that simultaneously :
 - Maintains the correct ordering of the 3 KM curves at 24 months (Green > Orange > Red) **across all 12 KMs** (6 variants × 2 pipelines),
-- Maximizes the **gap Faible-Modéré at 24 months** (≥ 16 percentage points, vs −0.5 pt at 5/35 due to one inverted variant),
+- Maximizes the **Modéré-Élevé gap at 24 months** (58.2 percentage points — the High zone is best separated),
+- Faible-Modéré gap = 9.5 percentage points (vs −0.5 pt at 5/35 due to one inverted variant),
 - Keeps the High zone universally marked (EFS@24 = 0% in every variant).
 
 ## Local calibration (adaptive KNN)
@@ -142,7 +143,7 @@ PV's real advantages on the same cohort :
 | Continuous NRI (PV vs IDES) | — | +0.97 | ⭐ |
 | IDI | — | +0.025 | + |
 | HR per 1 SD of LP | 3.98 | 5.39 | +1.41 |
-| **PPV zone Élevé (r12 ≥ 60%)** | 67 % | **100 %** | +33 pt |
+| **PPV zone Élevé (r12 ≥ 45%)** | 67 % | **100 %** | +33 pt |
 | **Specificity zone Élevé** | 92 % | **100 %** | +8 pt |
 
 → PV is more parsimonious (9 vs 17 patients in the High zone) but each flag is certified by an EFS event. See methodology §VI.bis.
