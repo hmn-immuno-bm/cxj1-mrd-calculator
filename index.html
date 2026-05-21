@@ -299,13 +299,14 @@ svg { width: 100%; height: 100%; overflow: visible; }
         Cible 12 mois car la dynamique précoce du ctDNA n'a pas été validée pour prédire les rechutes tardives.
       </p>
 
-      <!-- Prévalence histo de référence (V15.342, V15.343 hide-not-gray) -->
+      <!-- Référence histo + seuils Tern (V15.345 zone-based) -->
       <div style="margin:10px 0 14px; padding:10px 14px; background:#f1f5f9; border-left:4px solid #64748b; border-radius:4px; font-size:13px; color:#334155;">
         <strong>Prévalence R/R @ 12 mo dans votre catégorie histo :</strong> <span id="prev_histo">--</span>
         <br><span style="font-size:11.5px; color:#64748b; font-style:italic;">
-          Seuls les indicateurs <strong>pertinents au profil du patient</strong> sont affichés ci-dessous :
-          patient au-dessus de la prévalence histo → on n'affiche que la VPP et le LR+ ;
-          patient sous la prévalence → on n'affiche que la VPN et le LR−.
+          Seuils utilisés (V15.345) :
+          <strong>Hodgkin classique</strong> = cutoff unique 5 % (zone Faible / Indéterminé) ·
+          <strong>B agressifs + indolents</strong> = Tern 5 / 45 (zone Faible / Modéré / Élevé).
+          Les indicateurs (VPN, LR−, VPP, LR+) ne s'affichent que dans la zone concernée ; zone Modéré ou Indéterminé = aucun indicateur fiable.
         </span>
       </div>
 
@@ -698,41 +699,40 @@ function updateRankBasedVPN(pipe, patient_r12) {
   if (lrPlusEl)  lrPlusEl.textContent  = fmt_lr(LR_plus);
   if (lrMinusEl) lrMinusEl.textContent = fmt_lr(LR_minus);
 
-  // V15.343 : Conditional VPN/VPP/LR display — HIDE entirely the irrelevant metric.
-  //   Patient au-DESSUS de la prévalence histo  →  garde uniquement VPP + LR+
-  //   Patient SOUS la prévalence histo          →  garde uniquement VPN + LR−
+  // V15.345 : Conditional VPN/VPP/LR display — ZONE-BASED
+  //   Zone Faible (r12 ≤ 5 %)               : VPN + LR−
+  //   Zone Élevé (r12 > 45 %, Non-Hodgkin)   : VPP + LR+
+  //   Zone Modéré / Indéterminé              : ni l'un ni l'autre (cards cachées)
+  const _TERN_LO_v = 0.05;
+  const _TERN_HI_v = isHodgkinPatient ? 1.01 : 0.45;
   const vpnCard      = document.getElementById('vpn_card');
   const vppCard      = document.getElementById('vpp_card');
   const lrPlusCard   = document.getElementById('lr_plus_card');
   const lrMinusCard  = document.getElementById('lr_minus_card');
   const vpvGrid      = document.getElementById('vpv_grid');
   const lrGrid       = document.getElementById('lr_grid');
-  function _setVisible(card, visible) {
-    if (!card) return;
-    card.style.display = visible ? '' : 'none';
-  }
+  function _setVisible(card, visible) { if (card) card.style.display = visible ? '' : 'none'; }
   function _gridLayout(gridEl, leftVisible, rightVisible) {
     if (!gridEl) return;
     gridEl.style.gridTemplateColumns = (leftVisible && rightVisible) ? '1fr 1fr' : '1fr';
   }
-  if (!isNaN(prevalence12) && patient_r12 >= prevalence12) {
-    // High risk : show VPP + LR+, hide VPN + LR-
+  if (patient_r12 <= _TERN_LO_v) {
+    // Zone Faible → VPN + LR−
+    _setVisible(vpnCard, true);    _setVisible(vppCard, false);
+    _setVisible(lrMinusCard, true); _setVisible(lrPlusCard, false);
+    _gridLayout(vpvGrid, true, false);
+    _gridLayout(lrGrid,  false, true);
+  } else if (patient_r12 > _TERN_HI_v) {
+    // Zone Élevé (Non-Hodgkin uniquement) → VPP + LR+
     _setVisible(vpnCard, false);   _setVisible(vppCard, true);
     _setVisible(lrMinusCard, false); _setVisible(lrPlusCard, true);
     _gridLayout(vpvGrid, false, true);
-    _gridLayout(lrGrid,  true,  false);
-  } else if (!isNaN(prevalence12) && patient_r12 < prevalence12) {
-    // Low risk : show VPN + LR-, hide VPP + LR+
-    _setVisible(vpnCard, true);    _setVisible(vppCard, false);
-    _setVisible(lrPlusCard, false); _setVisible(lrMinusCard, true);
-    _gridLayout(vpvGrid, true, false);
-    _gridLayout(lrGrid,  false, true);
+    _gridLayout(lrGrid,  true, false);
   } else {
-    // Prevalence unknown → show all
-    _setVisible(vpnCard, true);  _setVisible(vppCard, true);
-    _setVisible(lrPlusCard, true); _setVisible(lrMinusCard, true);
-    _gridLayout(vpvGrid, true, true);
-    _gridLayout(lrGrid,  true, true);
+    // Zone Modéré (Non-Hodgkin) OU Indéterminé (Hodgkin) : ni VPN ni VPP, ni LR
+    _setVisible(vpnCard, false); _setVisible(vppCard, false);
+    _setVisible(lrPlusCard, false); _setVisible(lrMinusCard, false);
+    // (Les grilles peuvent être vides — pas grave car les cartes ne sont pas affichées)
   }
 
   // (V15.343 : VPP/VPN curves block removed from UI — call dropped)
@@ -924,38 +924,44 @@ function calculate(doScroll) {
   }
   const r12 = risk(12), r24 = risk(24);
 
-  // V15.344 — Classification Tern ADAPTATIF par histo
-  //   Hodgkin classique             : LO = 3 %, HI = 15 %  (distribution r12 tassée)
-  //   B agressifs + indolents        : LO = 15 %, HI = 75 % (distribution r12 étalée)
-  // Le calculateur détecte automatiquement l'histo et applique le bon Tern.
+  // V15.345 — Classification par histo
+  //   Hodgkin classique     : SEUL cutoff LO = 5 % (binaire : Faible / Indéterminé)
+  //                           Le modèle MRD ctDNA n'a PAS de pouvoir prédictif positif
+  //                           robuste chez Hodgkin (VPP plafonne ~40-50 % avec faible N).
+  //                           Apport clinique = VPN excellente pour identifier les très-bas-risque.
+  //   B agressifs + indolents : Tern 5 / 45 → Faible / Modéré / Élevé
+  //                           VPP zone Élevé ≈ 87 %, LR+ ≈ 9, VPN zone Faible ≈ 96 %, LR− ≈ 0.05.
   const _isHodgkin_pt = (mapHisto(histo_label) === 'HODGKIN');
-  const TERN_LO = _isHodgkin_pt ? 0.03 : 0.15;
-  const TERN_HI = _isHodgkin_pt ? 0.15 : 0.75;
-  const _ternLabel = _isHodgkin_pt ? 'Hodgkin (3/15)' : 'B agressifs (15/75)';
+  const TERN_LO = 0.05;  // commun aux 2 histos
+  const TERN_HI = _isHodgkin_pt ? 1.01 : 0.45;  // 1.01 = pas de zone Élevé chez Hodgkin
+  const _ternLabel = _isHodgkin_pt ? 'Hodgkin (cutoff unique 5 %)' : 'B agressifs (5 / 45)';
 
   let zone, zoneLabel, zoneCSS, action;
   let zoneStats;
   if (r12 <= TERN_LO) {
     zone = 'low';  zoneLabel = 'FAIBLE'; zoneCSS = 'low';
-    action = 'Surveillance standard.';
+    action = _isHodgkin_pt
+      ? 'Très bas risque confirmé — discussion désintensification envisageable.'
+      : 'Surveillance standard.';
     zoneStats = _isHodgkin_pt
-      ? 'Hodgkin · Tern 3/15 : sur les 28 patients Hodgkin classés Faible (cohorte agrégée IDES+PV M2_hEq Deauv N=110, 9 ev), 0 rechute observée → VPN ≈ 100 %.'
-      : 'B agressifs + indolents · Tern 15/75 : EFS@12mo ≈ 92-94%, EFS@24mo ≈ 91-93% (gap Faible-Modéré ≥ 18 pt à 12mo, ≥ 32 pt à 24mo).';
+      ? 'Hodgkin · cutoff 5 % : 59 patients Faible, 1 rechute → VPN = 98.3 % @12mo (M2_hEq Deauv agrégé IDES+PV, N=110, 9 ev).'
+      : 'B agressifs · Tern 5/45 : 26 patients Faible, 1 rechute → VPN = 96.2 % @12mo, LR− = 0.05 (M2_hEq Deauv agrégé N=120, 33 ev).';
+  } else if (_isHodgkin_pt) {
+    // Hodgkin r12 > 5 % : zone INDÉTERMINÉE — le modèle MRD ne stratifie pas le haut-risque chez Hodgkin
+    zone = 'indeterminate'; zoneLabel = 'INDÉTERMINÉ'; zoneCSS = 'mid';
+    action = 'Le modèle MRD ctDNA n\'a pas de valeur prédictive positive robuste chez Hodgkin classique au-dessus de ce seuil. Référez-vous au TEP Deauville et à l\'Hasenclever pour la stratification clinique du haut-risque.';
+    zoneStats = 'Hodgkin · r12 > 5 % : 51 patients agrégés, 8 rechutes. R/R observé ≈ 16 % mais sans pouvoir distinguer haut vs bas risque par MRD ctDNA seul (VPP plafonne ~40 % avec IC très large).';
   } else if (r12 <= TERN_HI) {
     zone = 'mid';  zoneLabel = 'MODÉRÉ'; zoneCSS = 'mid';
     action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière).';
-    zoneStats = _isHodgkin_pt
-      ? 'Hodgkin · Tern 3/15 : sur 72 patients Modéré, EFS@12mo ≈ 93 %, 5 rechutes observées. Zone qui demande une attention clinique soutenue.'
-      : 'B agressifs + indolents · Tern 15/75 : EFS@12mo ≈ 70-74%, EFS@24mo ≈ 58-60% — gap M-É ≥ 33 pt à 24mo.';
+    zoneStats = 'B agressifs · Tern 5/45 : 71 patients Modéré, 11 rechutes → R/R @12mo ≈ 15 %. Zone intermédiaire nécessitant un suivi rapproché.';
   } else {
     zone = 'high'; zoneLabel = 'ÉLEVÉ'; zoneCSS = 'high';
     action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai).';
-    zoneStats = _isHodgkin_pt
-      ? 'Hodgkin · Tern 3/15 : sur les 10 patients Élevé, 4 rechutes — VPP empirique ≈ 40 % à 12 mois.'
-      : 'B agressifs + indolents · Tern 15/75 : EFS@12mo ≈ 0% et EFS@24mo = 0% — rechute systématique.';
+    zoneStats = 'B agressifs · Tern 5/45 : 23 patients Élevé, 21 rechutes → VPP = 87 % @12mo, LR+ = 8.9 (très informatif). Justifie intensification.';
   }
 
-  // (groupe binaire conservé pour référence, non utilisé dans drawKM nouvelle version)
+  // (groupe binaire conservé pour référence)
   const grpKey = (r12 > TERN_HI) ? 'high' : 'low';
 
   // ─── Calibration locale KNN adaptatif V208 (radius 1.0 + K_min 8 + K_max 40) ───
@@ -1040,19 +1046,32 @@ function calculate(doScroll) {
       `</div>` +
     `</div>` +
     `<div style="font-size:14px; margin-bottom:10px;">${action}</div>` +
-    `<div class="risk-gauge">` +
-      // V15.344 : gauge gradient adaptatif par histo
-      `<div class="risk-gauge-track" style="background: linear-gradient(to right, #22c55e 0%, #22c55e ${TERN_LO*100}%, #f59e0b ${TERN_LO*100}%, #f59e0b ${TERN_HI*100}%, #ef4444 ${TERN_HI*100}%, #ef4444 100%);">` +
-        `<div class="risk-gauge-marker" style="left:${gaugeLeft}%" data-val="${(r12*100).toFixed(1)}%"></div>` +
-      `</div>` +
-      `<div class="risk-gauge-labels">` +
-        `<span>0%</span>` +
-        `<span style="position:absolute; left:${TERN_LO*100}%; transform:translateX(-50%);">${(TERN_LO*100).toFixed(0)}%</span>` +
-        `<span style="position:absolute; left:${TERN_HI*100}%; transform:translateX(-50%);">${(TERN_HI*100).toFixed(0)}%</span>` +
-        `<span>100%</span>` +
-      `</div>` +
-      `<div style="font-size:10.5px; opacity:0.7; margin-top:6px; text-align:right; font-style:italic;">Tern adaptatif : ${_ternLabel}</div>` +
-    `</div>` +
+    (function() {
+      // V15.345 : gauge gradient adaptatif. Hodgkin = bicolore (vert ≤5%, gris >5%).
+      // Non-Hodgkin = tricolore (vert ≤5%, orange 5-45%, rouge >45%).
+      const lo_pct = (TERN_LO*100).toFixed(0);
+      const hi_pct = (TERN_HI*100).toFixed(0);
+      let gradient;
+      if (_isHodgkin_pt) {
+        gradient = `linear-gradient(to right, #22c55e 0%, #22c55e ${lo_pct}%, #94a3b8 ${lo_pct}%, #94a3b8 100%)`;
+      } else {
+        gradient = `linear-gradient(to right, #22c55e 0%, #22c55e ${lo_pct}%, #f59e0b ${lo_pct}%, #f59e0b ${hi_pct}%, #ef4444 ${hi_pct}%, #ef4444 100%)`;
+      }
+      const hi_label = _isHodgkin_pt ? '' :
+        `<span style="position:absolute; left:${hi_pct}%; transform:translateX(-50%);">${hi_pct}%</span>`;
+      return `<div class="risk-gauge">` +
+        `<div class="risk-gauge-track" style="background:${gradient};">` +
+          `<div class="risk-gauge-marker" style="left:${gaugeLeft}%" data-val="${(r12*100).toFixed(1)}%"></div>` +
+        `</div>` +
+        `<div class="risk-gauge-labels">` +
+          `<span>0%</span>` +
+          `<span style="position:absolute; left:${lo_pct}%; transform:translateX(-50%);">${lo_pct}%</span>` +
+          hi_label +
+          `<span>100%</span>` +
+        `</div>` +
+        `<div style="font-size:10.5px; opacity:0.7; margin-top:6px; text-align:right; font-style:italic;">${_ternLabel}</div>` +
+      `</div>`;
+    })() +
     divWarning;
 
   // zoneCard removed from UI: the gauge colors + r12/r24 in the banner are sufficient.
