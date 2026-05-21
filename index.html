@@ -1111,7 +1111,41 @@ function calculate(doScroll) {
       `<strong>Interpréter le ${(r12*100).toFixed(0)}% avec prudence</strong> ; la valeur réelle est probablement plus proche du KM observé.` +
       `</div>`;
   }
+  // V15.343 : header block — baseline risk for patient's histo + transformed input values
+  const _isHodgkin = (mapHisto(histo_label) === 'HODGKIN') ? 1 : 0;
+  const _histoName = _isHodgkin ? 'Hodgkin classique' : 'DLBCL & co. (B agressifs + indolents)';
+  // Baseline prevalence in patient's histo subset (KM @ 12mo)
+  const _histo_subset = pickCohort()[pipe].cohort.filter(p => (p[4] || 0) === _isHodgkin);
+  const _histo_pts = _histo_subset.map(p => ({t:p[2], e:p[3]}));
+  const _km_histo = _histo_pts.length >= 3 ? km(_histo_pts) : {S12: NaN, N: _histo_pts.length, n_events: 0};
+  const _prev12 = isNaN(_km_histo.S12) ? NaN : (1 - _km_histo.S12);
+  const _prev_str = isNaN(_prev12) ? '—' : (_prev12*100).toFixed(1) + ' %';
+  // Transformed input values
+  const _ctDNA_cxj1 = vc_polish * cfdna_cxj1;  // hEq/mL (0 if polish gate failed)
+  const _log10_ctDNA = _ctDNA_cxj1 > 0 ? Math.log10(_ctDNA_cxj1).toFixed(2) : '— (polish-neg)';
+  let _tep_str;
+  if (noTep) {
+    _tep_str = 'Modèle M1 (TEP exclue)';
+  } else if (useDelta) {
+    _tep_str = 'ΔSUVmax = ' + (delta_suv_val >= 0 ? '+' : '') + delta_suv_val.toFixed(1) + ' %';
+  } else {
+    _tep_str = 'Deauville = ' + (tep_dvil_raw || '—');
+  }
+
   banner.innerHTML =
+    // ─── Header bloc (V15.343) ───
+    `<div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px; padding:10px 14px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:6px; font-size:12.5px;">` +
+      `<div>` +
+        `<div style="opacity:0.72; text-transform:uppercase; font-size:10px; letter-spacing:0.6px; margin-bottom:4px;">Référence histologique</div>` +
+        `<div>Risque baseline <strong>${_histoName}</strong>  :  <strong style="font-size:15px;">${_prev_str}</strong></div>` +
+        `<div style="opacity:0.65; font-size:11px; margin-top:2px;">(cohorte d'entraînement : N=${_km_histo.N}, ${_km_histo.n_events} ev — KM @ 12 mo)</div>` +
+      `</div>` +
+      `<div>` +
+        `<div style="opacity:0.72; text-transform:uppercase; font-size:10px; letter-spacing:0.6px; margin-bottom:4px;">Données d'entrée — transformées</div>` +
+        `<div>log<sub>10</sub>(ctDNA C2J1) = <strong style="font-family:ui-monospace,monospace;">${_log10_ctDNA}</strong></div>` +
+        `<div>${_tep_str}</div>` +
+      `</div>` +
+    `</div>` +
     `<div style="font-size:13px; opacity:.8; margin-bottom:8px;">Risque prédit par le modèle Cox (EFS)</div>` +
     `<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 10px;">` +
       `<div>` +
