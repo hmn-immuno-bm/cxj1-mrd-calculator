@@ -299,50 +299,45 @@ svg { width: 100%; height: 100%; overflow: visible; }
         Cible 12 mois car la dynamique précoce du ctDNA n'a pas été validée pour prédire les rechutes tardives.
       </p>
 
-      <!-- Prévalence histo de référence (V15.342) -->
+      <!-- Prévalence histo de référence (V15.342, V15.343 hide-not-gray) -->
       <div style="margin:10px 0 14px; padding:10px 14px; background:#f1f5f9; border-left:4px solid #64748b; border-radius:4px; font-size:13px; color:#334155;">
         <strong>Prévalence R/R @ 12 mo dans votre catégorie histo :</strong> <span id="prev_histo">--</span>
         <br><span style="font-size:11.5px; color:#64748b; font-style:italic;">
-          Si <code>r12 patient ≥ prévalence</code> → patient au-dessus du risque moyen pour son histo : <strong>la VPN n'est pas pertinente</strong> (zone grisée).
-          Si <code>r12 patient &lt; prévalence</code> → patient sous le risque moyen : <strong>la VPP n'est pas pertinente</strong>.
+          Seuls les indicateurs <strong>pertinents au profil du patient</strong> sont affichés ci-dessous :
+          patient au-dessus de la prévalence histo → on n'affiche que la VPP et le LR+ ;
+          patient sous la prévalence → on n'affiche que la VPN et le LR−.
         </span>
       </div>
 
-      <div class="summary-grid" style="grid-template-columns: 1fr 1fr; gap:14px;">
-        <div class="summary-box" id="vpn_card" style="border-left-color:#22c55e; transition: opacity 0.3s, filter 0.3s;">
+      <div class="summary-grid" id="vpv_grid" style="grid-template-columns: 1fr 1fr; gap:14px;">
+        <div class="summary-box" id="vpn_card" style="border-left-color:#22c55e;">
           <div class="summary-box-label">VPN — Cohorte avec r12 ≤ patient</div>
           <div style="display:grid; grid-template-columns: auto 1fr; gap:6px 14px; margin-top:8px; font-size:13px;">
             <span style="color:#64748b;">Effectif :</span>     <strong id="grp_le_n">--</strong>
             <span style="color:#64748b;">Événements EFS @12mo :</span> <strong id="grp_le_e">--</strong>
             <span style="color:#64748b;">VPN @ 12 mo :</span>   <strong id="grp_le_v12" style="color:#15803d; font-size:16px;">--</strong>
           </div>
-          <div id="vpn_grey_msg" style="display:none; margin-top:8px; padding:6px 8px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:3px; font-size:11px; color:#78350f; font-weight:600;">
-            ⓘ Non pertinent : votre patient est <em>au-dessus</em> de la prévalence histo.
-          </div>
         </div>
-        <div class="summary-box" id="vpp_card" style="border-left-color:#ef4444; transition: opacity 0.3s, filter 0.3s;">
+        <div class="summary-box" id="vpp_card" style="border-left-color:#ef4444;">
           <div class="summary-box-label">VPP — Cohorte avec r12 ≥ patient</div>
           <div style="display:grid; grid-template-columns: auto 1fr; gap:6px 14px; margin-top:8px; font-size:13px;">
             <span style="color:#64748b;">Effectif :</span>     <strong id="grp_ge_n">--</strong>
             <span style="color:#64748b;">Événements EFS @12mo :</span> <strong id="grp_ge_e">--</strong>
             <span style="color:#64748b;">VPP @ 12 mo :</span>   <strong id="grp_ge_v12" style="color:#991b1b; font-size:16px;">--</strong>
           </div>
-          <div id="vpp_grey_msg" style="display:none; margin-top:8px; padding:6px 8px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:3px; font-size:11px; color:#78350f; font-weight:600;">
-            ⓘ Non pertinent : votre patient est <em>sous</em> la prévalence histo.
-          </div>
         </div>
       </div>
 
-      <!-- LR+ / LR- — prevalence-independent (V15.342) -->
-      <div class="summary-grid" style="grid-template-columns: 1fr 1fr; gap:14px; margin-top:12px;">
-        <div class="summary-box" style="border-left-color:#7c3aed;">
+      <!-- LR+ / LR- — prevalence-independent (V15.342) ; only the relevant one is shown (V15.343) -->
+      <div class="summary-grid" id="lr_grid" style="grid-template-columns: 1fr 1fr; gap:14px; margin-top:12px;">
+        <div class="summary-box" id="lr_plus_card" style="border-left-color:#7c3aed;">
           <div class="summary-box-label">Likelihood ratio positif (LR+)</div>
           <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
             <span style="font-size:11.5px; color:#64748b; font-style:italic;">P(r12 ≥ patient | event) / P(r12 ≥ patient | sain) ·  <strong>plus c'est haut, plus la classification au-dessus du seuil est informative</strong></span>
             <strong id="lr_plus" style="font-size:22px; color:#7c3aed; margin-left:14px;">--</strong>
           </div>
         </div>
-        <div class="summary-box" style="border-left-color:#0ea5e9;">
+        <div class="summary-box" id="lr_minus_card" style="border-left-color:#0ea5e9;">
           <div class="summary-box-label">Likelihood ratio négatif (LR−)</div>
           <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
             <span style="font-size:11.5px; color:#64748b; font-style:italic;">P(r12 &lt; patient | event) / P(r12 &lt; patient | sain) ·  <strong>plus c'est petit, plus la classification sous le seuil exclut l'événement</strong></span>
@@ -712,37 +707,41 @@ function updateRankBasedVPN(pipe, patient_r12) {
   if (lrPlusEl)  lrPlusEl.textContent  = fmt_lr(LR_plus);
   if (lrMinusEl) lrMinusEl.textContent = fmt_lr(LR_minus);
 
-  // Conditional VPN/VPP display based on patient r12 vs histo prevalence
-  // VPN n'a de sens que si patient_r12 < prevalence_histo (= patient effectivement à bas risque)
-  // VPP n'a de sens que si patient_r12 >= prevalence_histo (= patient à risque au-dessus de la moyenne pour son histo)
-  const vpnCard = document.getElementById('vpn_card');
-  const vppCard = document.getElementById('vpp_card');
-  const vpnGreyMsg = document.getElementById('vpn_grey_msg');
-  const vppGreyMsg = document.getElementById('vpp_grey_msg');
-  if (vpnCard && vppCard) {
-    if (!isNaN(prevalence12) && patient_r12 >= prevalence12) {
-      // Patient au-dessus de la prévalence : VPN n'est pas pertinent
-      vpnCard.style.opacity = '0.35';
-      vpnCard.style.filter = 'grayscale(85%)';
-      if (vpnGreyMsg) vpnGreyMsg.style.display = 'block';
-      vppCard.style.opacity = '1';
-      vppCard.style.filter = 'none';
-      if (vppGreyMsg) vppGreyMsg.style.display = 'none';
-    } else if (!isNaN(prevalence12) && patient_r12 < prevalence12) {
-      // Patient sous la prévalence : VPP n'est pas pertinent
-      vppCard.style.opacity = '0.35';
-      vppCard.style.filter = 'grayscale(85%)';
-      if (vppGreyMsg) vppGreyMsg.style.display = 'block';
-      vpnCard.style.opacity = '1';
-      vpnCard.style.filter = 'none';
-      if (vpnGreyMsg) vpnGreyMsg.style.display = 'none';
-    } else {
-      // Prevalence unknown → show both
-      vpnCard.style.opacity = '1'; vpnCard.style.filter = 'none';
-      vppCard.style.opacity = '1'; vppCard.style.filter = 'none';
-      if (vpnGreyMsg) vpnGreyMsg.style.display = 'none';
-      if (vppGreyMsg) vppGreyMsg.style.display = 'none';
-    }
+  // V15.343 : Conditional VPN/VPP/LR display — HIDE entirely the irrelevant metric.
+  //   Patient au-DESSUS de la prévalence histo  →  garde uniquement VPP + LR+
+  //   Patient SOUS la prévalence histo          →  garde uniquement VPN + LR−
+  const vpnCard      = document.getElementById('vpn_card');
+  const vppCard      = document.getElementById('vpp_card');
+  const lrPlusCard   = document.getElementById('lr_plus_card');
+  const lrMinusCard  = document.getElementById('lr_minus_card');
+  const vpvGrid      = document.getElementById('vpv_grid');
+  const lrGrid       = document.getElementById('lr_grid');
+  function _setVisible(card, visible) {
+    if (!card) return;
+    card.style.display = visible ? '' : 'none';
+  }
+  function _gridLayout(gridEl, leftVisible, rightVisible) {
+    if (!gridEl) return;
+    gridEl.style.gridTemplateColumns = (leftVisible && rightVisible) ? '1fr 1fr' : '1fr';
+  }
+  if (!isNaN(prevalence12) && patient_r12 >= prevalence12) {
+    // High risk : show VPP + LR+, hide VPN + LR-
+    _setVisible(vpnCard, false);   _setVisible(vppCard, true);
+    _setVisible(lrMinusCard, false); _setVisible(lrPlusCard, true);
+    _gridLayout(vpvGrid, false, true);
+    _gridLayout(lrGrid,  true,  false);
+  } else if (!isNaN(prevalence12) && patient_r12 < prevalence12) {
+    // Low risk : show VPN + LR-, hide VPP + LR+
+    _setVisible(vpnCard, true);    _setVisible(vppCard, false);
+    _setVisible(lrPlusCard, false); _setVisible(lrMinusCard, true);
+    _gridLayout(vpvGrid, true, false);
+    _gridLayout(lrGrid,  false, true);
+  } else {
+    // Prevalence unknown → show all
+    _setVisible(vpnCard, true);  _setVisible(vppCard, true);
+    _setVisible(lrPlusCard, true); _setVisible(lrMinusCard, true);
+    _gridLayout(vpvGrid, true, true);
+    _gridLayout(lrGrid,  true, true);
   }
 
   // V15.328 — Draw VPP/VPN curves as function of cutoff
