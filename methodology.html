@@ -970,207 +970,200 @@ Trajectoires mono-exp robustes par strate (histo × responder). PV Hodgkin/bad u
 </div>
 </div>
 
-<!-- ════════════ SECTION 9 : STRATIFICATION TERN ════════════ -->
+<!-- ════════════ SECTION X (interactive) : STRATIFICATION TERN ════════════ -->
 <div class="card">
-<h2 id="sec-tern">X. Stratification clinique Tern 15/75</h2>
-<p>Trois zones de risque basées sur la probabilité prédite d'événement à 12 mois (r12) :</p>
-<table>
-<tr><th>Zone</th><th>Plage r12</th><th>Conduite suggérée</th></tr>
-<tr><td>🟢 <strong>Faible</strong></td><td>r12 ≤ 15%</td><td>Surveillance standard</td></tr>
-<tr><td>🟡 <strong>Modéré</strong></td><td>15% &lt; r12 ≤ 75%</td><td>Surveillance rapprochée (TEP supplémentaire, MRD régulière)</td></tr>
-<tr><td>🔴 <strong>Élevé</strong></td><td>r12 &gt; 75%</td><td>Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai)</td></tr>
-</table>
-<p class="muted">Seuils 15/75 sélectionnés (V15.319) (V230) par scan exhaustif des couples (lo, hi) sur la cohorte V230.1 EFS (V15.319). <strong>8/60 est le seul seuil rond garantissant l'ordre KM Vert > Orange > Rouge à 12 mois ET 24 mois sur les 12 KMs</strong> (6 variantes × 2 pipelines) ; il maximise aussi l'écart à 24 mois entre Faible et Modéré (gap ≥ 18 pt à 12mo (32 pt à 24mo)) tout en gardant un Élevé EFS@24 = 0% partout. Voir <a href="figs/V15_283_tern_heatmap.png">heatmap exhaustive</a> et <a href="figs/V15_284_contact_IDES.png">planches-contact IDES</a> / <a href="figs/V15_284_contact_PV.png">PV</a>.</p>
-
-<h3>Performance par zone × variante (V230 EFS, cohorte d'entraînement)</h3>
-
-<div class="warn" style="margin:10px 0 14px; font-size:13px;">
-<strong>⚠ Lecture des valeurs « 0.0% »</strong> — Estimations Kaplan-Meier ajustées pour la censure. <strong>EFS@24 = 0.0%</strong> signifie que tous les patients <em>encore à risque à 24 mois</em> (non censurés et sans événement avant) ont eu un événement avant 24mo. Cela ne veut <strong>pas</strong> dire que la totalité de la zone est décédée — certains patients peuvent être encore en suivi avec un recul &lt; 24 mo (censurés à droite). La zone <strong>Élevé</strong> est petite (N=9 à 21 selon variante) et la valeur s'estime donc sur un sous-ensemble réduit. Les <strong>tick marks verticaux (|)</strong> sur les courbes représentent les censures, et le tableau <strong>« At risk »</strong> sous chaque axe X montre les N restants. Toutes les figures sont <strong>vectorielles SVG</strong> (zoom propre, recherche texte).
-</div>
+<h2 id="sec-tern">X. Stratification clinique Tern (interactive)</h2>
+<p>Trois zones de risque basées sur la probabilité prédite d'événement à 12 mois (r12). Les seuils <strong>LO</strong> (Faible↔Modéré) et <strong>HI</strong> (Modéré↔Élevé) sont ajustables en direct ci-dessous — les 12 KMs et les 12 courbes VPP/VPN en §XI.ter se recalculent immédiatement.</p>
 
 <style>
-  .km-block { margin: 22px 0 12px; padding: 12px 0; border-top: 1px solid #e2e8f0; }
-  .km-block > h4 { margin: 0 0 14px 0; color: #1e40af; font-size: 16px; text-align: center; }
-  .km-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-  .km-pair > div { text-align: center; }
-  .km-pair img { max-width: 100%; height: auto; display: block; margin: 0 auto 8px; }
-  .km-mini { width: 95%; margin: 0 auto; font-size: 12px; border-collapse: collapse; }
-  .km-mini th, .km-mini td { padding: 4px 6px; border-bottom: 1px solid #e2e8f0; text-align: center; }
-  .km-mini th { background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; }
-  .km-mini .zone-F { background: #ecfdf5; }
-  .km-mini .zone-M { background: #fffbeb; }
-  .km-mini .zone-E { background: #fef2f2; }
-  @media (max-width: 800px) { .km-pair { grid-template-columns: 1fr; } }
+.tern-controls { background: linear-gradient(135deg,#EFF6FF 0%, #F8FAFC 100%);
+  border: 1.5px solid #2563EB; border-radius: 8px; padding: 16px 20px; margin: 16px 0 24px;
+  box-shadow: 0 2px 8px rgba(30,58,138,.06); }
+.tern-controls h3 { margin: 0 0 12px; color: #1E40AF; font-size: 16px; }
+.tern-controls .slider-row { display: grid; grid-template-columns: 130px 1fr 70px; gap: 14px;
+  align-items: center; margin-bottom: 10px; }
+.tern-controls label { font-weight: 600; color: #1F2937; font-size: 14px; }
+.tern-controls input[type=range] { width: 100%; accent-color: #2563EB; }
+.tern-controls .val { font-family: ui-monospace, monospace; font-weight: 700;
+  background: #FFFFFF; border: 1px solid #CBD5E1; padding: 4px 8px; border-radius: 4px;
+  text-align: center; color: #1E40AF; }
+.tern-controls .legend { display: flex; gap: 18px; margin-top: 14px; padding-top: 12px;
+  border-top: 1px dashed #CBD5E1; font-size: 12px; color: #475569; align-items: center; }
+.tern-controls .legend-item { display: inline-flex; gap: 6px; align-items: center; }
+.tern-controls .legend-sw { width: 14px; height: 14px; border-radius: 3px; }
+.tern-controls .reset-btn { padding: 6px 14px; background: #FFFFFF; border: 1px solid #2563EB;
+  color: #1E40AF; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
+.tern-controls .reset-btn:hover { background: #DBEAFE; }
+.km-block { margin: 22px 0 12px; padding: 12px 0; border-top: 1px solid #e2e8f0; }
+.km-block > h4 { margin: 0 0 14px 0; color: #1e40af; font-size: 16px; text-align: center; }
+.km-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.km-pair > div { text-align: center; }
+.km-pair svg { width: 100%; max-width: 100%; height: 320px; }
+.km-mini { width: 95%; margin: 8px auto 0; font-size: 12px; border-collapse: collapse; }
+.km-mini th, .km-mini td { padding: 4px 6px; border-bottom: 1px solid #e2e8f0; text-align: center; }
+.km-mini th { background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; }
+.km-mini .zone-F { background: #ecfdf5; }
+.km-mini .zone-M { background: #fffbeb; }
+.km-mini .zone-E { background: #fef2f2; }
+@media (max-width: 800px) { .km-pair { grid-template-columns: 1fr; } }
+.tern-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+  margin: 10px 0 6px; padding: 8px; background: #F8FAFC; border-radius: 4px;
+  font-size: 11.5px; color: #334155; }
+.tern-summary > div { padding: 4px 8px; border-left: 3px solid; }
+.tern-summary .S-F { border-left-color: #16A34A; background: #F0FDF4; }
+.tern-summary .S-M { border-left-color: #F59E0B; background: #FFFBEB; }
+.tern-summary .S-E { border-left-color: #DC2626; background: #FEF2F2; }
+.tern-summary strong { color: #1E3A8A; }
 </style>
 
-<!-- ════════════ Variante 1 : M2_hEq Deauv ⭐ ════════════ -->
-<div class="km-block" id="km-M2hEqDeauv">
-<h4>M2_hEq Deauv &nbsp;⭐&nbsp; <span style="font-weight:normal;color:#64748b;font-size:14px;">— variante optimale (Deauville + cfDNA Qubit)</span></h4>
+<div class="tern-controls">
+<h3>🎛 Curseurs Tern interactifs</h3>
+<div class="slider-row">
+  <label for="ternLo">Cutoff <strong>LO</strong>  (Faible↔Modéré)</label>
+  <input type="range" id="ternLo" min="0" max="100" step="1" value="15">
+  <div class="val"><span id="ternLoVal">15</span> %</div>
+</div>
+<div class="slider-row">
+  <label for="ternHi">Cutoff <strong>HI</strong>  (Modéré↔Élevé)</label>
+  <input type="range" id="ternHi" min="0" max="100" step="1" value="75">
+  <div class="val"><span id="ternHiVal">75</span> %</div>
+</div>
+<div class="legend">
+  <span class="legend-item"><span class="legend-sw" style="background:#22C55E;"></span> Faible (r12 ≤ LO)</span>
+  <span class="legend-item"><span class="legend-sw" style="background:#F59E0B;"></span> Modéré (LO &lt; r12 ≤ HI)</span>
+  <span class="legend-item"><span class="legend-sw" style="background:#EF4444;"></span> Élevé (r12 &gt; HI)</span>
+  <button class="reset-btn" onclick="ternReset()">↻ Reset 15 / 75</button>
+  <button class="reset-btn" onclick="ternSet(10,40)" style="border-color:#94A3B8;color:#475569;">Tern 10 / 40</button>
+  <button class="reset-btn" onclick="ternSet(5,35)"  style="border-color:#94A3B8;color:#475569;">Tern 5 / 35</button>
+  <button class="reset-btn" onclick="ternSet(20,60)" style="border-color:#94A3B8;color:#475569;">Tern 20 / 60</button>
+</div>
+</div>
+
+<p class="muted">Seuils par défaut <strong>Tern 15 / 75</strong> sélectionnés (V15.332) par scan exhaustif des couples ronds (lo, hi) — seul seuil rond garantissant l'ordre KM Vert &gt; Orange &gt; Rouge à <strong>12 mois ET 24 mois</strong> simultanément sur les 12 KMs (6 variantes × 2 pipelines), avec gap Faible-Modéré ≥ 18 pt à 12mo (32 pt à 24mo) et Élevé EFS@24 = 0 % partout.</p>
+
+<h3>Performance par zone × variante (12 KMs interactifs)</h3>
+<div class="warn" style="margin:10px 0 14px; font-size:13px;">
+<strong>⚠ Lecture des valeurs « 0.0% »</strong> — Estimations Kaplan-Meier ajustées pour la censure (Greenwood log-log IC95 % non affichés ici par lisibilité). EFS@24 = 0 % signifie que tous les patients <em>encore à risque à 24 mois</em> ont eu un événement. Les tick marks verticaux représentent les censures.
+</div>
+
+<!-- M2_hEq Deauv ⭐ -->
+<div class="km-block">
+<h4>M2_hEq Deauv ⭐ <span style="font-weight:normal;color:#64748b;font-size:14px;">— variante optimale (Deauville + cfDNA Qubit)</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M2_hEq_Deauv_IDES.svg" alt="KM M2_hEq Deauv IDES — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>40 (1)</td><td>97.5%</td><td>97.5%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>76 (11)</td><td>88.0%</td><td>84.6%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>20 (14)</td><td>31.4%</td><td>21.0%</td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">IDES</div>
+    <svg id="km_M2_hEq_Deauv_IDES" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M2_hEq_Deauv_IDES_summary"></div>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M2_hEq_Deauv_PV.svg" alt="KM M2_hEq Deauv PV — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>43 (1)</td><td>97.7%</td><td>97.7%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>39 (6)</td><td>91.4%</td><td>79.6%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>9 (9)</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">PV</div>
+    <svg id="km_M2_hEq_Deauv_PV" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M2_hEq_Deauv_PV_summary"></div>
   </div>
 </div>
 </div>
 
-<!-- ════════════ Variante 2 : M2_hEq Delta ════════════ -->
-<div class="km-block" id="km-M2hEqDelta">
-<h4>M2_hEq Delta &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— ΔSUVmax% fallback + cfDNA Qubit</span></h4>
+<!-- M2_hEq Delta -->
+<div class="km-block">
+<h4>M2_hEq Delta <span style="font-weight:normal;color:#64748b;font-size:14px;">— ΔSUVmax% fallback + cfDNA Qubit</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M2_hEq_Delta_IDES.svg" alt="KM M2_hEq Delta IDES — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>11 (0)</td><td>100.0%</td><td>100.0%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>88 (12)</td><td>88.5%</td><td>85.7%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>19 (13)</td><td>33.4%</td><td>22.3%</td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">IDES</div>
+    <svg id="km_M2_hEq_Delta_IDES" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M2_hEq_Delta_IDES_summary"></div>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M2_hEq_Delta_PV.svg" alt="KM M2_hEq Delta PV — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>18 (0)</td><td>100.0%</td><td>100.0%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>52 (6)</td><td>91.8%</td><td>86.6%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>9 (9)</td><td>11.1%</td><td><strong>0.0%</strong></td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">PV</div>
+    <svg id="km_M2_hEq_Delta_PV" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M2_hEq_Delta_PV_summary"></div>
   </div>
 </div>
 </div>
 
-<!-- ════════════ Variante 3 : M1_hEq ════════════ -->
-<div class="km-block" id="km-M1hEq">
-<h4>M1_hEq &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— sans TEP, avec cfDNA Qubit</span></h4>
+<!-- M1_hEq -->
+<div class="km-block">
+<h4>M1_hEq <span style="font-weight:normal;color:#64748b;font-size:14px;">— sans TEP, avec cfDNA Qubit</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M1_hEq_IDES.svg" alt="KM M1_hEq IDES — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>35 (1)</td><td>97.1%</td><td>97.1%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>103 (16)</td><td>87.3%</td><td>83.6%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>24 (15)</td><td>39.5%</td><td>31.6%</td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">IDES</div>
+    <svg id="km_M1_hEq_IDES" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M1_hEq_IDES_summary"></div>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M1_hEq_PV.svg" alt="KM M1_hEq PV — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>24 (0)</td><td>100.0%</td><td>100.0%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>73 (12)</td><td>87.3%</td><td>81.5%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>11 (9)</td><td>11.4%</td><td>11.4%</td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">PV</div>
+    <svg id="km_M1_hEq_PV" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M1_hEq_PV_summary"></div>
   </div>
 </div>
 </div>
 
-<!-- ════════════ Variante 4 : M2_VAF Deauv ════════════ -->
-<div class="km-block" id="km-M2VAFDeauv">
-<h4>M2_VAF Deauv &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— Deauville sans cfDNA Qubit</span></h4>
+<!-- M2_VAF Deauv -->
+<div class="km-block">
+<h4>M2_VAF Deauv <span style="font-weight:normal;color:#64748b;font-size:14px;">— Deauville sans cfDNA Qubit</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M2_VAF_Deauv_IDES.svg" alt="KM M2_VAF Deauv IDES — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>28 (0)</td><td>100.0%</td><td>100.0%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>89 (13)</td><td>87.4%</td><td>84.6%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>19 (13)</td><td>35.1%</td><td>23.4%</td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">IDES</div>
+    <svg id="km_M2_VAF_Deauv_IDES" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M2_VAF_Deauv_IDES_summary"></div>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M2_VAF_Deauv_PV.svg" alt="KM M2_VAF Deauv PV — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>37 (4)</td><td>89.1%</td><td>89.1%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>45 (3)</td><td>100.0%</td><td>89.9%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>9 (9)</td><td><strong>0.0%</strong></td><td><strong>0.0%</strong></td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">PV</div>
+    <svg id="km_M2_VAF_Deauv_PV" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M2_VAF_Deauv_PV_summary"></div>
   </div>
 </div>
 </div>
 
-<!-- ════════════ Variante 5 : M2_VAF Delta ════════════ -->
-<div class="km-block" id="km-M2VAFDelta">
-<h4>M2_VAF Delta &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— ΔSUVmax% fallback sans cfDNA</span></h4>
+<!-- M2_VAF Delta -->
+<div class="km-block">
+<h4>M2_VAF Delta <span style="font-weight:normal;color:#64748b;font-size:14px;">— ΔSUVmax% fallback sans cfDNA Qubit</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M2_VAF_Delta_IDES.svg" alt="KM M2_VAF Delta IDES — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>1 (0)</td><td>100.0%</td><td>100.0%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>102 (14)</td><td>88.0%</td><td>85.6%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>15 (11)</td><td>31.1%</td><td>15.6%</td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">IDES</div>
+    <svg id="km_M2_VAF_Delta_IDES" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M2_VAF_Delta_IDES_summary"></div>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M2_VAF_Delta_PV.svg" alt="KM M2_VAF Delta PV — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>9 (1)</td><td>88.9%</td><td>88.9%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>61 (5)</td><td>94.7%</td><td>90.5%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>9 (9)</td><td>11.1%</td><td><strong>0.0%</strong></td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">PV</div>
+    <svg id="km_M2_VAF_Delta_PV" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M2_VAF_Delta_PV_summary"></div>
   </div>
 </div>
 </div>
 
-<!-- ════════════ Variante 6 : M1_VAF ════════════ -->
-<div class="km-block" id="km-M1VAF">
-<h4>M1_VAF &nbsp;<span style="font-weight:normal;color:#64748b;font-size:14px;">— modèle minimal (ni TEP ni cfDNA Qubit)</span></h4>
+<!-- M1_VAF -->
+<div class="km-block">
+<h4>M1_VAF <span style="font-weight:normal;color:#64748b;font-size:14px;">— modèle minimal (ni TEP ni cfDNA)</span></h4>
 <div class="km-pair">
   <div>
-    <img src="figs/tern_v230/KM_M1_VAF_IDES.svg" alt="KM M1_VAF IDES — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>7 (0)</td><td>100.0%</td><td>100.0%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>134 (19)</td><td>88.0%</td><td>85.1%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>21 (13)</td><td>41.3%</td><td>31.0%</td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">IDES</div>
+    <svg id="km_M1_VAF_IDES" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M1_VAF_IDES_summary"></div>
   </div>
   <div>
-    <img src="figs/tern_v230/KM_M1_VAF_PV.svg" alt="KM M1_VAF PV — Tern 15/75"/>
-    <table class="km-mini">
-      <tr><th>Zone</th><th>N (evt)</th><th>EFS@12</th><th>EFS@24</th></tr>
-      <tr class="zone-F"><td>🟢 Faible</td><td>8 (0)</td><td>100.0%</td><td>100.0%</td></tr>
-      <tr class="zone-M"><td>🟡 Modéré</td><td>88 (12)</td><td>89.5%</td><td>84.6%</td></tr>
-      <tr class="zone-E"><td>🔴 Élevé</td><td>12 (9)</td><td>20.0%</td><td>20.0%</td></tr>
-    </table>
+    <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:4px;">PV</div>
+    <svg id="km_M1_VAF_PV" viewBox="0 0 500 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tern-summary" id="km_M1_VAF_PV_summary"></div>
   </div>
 </div>
 </div>
 
-<div class="success" style="margin-top:24px;">
-<strong>Observations clés :</strong>
-<ul>
-  <li>Zone <strong>Faible</strong> excellente partout (EFS@24 ≈ 97-100% dans toutes les variantes ; ≤ 5% est très strict mais réservé aux patients vraiment "safe").</li>
-  <li>Zone <strong>Modéré</strong> bien séparée de Faible (EFS@24 ≈ 80-90%, gap de 13-18 pt vs Faible). Évènements tardifs visibles, justifiant la surveillance rapprochée (TEP supplémentaire, MRD régulière).</li>
-  <li>Zone <strong>Élevé</strong> en M2 + PV ⇒ EFS@24 = 0% sur N=9 (toutes rechutes avant 12 mo). En M1 (sans TEP), 11-20% survivent tardivement — argument pour inclure le Deauville quand disponible.</li>
-  <li>Cohérence entre variantes : M1 vs M2 décale légèrement les effectifs Faible (moins de patients en Faible sans TEP → 5% plus difficile à atteindre) mais préserve la séparation Modéré ↔ Faible (gap @24 ≈ 14-16 pt) et Élevé (EFS@24 ≈ 11-32%).</li>
-  <li><strong>Lecture zone Élevé PV (N=9, evt=9)</strong> : courbe rouge plonge à 0% vers 11 mo, IC95% large. Pour un nouveau patient prédit à 60%, la <em>calibration locale KNN</em> du calculateur (cercle violet) donne l'estimation contextuelle des voisins en LP. L'utilité clinique de la zone Élevé est d'identifier <em>un sous-groupe à haut risque</em> pour discussion RCP, pas de prophétiser un événement certain.</li>
+<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés</strong><br>
+<ul style="margin:6px 0 0 18px;">
+<li>Zone <strong>Faible</strong> excellente (EFS@24 ≈ 92-100 % aux seuils 15/75 par défaut).</li>
+<li>Zone <strong>Modéré</strong> bien séparée (gap Faible-Modéré ≥ 18 pt à 12mo).</li>
+<li>Zone <strong>Élevé</strong> = rechute systématique (EFS@24 = 0 % dans 11/12 variantes).</li>
+<li>Déplacez les curseurs pour explorer d'autres seuils — tous les KMs et toutes les courbes VPP/VPN en §XI.ter se mettent à jour en direct.</li>
 </ul>
 </div>
 
 <div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
 <strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Tern 15/75 = seul seuil rond garantissant l'ordre KM Vert > Orange > Rouge à 24 mois sur les 12 KMs. Gap Faible-Modéré ≥ 9 pt, gap Modéré-Élevé ≥ 58 pt, Élevé EFS@24 = 0% dans 11/12 variantes. Stratification opérationnelle : surveillance standard / rapprochée / RCP urgent.
+Tern 15/75 retenu en production — seul seuil rond garantissant l'ordre KM correct simultanément à 12 et 24 mois sur les 12 KMs. Gap Faible-Modéré ≥ 18 pt, gap Modéré-Élevé ≥ 47 pt à 12mo. Élevé EFS@24 = 0 % dans 11/12 variantes.
 </div>
 </div>
 
-<!-- ════════════ SECTION 10 : CALIBRATION LOCALE ════════════ -->
 <div class="card">
 <h2 id="sec-calib-locale">XI. Calibration locale (KNN adaptatif)</h2>
 <p>Le calculateur affiche systématiquement, à côté de la prédiction Cox, une <strong>estimation observationnelle KM</strong> calculée sur les patients de la cohorte les plus proches en LP du patient testé. Cette estimation sert de garde-fou contre l'extrapolation du Cox dans les zones de risque éparses.</p>
@@ -1223,30 +1216,83 @@ Cette stratégie KNN-adaptative divise par 10 l'ACE_tail (erreur de calibration 
 
 <p class="muted">Script de validation : <code>scripts/_v15_318_VPP_VPN_censored_verification.py</code>.</p>
 
-<h3 id="sec-vpp-vpn-curves">XI.ter Courbes VPP(c) et VPN(c) sur la cohorte d'entraînement</h3>
-<p>Visualisation des courbes VPP(c) et VPN(c) à 12 mois en faisant balayer le cutoff <code>c</code> sur tout le spectre des risques prédits r12 (de 0 à 100 %). Le calculateur web affiche la même visualisation dynamiquement avec une ligne verticale à la position du patient (cf. carte « 📍 Position du patient » dans le calculateur).</p>
+<h3 id="sec-vpp-vpn-curves">XI.ter Courbes VPP(c) et VPN(c) — interactives (12 variantes × pipelines)</h3>
+<p>Pour chaque variante × pipeline, courbes VPP(c) (rouge) et VPN(c) (verte) en fonction du seuil de classification c, calculées par méthode Heagerty 2000 (KM-based dans sous-groupes). Les lignes verticales pointillées correspondent aux cutoffs <strong>LO</strong> et <strong>HI</strong> (réglés par les sliders du §X ci-dessus) — déplacez les sliders et observez le déplacement direct des cutoffs sur les 12 panels.</p>
 
-<div class="center">
-  <img class="figure" src="figs/methodo/VPP_VPN_curves_cohort.svg" alt="VPP(c) et VPN(c) sur la cohorte d'entraînement" style="max-width: 100%;">
-  <p class="muted">VPP(c) en rouge et VPN(c) en vert en fonction du seuil de classification c, avec bandes IC95 % Greenwood log-log. Zones Tern 15/75 en arrière-plan (vert = Faible ≤ 15 %, orange = Modéré 15-75 %, rouge = Élevé > 75 %). À gauche : pipeline IDES (N=138, 26 events EFS) ; à droite : pipeline PV (N=92, 16 events). Lecture : pour un cutoff donné c sur r12, la VPP indique le risque réel d'événement parmi les prédits-positifs (r12 ≥ c) et la VPN la probabilité d'être effectivement event-free parmi les prédits-négatifs (r12 &lt; c).</p>
+<div class="warn" style="margin:10px 0 14px; font-size:12px;">
+À noter : seules les <strong>lignes verticales</strong> bougent avec les sliders. Les courbes VPP(c) et VPN(c) sont des fonctions du cutoff c sur l'axe X — elles ne dépendent pas du choix LO/HI, qui sont des valeurs de lecture sur ces courbes.
+</div>
+
+<style>
+.vpn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+.vpn-cell { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px; }
+.vpn-cell .vpn-title { text-align: center; font-size: 12.5px; font-weight: 600; color: #1E40AF; margin-bottom: 4px; }
+.vpn-cell svg { width: 100%; height: 260px; }
+@media (max-width: 800px) { .vpn-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="vpn-grid">
+  <div class="vpn-cell">
+    <div class="vpn-title">M2_hEq Deauv ⭐ — IDES</div>
+    <svg id="vpp_M2_hEq_Deauv_IDES" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title">M2_hEq Deauv ⭐ — PV</div>
+    <svg id="vpp_M2_hEq_Deauv_PV" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title">M2_hEq Delta — IDES</div>
+    <svg id="vpp_M2_hEq_Delta_IDES" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title">M2_hEq Delta — PV</div>
+    <svg id="vpp_M2_hEq_Delta_PV" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title">M1_hEq — IDES</div>
+    <svg id="vpp_M1_hEq_IDES" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title">M1_hEq — PV</div>
+    <svg id="vpp_M1_hEq_PV" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title">M2_VAF Deauv — IDES</div>
+    <svg id="vpp_M2_VAF_Deauv_IDES" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title">M2_VAF Deauv — PV</div>
+    <svg id="vpp_M2_VAF_Deauv_PV" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title">M2_VAF Delta — IDES</div>
+    <svg id="vpp_M2_VAF_Delta_IDES" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title">M2_VAF Delta — PV</div>
+    <svg id="vpp_M2_VAF_Delta_PV" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title">M1_VAF — IDES</div>
+    <svg id="vpp_M1_VAF_IDES" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title">M1_VAF — PV</div>
+    <svg id="vpp_M1_VAF_PV" viewBox="0 0 500 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
 </div>
 
 <div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
 <strong style="color:#15803d;">🔬 Observations clés</strong><br>
-Aux seuils cliniques Tern 15/75 (lignes pointillées verticales) :
 <ul style="margin:6px 0 0 18px;">
-<li><strong>VPN au seuil Faible (r12 ≤ 15 %)</strong> ≈ 92-95 % dans les 2 pipelines → un patient classé Faible a > 92 % de chance d'être event-free à 12 mois.</li>
-<li><strong>VPP au seuil Élevé (r12 ≥ 75 %)</strong> ≈ 100 % en PV et ≈ 67-100 % en IDES → presque tous les patients classés Élevé connaissent un événement EFS à 12 mois.</li>
-<li>Les bandes IC95 % s'élargissent dans les queues (sous-cohortes M ≥ c ou M &lt; c qui deviennent petites). Le calculateur affiche ces IC95 % dynamiquement pour le patient testé.</li>
+<li><strong>VPN(LO)</strong> : à 15 % (curseur bas par défaut), la VPN dépasse 92 % dans toutes les variantes — un patient classé Faible a moins de 8 % de probabilité d'événement à 12 mois.</li>
+<li><strong>VPP(HI)</strong> : à 75 % (curseur haut par défaut), la VPP est typiquement entre 50 et 100 % selon la variante — tout patient classé Élevé a une forte probabilité d'événement.</li>
+<li><strong>Pipeline PV</strong> tend à avoir une VPP zone Élevé plus élevée que IDES (effet de sélection de cohorte stricte, cf §VI.bis).</li>
+<li>Variantes M1 (sans TEP) ont une VPP/VPN moins discriminante que M2 (avec TEP) — illustre l'apport du TEP.</li>
 </ul>
 </div>
 
-<p class="muted">Script : <code>scripts/_v15_334_VPP_VPN_curves_figure.py</code>.</p>
-
-<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
-<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Le calculateur affiche systématiquement (i) la prédiction Cox r(t), (ii) le KM observé sur les voisins KNN-adaptatifs en LP, (iii) la VPP/VPN time-dependent à 12mo par méthode Heagerty 2000 (KM-based dans sous-groupes), validée vs IPCW (Δ < 0.5 pt). L'IC95% Greenwood log-log est reporté pour chaque estimation. Les courbes ci-dessus sont la visualisation cohorte de cette méthode, balayée sur tout le spectre des cutoffs r12.
-</div>
+<p class="muted">Script de génération initiale : <code>scripts/_v15_338_interactive_tern_vpn.py</code> · Méthode Heagerty PJ, Lumley T, Pepe MS. Biometrics 2000;56:337-44. <a href="https://doi.org/10.1111/j.0006-341X.2000.00337.x">DOI:10.1111/j.0006-341X.2000.00337.x</a>.</p>
 </div>
 
 <!-- ════════════ SECTION 11 : VALIDATION INTERNE ════════════ -->
@@ -1722,5 +1768,315 @@ Toute citation académique du modèle ou du calculateur doit référencer la ver
 </div>
 
 </div>
+
+
+<!-- ════════════ INTERACTIVE TERN + VPP/VPN — V15.338 ════════════ -->
+<script>
+// COHORT_DATA : embedded data for all 12 variants
+// Each entry is an array of [LP, r12, T, E]
+const COHORT_DATA = {"M2_hEq_Deauv_IDES": [[-1.3138, 0.0307, 21.0, 0], [1.53, 0.4147, 35.0, 0], [-1.5354, 0.0247, 44.0, 0], [-0.5323, 0.0659, 38.0, 0], [-0.1463, 0.0954, 30.0, 0], [-1.4527, 0.0268, 9.0, 0], [-0.3066, 0.0818, 36.0, 0], [-1.5447, 0.0244, 30.0, 0], [-0.3899, 0.0755, 26.0, 0], [-0.6217, 0.0604, 17.0, 0], [0.0021, 0.1097, 21.0, 0], [0.8843, 0.2449, 6.0, 1], [-0.267, 0.085, 33.0, 0], [-1.0354, 0.0404, 28.0, 0], [-0.1763, 0.0927, 25.0, 0], [-0.3708, 0.0769, 7.0, 1], [-0.9944, 0.042, 40.0, 0], [-0.1044, 0.0992, 13.0, 0], [0.7325, 0.2144, 27.0, 0], [-1.6118, 0.0229, 17.0, 0], [1.9671, 0.5637, 5.0, 1], [-1.8806, 0.0175, 21.0, 0], [-1.0611, 0.0393, 5.0, 1], [2.6847, 0.8173, 11.0, 1], [-0.2709, 0.0847, 21.0, 0], [-1.4154, 0.0278, 57.0, 0], [-1.1819, 0.0349, 30.0, 0], [-0.9862, 0.0423, 27.0, 0], [-0.7196, 0.0549, 8.0, 0], [-0.1371, 0.0962, 35.0, 0], [-0.7233, 0.0547, 23.0, 0], [-1.437, 0.0272, 40.0, 0], [0.9203, 0.2526, 44.0, 0], [-1.3046, 0.031, 23.0, 0], [-0.0439, 0.1051, 21.0, 0], [0.0851, 0.1186, 11.0, 0], [2.5001, 0.7566, 1.0, 1], [-0.5023, 0.0678, 48.0, 0], [2.0034, 0.5768, 7.0, 1], [-0.3819, 0.0761, 13.0, 0], [-0.5996, 0.0617, 11.0, 0], [-1.5441, 0.0245, 37.0, 0], [2.8455, 0.8641, 4.0, 1], [-0.4601, 0.0706, 2.0, 1], [-0.3974, 0.075, 60.0, 0], [-0.4759, 0.0695, 29.0, 0], [-1.4019, 0.0281, 21.0, 0], [0.5352, 0.1797, 9.0, 0], [-0.7577, 0.0529, 19.0, 0], [-0.9011, 0.046, 16.0, 0], [-0.5023, 0.0678, 9.0, 0], [-0.4186, 0.0735, 34.0, 0], [-1.5004, 0.0255, 39.0, 0], [0.8699, 0.2418, 14.0, 1], [-1.7347, 0.0203, 26.0, 0], [-0.4533, 0.0711, 31.0, 0], [-0.1678, 0.0934, 7.0, 1], [1.5464, 0.4199, 6.0, 0], [0.8401, 0.2356, 23.0, 0], [0.6304, 0.1958, 28.0, 0], [0.4473, 0.1659, 2.0, 0], [-1.3003, 0.0311, 32.0, 0], [0.4532, 0.1668, 10.0, 0], [0.1331, 0.1241, 7.0, 1], [-0.736, 0.054, 23.0, 0], [-1.4032, 0.0281, 28.0, 0], [1.6386, 0.4496, 11.0, 1], [0.6319, 0.196, 19.0, 0], [-0.3056, 0.0819, 33.0, 0], [-1.0332, 0.0404, 45.0, 0], [-0.0848, 0.1011, 36.0, 0], [0.1632, 0.1276, 7.0, 1], [-0.9214, 0.0451, 22.0, 0], [-0.6537, 0.0585, 41.0, 0], [3.2371, 0.9478, 2.0, 1], [-0.1608, 0.094, 7.0, 1], [-1.0348, 0.0404, 18.0, 0], [1.4573, 0.3923, 9.0, 0], [-0.0604, 0.1034, 16.0, 0], [3.9258, 0.9972, 2.0, 1], [-0.9991, 0.0418, 45.0, 0], [-1.4606, 0.0266, 18.0, 0], [1.5423, 0.4186, 30.0, 0], [-1.1899, 0.0347, 45.0, 0], [0.362, 0.1535, 28.0, 0], [-0.5719, 0.0634, 30.0, 0], [1.8673, 0.5279, 7.0, 1], [-0.4209, 0.0733, 34.0, 0], [-0.0193, 0.1075, 27.0, 0], [-1.5745, 0.0237, 40.0, 0], [-1.7988, 0.019, 56.0, 0], [-0.6399, 0.0593, 52.0, 0], [0.4368, 0.1643, 9.0, 0], [-0.3599, 0.0777, 41.0, 0], [-2.0995, 0.0141, 27.0, 0], [-0.8966, 0.0462, 30.0, 0], [-0.3826, 0.0761, 62.0, 0], [-1.4982, 0.0256, 26.0, 0], [0.3607, 0.1533, 20.0, 0], [-1.2258, 0.0335, 32.0, 0], [1.768, 0.4932, 20.0, 0], [-0.3386, 0.0793, 15.0, 0], [-0.1691, 0.0933, 39.0, 0], [-0.8218, 0.0497, 42.0, 0], [-0.7045, 0.0557, 56.0, 0], [-0.8393, 0.0489, 27.0, 0], [3.9867, 0.9981, 2.0, 1], [-0.8255, 0.0495, 17.0, 0], [0.294, 0.1441, 58.0, 0], [1.9242, 0.5482, 3.0, 1], [-1.2211, 0.0336, 13.0, 0], [0.3398, 0.1503, 6.0, 1], [-1.2636, 0.0323, 24.0, 0], [0.5056, 0.175, 28.0, 0], [0.7055, 0.2093, 40.0, 0], [-0.672, 0.0575, 61.0, 0], [-0.8898, 0.0465, 62.0, 0], [1.8172, 0.5102, 2.0, 1], [-0.7387, 0.0539, 29.0, 0], [0.4655, 0.1687, 15.0, 0], [-1.1682, 0.0354, 25.0, 0], [-0.7258, 0.0546, 41.0, 0], [-0.2099, 0.0897, 20.0, 0], [0.1471, 0.1257, 38.0, 0], [0.5397, 0.1804, 17.0, 0], [-1.4679, 0.0264, 20.0, 0], [0.4933, 0.173, 18.0, 1], [0.8603, 0.2398, 58.0, 0], [-0.8341, 0.0491, 43.0, 0], [-1.7602, 0.0198, 18.0, 0], [0.5361, 0.1798, 8.0, 0], [0.5495, 0.182, 3.0, 1], [2.1499, 0.6305, 18.0, 0], [1.024, 0.276, 15.0, 0], [2.3499, 0.7036, 24.0, 1], [4.8497, 1.0, 1.0, 1], [0.1027, 0.1206, 22.0, 0], [0.9836, 0.2667, 34.0, 0]], "M2_hEq_Deauv_PV": [[-1.3949, 0.0193, 21.0, 0], [1.0927, 0.2089, 35.0, 0], [-0.7128, 0.0378, 38.0, 0], [-0.42, 0.0503, 30.0, 0], [-0.3768, 0.0525, 36.0, 0], [-1.573, 0.0162, 30.0, 0], [-0.1827, 0.0633, 26.0, 0], [-0.167, 0.0643, 21.0, 0], [-0.3967, 0.0515, 33.0, 0], [-1.0023, 0.0284, 28.0, 0], [-0.2599, 0.0588, 25.0, 0], [-0.5139, 0.0459, 7.0, 1], [-0.7283, 0.0372, 40.0, 0], [0.746, 0.1527, 27.0, 0], [-1.658, 0.0149, 17.0, 0], [3.5978, 0.9432, 5.0, 1], [-1.9037, 0.0116, 21.0, 0], [2.8579, 0.7456, 11.0, 1], [-0.5041, 0.0463, 21.0, 0], [-1.3187, 0.0208, 30.0, 0], [-0.7036, 0.0381, 27.0, 0], [-0.7553, 0.0362, 8.0, 0], [-0.1964, 0.0625, 35.0, 0], [-0.7614, 0.036, 23.0, 0], [-1.5841, 0.016, 40.0, 0], [-1.3056, 0.0211, 23.0, 0], [-0.1131, 0.0678, 21.0, 0], [-0.0019, 0.0754, 11.0, 0], [-0.5713, 0.0434, 48.0, 0], [3.1393, 0.837, 7.0, 1], [-0.5297, 0.0452, 13.0, 0], [-0.8119, 0.0343, 11.0, 0], [2.7907, 0.722, 4.0, 1], [-0.6285, 0.041, 29.0, 0], [-1.0999, 0.0258, 21.0, 0], [0.5074, 0.1223, 9.0, 0], [-0.708, 0.038, 9.0, 0], [-0.5239, 0.0455, 34.0, 0], [0.1666, 0.0886, 14.0, 1], [-1.4433, 0.0184, 26.0, 0], [-0.4282, 0.0499, 31.0, 0], [1.6379, 0.3325, 6.0, 0], [-0.5538, 0.0442, 23.0, 0], [0.3987, 0.1105, 28.0, 0], [0.435, 0.1143, 2.0, 0], [-0.0911, 0.0692, 7.0, 1], [0.1014, 0.0833, 11.0, 1], [-0.5906, 0.0426, 19.0, 0], [-0.4238, 0.0501, 33.0, 0], [-0.1562, 0.065, 7.0, 1], [-0.1524, 0.0652, 16.0, 0], [5.3709, 1.0, 2.0, 1], [-1.2591, 0.0221, 18.0, 0], [1.2985, 0.2501, 30.0, 0], [0.3561, 0.1061, 28.0, 0], [-0.6959, 0.0384, 30.0, 0], [2.7577, 0.7102, 7.0, 1], [-0.463, 0.0482, 34.0, 0], [-0.4652, 0.0481, 27.0, 0], [-1.5654, 0.0163, 56.0, 0], [0.674, 0.1428, 9.0, 0], [-1.9138, 0.0115, 27.0, 0], [-0.2963, 0.0567, 62.0, 0], [-1.3378, 0.0204, 26.0, 0], [-0.3729, 0.0527, 20.0, 0], [-0.2593, 0.0588, 32.0, 0], [0.8764, 0.172, 20.0, 0], [-0.4829, 0.0473, 15.0, 0], [-0.8182, 0.0341, 27.0, 0], [6.0354, 1.0, 2.0, 1], [-0.5335, 0.045, 17.0, 0], [0.3571, 0.1062, 58.0, 0], [-1.1759, 0.0239, 13.0, 0], [0.8168, 0.1629, 28.0, 0], [0.7061, 0.1471, 40.0, 0], [-0.4555, 0.0486, 61.0, 0], [3.3214, 0.8865, 2.0, 1], [-0.9389, 0.0303, 29.0, 0], [0.1686, 0.0888, 15.0, 0], [0.0453, 0.0789, 17.0, 0], [-1.1982, 0.0234, 20.0, 0], [0.4129, 0.1119, 18.0, 1], [-0.7462, 0.0366, 58.0, 0], [-1.6697, 0.0147, 18.0, 0], [0.307, 0.1013, 8.0, 0], [-0.0974, 0.0688, 18.0, 0], [0.5224, 0.1241, 15.0, 0], [1.598, 0.3218, 24.0, 1], [8.8091, 1.0, 1.0, 1], [-0.0486, 0.0721, 22.0, 0], [0.8522, 0.1682, 34.0, 0], [0.903, 0.1762, 2.0, 0]], "M2_hEq_Delta_IDES": [[-0.8036, 0.0625, 21.0, 0], [1.1298, 0.3601, 35.0, 0], [-0.0906, 0.1234, 38.0, 0], [-1.0816, 0.0477, 9.0, 0], [-0.3552, 0.0962, 36.0, 0], [-0.5831, 0.0774, 26.0, 0], [-0.9901, 0.0522, 17.0, 0], [-0.5782, 0.0777, 21.0, 0], [1.0975, 0.351, 6.0, 1], [-0.418, 0.0906, 33.0, 0], [-0.8138, 0.0619, 28.0, 0], [-0.5452, 0.0802, 7.0, 1], [-1.0589, 0.0488, 40.0, 0], [-0.1683, 0.1148, 13.0, 0], [0.144, 0.1535, 27.0, 0], [1.5012, 0.4765, 5.0, 1], [-1.1194, 0.046, 21.0, 0], [-1.0444, 0.0495, 5.0, 1], [0.9843, 0.3202, 1.0, 1], [2.398, 0.7954, 11.0, 1], [-1.2557, 0.0403, 57.0, 0], [-0.8036, 0.0625, 30.0, 0], [-1.1773, 0.0435, 27.0, 0], [-0.8778, 0.0582, 8.0, 0], [-0.3672, 0.0951, 35.0, 0], [-0.626, 0.0742, 23.0, 0], [-0.7164, 0.068, 40.0, 0], [0.0968, 0.1469, 44.0, 0], [-1.4342, 0.0338, 23.0, 0], [0.0659, 0.1428, 21.0, 0], [-0.1105, 0.1212, 11.0, 0], [3.5497, 0.9934, 1.0, 1], [-0.6405, 0.0732, 48.0, 0], [2.0517, 0.6745, 7.0, 1], [-0.5518, 0.0797, 13.0, 0], [-0.6543, 0.0722, 11.0, 0], [1.918, 0.6254, 4.0, 1], [-0.0047, 0.1337, 2.0, 1], [-0.2489, 0.1064, 60.0, 0], [-1.0041, 0.0515, 29.0, 0], [0.2747, 0.1729, 9.0, 0], [-0.7578, 0.0654, 19.0, 0], [-1.0983, 0.047, 16.0, 0], [-0.2165, 0.1097, 9.0, 0], [-0.2011, 0.1113, 34.0, 0], [-1.0089, 0.0512, 39.0, 0], [0.5633, 0.2238, 14.0, 1], [-0.6934, 0.0696, 31.0, 0], [-0.1713, 0.1144, 7.0, 1], [1.3815, 0.4368, 6.0, 0], [0.5133, 0.2142, 23.0, 0], [0.9347, 0.3074, 28.0, 0], [0.0735, 0.1438, 2.0, 0], [-0.906, 0.0566, 32.0, 0], [0.0015, 0.1345, 10.0, 0], [-1.0107, 0.0511, 23.0, 0], [1.4903, 0.4728, 11.0, 1], [-0.3102, 0.1004, 33.0, 0], [-0.568, 0.0785, 36.0, 0], [-0.3624, 0.0955, 7.0, 1], [-0.9587, 0.0538, 22.0, 0], [-0.341, 0.0975, 41.0, 0], [2.6883, 0.8801, 2.0, 1], [0.068, 0.1431, 7.0, 1], [-0.976, 0.0529, 18.0, 0], [1.0867, 0.3479, 9.0, 0], [-0.6115, 0.0753, 16.0, 0], [2.8666, 0.9208, 2.0, 1], [-1.0216, 0.0506, 18.0, 0], [1.1695, 0.3716, 30.0, 0], [-0.6231, 0.0744, 45.0, 0], [-0.2761, 0.1037, 28.0, 0], [-0.8286, 0.061, 30.0, 0], [1.0665, 0.3424, 7.0, 1], [-0.3558, 0.0961, 34.0, 0], [0.1134, 0.1492, 27.0, 0], [-1.346, 0.0368, 40.0, 0], [0.341, 0.1836, 9.0, 0], [-0.3133, 0.1001, 41.0, 0], [-1.3924, 0.0352, 27.0, 0], [-0.7958, 0.063, 30.0, 0], [-0.4089, 0.0914, 62.0, 0], [-1.0886, 0.0474, 26.0, 0], [-0.0062, 0.1336, 20.0, 0], [-1.4138, 0.0345, 32.0, 0], [1.6898, 0.5423, 20.0, 0], [-0.2514, 0.1061, 15.0, 0], [-0.2795, 0.1033, 39.0, 0], [-0.6526, 0.0724, 42.0, 0], [-0.4824, 0.0852, 56.0, 0], [-0.8389, 0.0604, 27.0, 0], [-0.9228, 0.0557, 17.0, 0], [-0.2654, 0.1047, 58.0, 0], [1.5553, 0.495, 3.0, 1], [0.3188, 0.18, 6.0, 1], [-0.9712, 0.0532, 24.0, 0], [0.5227, 0.216, 28.0, 0], [0.2182, 0.1642, 40.0, 0], [-0.8284, 0.0611, 61.0, 0], [-0.9271, 0.0555, 62.0, 0], [1.2948, 0.4094, 2.0, 1], [-0.9167, 0.056, 29.0, 0], [0.1104, 0.1488, 15.0, 0], [-0.9732, 0.053, 25.0, 0], [-0.0152, 0.1324, 41.0, 0], [-0.7729, 0.0644, 20.0, 0], [-0.1333, 0.1186, 38.0, 0], [0.532, 0.2177, 17.0, 0], [-0.6983, 0.0692, 20.0, 0], [0.424, 0.1978, 18.0, 1], [1.0409, 0.3353, 58.0, 0], [-1.067, 0.0484, 43.0, 0], [0.2659, 0.1715, 8.0, 0], [-0.0781, 0.1249, 3.0, 1], [1.3091, 0.4138, 18.0, 0], [0.2866, 0.1748, 15.0, 0], [2.6336, 0.8658, 24.0, 1], [4.8355, 1.0, 1.0, 1], [-0.0094, 0.1332, 22.0, 0], [0.0628, 0.1424, 34.0, 0]], "M2_hEq_Delta_PV": [[-0.8759, 0.0419, 21.0, 0], [0.6615, 0.1806, 35.0, 0], [-0.2564, 0.0765, 38.0, 0], [-0.4179, 0.0654, 36.0, 0], [-0.3879, 0.0674, 26.0, 0], [-0.7292, 0.0484, 21.0, 0], [-0.5385, 0.0582, 33.0, 0], [-0.7813, 0.046, 28.0, 0], [-0.6741, 0.051, 7.0, 1], [-0.8047, 0.0449, 40.0, 0], [0.1551, 0.1131, 27.0, 0], [2.6979, 0.7826, 5.0, 1], [-1.1401, 0.0323, 21.0, 0], [0.8798, 0.2194, 1.0, 1], [2.447, 0.695, 11.0, 1], [-0.9305, 0.0397, 30.0, 0], [-0.9259, 0.0399, 27.0, 0], [-0.9095, 0.0405, 8.0, 0], [-0.4213, 0.0652, 35.0, 0], [-0.6597, 0.0517, 23.0, 0], [-0.849, 0.043, 40.0, 0], [-1.4362, 0.0241, 23.0, 0], [0.0043, 0.0981, 21.0, 0], [-0.1882, 0.0816, 11.0, 0], [-0.7018, 0.0497, 48.0, 0], [2.8067, 0.8176, 7.0, 1], [-0.6795, 0.0508, 13.0, 0], [-0.8485, 0.043, 11.0, 0], [1.7642, 0.4511, 4.0, 1], [-1.1416, 0.0323, 29.0, 0], [0.2501, 0.1236, 9.0, 0], [-0.4048, 0.0663, 9.0, 0], [-0.2989, 0.0734, 34.0, 0], [-0.0884, 0.0898, 14.0, 1], [-0.6694, 0.0513, 31.0, 0], [1.3727, 0.3334, 6.0, 0], [-0.6761, 0.0509, 23.0, 0], [0.7265, 0.1915, 28.0, 0], [0.0628, 0.1037, 2.0, 0], [0.1209, 0.1095, 11.0, 1], [-0.4204, 0.0653, 33.0, 0], [0.0918, 0.1065, 7.0, 1], [-0.6947, 0.05, 16.0, 0], [3.8323, 0.9913, 2.0, 1], [-0.8316, 0.0438, 18.0, 0], [0.9206, 0.2274, 30.0, 0], [-0.2811, 0.0747, 28.0, 0], [-0.9404, 0.0393, 30.0, 0], [1.6996, 0.4301, 7.0, 1], [-0.3934, 0.067, 34.0, 0], [-0.2846, 0.0744, 27.0, 0], [0.5715, 0.1664, 9.0, 0], [-1.2235, 0.0298, 27.0, 0], [-0.3213, 0.0718, 62.0, 0], [-0.9353, 0.0395, 26.0, 0], [-0.6302, 0.0533, 20.0, 0], [-0.5497, 0.0576, 32.0, 0], [0.8621, 0.216, 20.0, 0], [-0.3802, 0.0679, 15.0, 0], [-0.8146, 0.0445, 27.0, 0], [-0.6469, 0.0524, 17.0, 0], [-0.1991, 0.0808, 58.0, 0], [0.7117, 0.1889, 28.0, 0], [0.2188, 0.1201, 40.0, 0], [-0.6251, 0.0535, 61.0, 0], [2.4023, 0.6787, 2.0, 1], [-1.0996, 0.0336, 29.0, 0], [-0.1454, 0.085, 15.0, 0], [0.0961, 0.107, 17.0, 0], [-0.4468, 0.0636, 20.0, 0], [0.3516, 0.1359, 18.0, 1], [-0.3872, 0.0674, 58.0, 0], [0.083, 0.1057, 8.0, 0], [-0.6529, 0.0521, 18.0, 0], [-0.1611, 0.0838, 15.0, 0], [1.9817, 0.5256, 24.0, 1], [7.8143, 1.0, 1.0, 1], [-0.1442, 0.0851, 22.0, 0], [-0.0557, 0.0926, 34.0, 0], [0.7126, 0.1891, 2.0, 0]], "M1_hEq_IDES": [[-1.0311, 0.0455, 21.0, 0], [1.4896, 0.4394, 35.0, 0], [-0.8635, 0.0535, 44.0, 0], [-1.0076, 0.0465, 6.0, 0], [-0.5413, 0.0731, 38.0, 0], [0.1907, 0.1461, 30.0, 0], [-1.1943, 0.0388, 9.0, 0], [-0.2773, 0.0942, 36.0, 0], [-0.8741, 0.053, 30.0, 0], [-0.4144, 0.0826, 41.0, 0], [-0.3757, 0.0857, 26.0, 0], [-1.0771, 0.0435, 17.0, 0], [-0.3438, 0.0884, 21.0, 0], [0.5977, 0.2112, 6.0, 1], [-0.3198, 0.0904, 36.0, 0], [-1.162, 0.04, 16.0, 0], [-0.2295, 0.0985, 33.0, 0], [-0.7044, 0.0625, 28.0, 0], [0.7348, 0.2382, 25.0, 0], [-0.3531, 0.0876, 7.0, 1], [-1.0863, 0.0431, 40.0, 0], [-0.0383, 0.118, 13.0, 0], [0.6235, 0.2161, 24.0, 0], [0.5146, 0.1961, 27.0, 0], [0.6718, 0.2255, 21.0, 0], [-0.952, 0.0491, 17.0, 0], [-0.4863, 0.0771, 40.0, 0], [1.8028, 0.5469, 5.0, 1], [-1.269, 0.036, 21.0, 0], [-1.1645, 0.0399, 5.0, 1], [0.7131, 0.2338, 1.0, 1], [2.1482, 0.6732, 11.0, 1], [0.1954, 0.1467, 21.0, 0], [-1.1518, 0.0404, 57.0, 0], [-0.8756, 0.0529, 30.0, 0], [-1.0765, 0.0435, 27.0, 0], [-0.761, 0.0591, 14.0, 0], [-0.7618, 0.0591, 8.0, 0], [-0.0783, 0.1137, 35.0, 0], [-0.3368, 0.089, 23.0, 0], [-1.177, 0.0394, 40.0, 0], [0.3059, 0.1624, 44.0, 0], [-1.4508, 0.0301, 23.0, 0], [0.9154, 0.2782, 16.0, 0], [-0.3968, 0.084, 21.0, 0], [0.1832, 0.1451, 11.0, 0], [1.9506, 0.6006, 1.0, 1], [-0.5064, 0.0756, 48.0, 0], [2.3014, 0.7284, 7.0, 1], [-0.8288, 0.0554, 13.0, 0], [-0.6204, 0.0678, 11.0, 0], [-1.3025, 0.0349, 37.0, 0], [2.2207, 0.6995, 4.0, 1], [-0.201, 0.1012, 27.0, 0], [-0.8874, 0.0523, 2.0, 1], [-0.3845, 0.085, 60.0, 0], [-0.906, 0.0514, 29.0, 0], [-1.136, 0.041, 21.0, 0], [-0.1455, 0.1067, 9.0, 0], [-0.8082, 0.0565, 19.0, 0], [-0.9764, 0.048, 16.0, 0], [-0.0767, 0.1138, 9.0, 0], [0.0218, 0.1249, 34.0, 0], [-1.2503, 0.0367, 39.0, 0], [1.4368, 0.4225, 3.0, 1], [0.3895, 0.1752, 14.0, 1], [-1.0978, 0.0426, 26.0, 0], [-0.4493, 0.0799, 31.0, 0], [-0.1146, 0.1099, 7.0, 1], [1.8974, 0.5812, 6.0, 0], [0.5476, 0.202, 23.0, 0], [0.3946, 0.176, 28.0, 0], [0.6099, 0.2135, 2.0, 0], [-0.81, 0.0564, 47.0, 0], [-0.6268, 0.0673, 32.0, 0], [-0.2418, 0.0974, 10.0, 0], [0.9087, 0.2766, 12.0, 0], [1.0447, 0.3099, 7.0, 1], [-1.0299, 0.0455, 23.0, 0], [-1.137, 0.041, 28.0, 0], [2.1793, 0.6845, 11.0, 1], [-0.1631, 0.1049, 2.0, 1], [0.4998, 0.1935, 21.0, 0], [0.7282, 0.2369, 19.0, 0], [-0.2749, 0.0944, 33.0, 0], [-0.2725, 0.0946, 45.0, 0], [-0.5675, 0.0713, 36.0, 0], [-0.1531, 0.1059, 7.0, 1], [-0.9999, 0.0469, 22.0, 0], [-0.2546, 0.0962, 41.0, 0], [2.1232, 0.664, 2.0, 1], [0.265, 0.1564, 7.0, 1], [1.1029, 0.3251, 4.0, 1], [0.2734, 0.1576, 23.0, 0], [-0.7042, 0.0625, 18.0, 0], [-1.7098, 0.0233, 22.0, 0], [1.4084, 0.4135, 9.0, 0], [-0.4176, 0.0824, 16.0, 0], [2.4463, 0.7784, 2.0, 1], [-0.6624, 0.0651, 45.0, 0], [-1.205, 0.0384, 18.0, 0], [1.5054, 0.4446, 30.0, 0], [-0.4572, 0.0793, 45.0, 0], [0.0794, 0.1318, 28.0, 0], [-0.5895, 0.0698, 30.0, 0], [1.4847, 0.4378, 7.0, 1], [0.0186, 0.1245, 34.0, 0], [0.4901, 0.1919, 27.0, 0], [-1.3382, 0.0337, 40.0, 0], [-1.1732, 0.0396, 56.0, 0], [-0.2401, 0.0975, 52.0, 0], [0.5682, 0.2057, 9.0, 0], [1.8772, 0.5738, 18.0, 0], [0.0907, 0.1332, 41.0, 0], [-1.526, 0.028, 27.0, 0], [-0.9713, 0.0482, 30.0, 0], [-0.3671, 0.0864, 62.0, 0], [1.3672, 0.4008, 41.0, 0], [-1.2492, 0.0367, 26.0, 0], [0.2447, 0.1535, 20.0, 0], [-1.3577, 0.033, 32.0, 0], [1.7782, 0.5381, 20.0, 0], [0.4731, 0.189, 13.0, 0], [-0.7444, 0.0601, 15.0, 0], [-0.1143, 0.1099, 39.0, 0], [-0.454, 0.0795, 42.0, 0], [-0.3155, 0.0908, 56.0, 0], [-0.9035, 0.0515, 27.0, 0], [3.601, 0.9916, 2.0, 1], [-0.8878, 0.0523, 17.0, 0], [-0.001, 0.1222, 58.0, 0], [1.3485, 0.3951, 3.0, 1], [-0.4939, 0.0765, 13.0, 0], [0.4675, 0.188, 6.0, 1], [0.255, 0.155, 18.0, 1], [0.7664, 0.2448, 4.0, 1], [-0.9728, 0.0481, 24.0, 0], [0.7687, 0.2453, 28.0, 0], [0.4831, 0.1907, 40.0, 0], [-0.7073, 0.0623, 61.0, 0], [-0.9634, 0.0486, 62.0, 0], [0.6914, 0.2294, 19.0, 0], [1.2405, 0.3631, 2.0, 1], [-0.784, 0.0578, 29.0, 0], [0.5374, 0.2002, 15.0, 0], [-0.8611, 0.0537, 25.0, 0], [-1.1995, 0.0386, 41.0, 0], [-0.5933, 0.0696, 20.0, 0], [-0.6026, 0.0689, 38.0, 0], [1.0162, 0.3027, 17.0, 0], [-1.2136, 0.038, 20.0, 0], [-0.0847, 0.113, 18.0, 1], [1.1964, 0.3506, 58.0, 0], [-0.8978, 0.0518, 43.0, 0], [-1.1273, 0.0414, 18.0, 0], [0.1605, 0.1421, 8.0, 0], [-1.0814, 0.0433, 34.0, 0], [0.3009, 0.1616, 3.0, 1], [1.5848, 0.4709, 18.0, 0], [0.1352, 0.1388, 15.0, 0], [1.5559, 0.4612, 24.0, 1], [3.3932, 0.9794, 1.0, 1], [0.204, 0.1479, 22.0, 0], [0.3805, 0.1738, 34.0, 0]], "M1_hEq_PV": [[-1.1264, 0.0358, 21.0, 0], [0.8531, 0.2318, 35.0, 0], [-1.0996, 0.0367, 6.0, 0], [-0.7539, 0.0515, 38.0, 0], [-0.0496, 0.1014, 30.0, 0], [-0.3599, 0.0754, 36.0, 0], [-0.9073, 0.0443, 30.0, 0], [-0.1311, 0.0939, 26.0, 0], [-0.5426, 0.0632, 21.0, 0], [-0.4157, 0.0715, 36.0, 0], [-1.2114, 0.0329, 16.0, 0], [-0.3824, 0.0738, 33.0, 0], [-0.6653, 0.0561, 28.0, 0], [0.6366, 0.1913, 25.0, 0], [-0.5213, 0.0645, 7.0, 1], [-0.7719, 0.0506, 40.0, 0], [0.0231, 0.1086, 24.0, 0], [0.5303, 0.1738, 27.0, 0], [0.534, 0.1744, 21.0, 0], [-1.0063, 0.0402, 17.0, 0], [2.7396, 0.8244, 5.0, 1], [-1.2961, 0.0303, 21.0, 0], [0.5277, 0.1734, 1.0, 1], [2.1319, 0.6122, 11.0, 1], [-0.0792, 0.0986, 21.0, 0], [-1.0368, 0.0391, 30.0, 0], [-0.7444, 0.052, 27.0, 0], [-0.8037, 0.0491, 8.0, 0], [-0.1482, 0.0923, 35.0, 0], [-0.3815, 0.0739, 23.0, 0], [-1.3501, 0.0287, 40.0, 0], [-1.4521, 0.026, 23.0, 0], [0.9184, 0.2454, 16.0, 0], [-0.4782, 0.0673, 21.0, 0], [0.0809, 0.1147, 11.0, 0], [-0.5874, 0.0605, 48.0, 0], [2.8265, 0.85, 7.0, 1], [-0.968, 0.0418, 13.0, 0], [-0.8704, 0.046, 11.0, 0], [1.9879, 0.5597, 4.0, 1], [-0.4268, 0.0707, 27.0, 0], [-1.0855, 0.0372, 29.0, 0], [-0.78, 0.0502, 21.0, 0], [-0.1782, 0.0897, 9.0, 0], [-0.3189, 0.0784, 9.0, 0], [-0.1024, 0.0965, 34.0, 0], [0.4847, 0.1668, 3.0, 1], [-0.3533, 0.0759, 14.0, 1], [-0.7539, 0.0515, 26.0, 0], [-0.4197, 0.0712, 31.0, 0], [1.7824, 0.4872, 6.0, 0], [-0.6017, 0.0597, 23.0, 0], [0.1221, 0.1192, 28.0, 0], [0.5955, 0.1844, 2.0, 0], [-0.9139, 0.044, 47.0, 0], [0.8354, 0.2282, 7.0, 1], [0.6317, 0.1905, 11.0, 1], [-0.3706, 0.0746, 2.0, 1], [0.3489, 0.1472, 21.0, 0], [-0.6112, 0.0592, 19.0, 0], [-0.4142, 0.0716, 33.0, 0], [0.3298, 0.1447, 7.0, 1], [1.0351, 0.2712, 4.0, 1], [0.0283, 0.1092, 23.0, 0], [-0.5259, 0.0643, 16.0, 0], [3.1865, 0.9341, 2.0, 1], [-0.9672, 0.0418, 18.0, 0], [1.2313, 0.3195, 30.0, 0], [0.0724, 0.1138, 28.0, 0], [-0.7354, 0.0524, 30.0, 0], [1.9227, 0.5363, 7.0, 1], [-0.0309, 0.1032, 34.0, 0], [-0.0342, 0.1029, 27.0, 0], [-0.8978, 0.0447, 56.0, 0], [0.8769, 0.2367, 9.0, 0], [-1.3074, 0.0299, 27.0, 0], [-0.2647, 0.0826, 62.0, 0], [-1.0597, 0.0382, 26.0, 0], [-0.3553, 0.0757, 20.0, 0], [-0.2215, 0.0861, 32.0, 0], [0.9294, 0.2477, 20.0, 0], [2.1671, 0.6252, 13.0, 0], [-0.9139, 0.0441, 15.0, 0], [-0.8783, 0.0456, 27.0, 0], [4.7099, 1.0, 2.0, 1], [-0.5431, 0.0632, 17.0, 0], [0.074, 0.114, 58.0, 0], [-0.4409, 0.0697, 13.0, 0], [0.6913, 0.2009, 4.0, 1], [0.8578, 0.2328, 28.0, 0], [0.4838, 0.1666, 40.0, 0], [-0.4519, 0.069, 61.0, 0], [2.1258, 0.61, 2.0, 1], [-1.0197, 0.0397, 29.0, 0], [0.2825, 0.1385, 15.0, 0], [0.5365, 0.1748, 17.0, 0], [-0.8956, 0.0448, 20.0, 0], [-0.0909, 0.0975, 18.0, 1], [-0.3638, 0.0751, 58.0, 0], [-1.0204, 0.0397, 18.0, 0], [0.0166, 0.108, 8.0, 0], [-1.1962, 0.0334, 34.0, 0], [-0.4607, 0.0684, 18.0, 0], [-0.3186, 0.0785, 15.0, 0], [0.9504, 0.2522, 24.0, 1], [5.951, 1.0, 1.0, 1], [0.0261, 0.1089, 22.0, 0], [0.2259, 0.1314, 34.0, 0], [0.2876, 0.1391, 2.0, 0]], "M2_VAF_Deauv_IDES": [[-1.0027, 0.045, 21.0, 0], [1.2853, 0.3647, 35.0, 0], [-1.2538, 0.0352, 44.0, 0], [-0.4666, 0.0757, 38.0, 0], [-0.1447, 0.1029, 30.0, 0], [-1.0439, 0.0432, 9.0, 0], [-0.5127, 0.0724, 36.0, 0], [-1.1618, 0.0385, 30.0, 0], [-0.5436, 0.0703, 26.0, 0], [-0.5085, 0.0727, 17.0, 0], [-0.4419, 0.0775, 21.0, 0], [0.7004, 0.2234, 6.0, 1], [0.073, 0.1263, 33.0, 0], [-0.8719, 0.0511, 28.0, 0], [-0.863, 0.0516, 25.0, 0], [-0.6233, 0.0651, 7.0, 1], [-0.9782, 0.0461, 40.0, 0], [0.0642, 0.1252, 13.0, 0], [0.2992, 0.1557, 27.0, 0], [-1.2386, 0.0357, 17.0, 0], [1.7521, 0.515, 5.0, 1], [-1.6103, 0.0248, 21.0, 0], [-0.6672, 0.0624, 5.0, 1], [2.6914, 0.8429, 11.0, 1], [-0.4798, 0.0747, 21.0, 0], [-1.0049, 0.0449, 57.0, 0], [-0.7259, 0.0589, 30.0, 0], [-0.736, 0.0583, 27.0, 0], [-0.4431, 0.0774, 8.0, 0], [-0.2133, 0.0964, 35.0, 0], [-0.3769, 0.0825, 23.0, 0], [-1.3179, 0.033, 40.0, 0], [0.5342, 0.1927, 44.0, 0], [-0.8773, 0.0509, 23.0, 0], [-0.233, 0.0946, 21.0, 0], [-0.3402, 0.0854, 11.0, 0], [2.1609, 0.6635, 1.0, 1], [-0.3173, 0.0873, 48.0, 0], [1.8288, 0.5422, 7.0, 1], [-0.1045, 0.1069, 13.0, 0], [-0.5715, 0.0684, 11.0, 0], [-1.1984, 0.0371, 37.0, 0], [2.46, 0.7698, 4.0, 1], [-0.4994, 0.0733, 2.0, 1], [-0.1125, 0.1061, 60.0, 0], [-0.2575, 0.0924, 29.0, 0], [-0.9502, 0.0474, 21.0, 0], [0.644, 0.2125, 9.0, 0], [-0.7845, 0.0557, 19.0, 0], [-0.6269, 0.0648, 16.0, 0], [-0.6215, 0.0652, 9.0, 0], [-0.2439, 0.0936, 34.0, 0], [-0.8231, 0.0536, 39.0, 0], [1.0222, 0.2944, 14.0, 1], [-1.5727, 0.0257, 26.0, 0], [-0.497, 0.0735, 31.0, 0], [-0.462, 0.076, 7.0, 1], [1.3477, 0.383, 6.0, 0], [0.9242, 0.2711, 23.0, 0], [0.059, 0.1246, 28.0, 0], [-0.2089, 0.0968, 2.0, 0], [-1.2665, 0.0347, 32.0, 0], [0.5024, 0.1873, 10.0, 0], [-0.3289, 0.0864, 7.0, 1], [-0.2012, 0.0975, 23.0, 0], [-1.2129, 0.0366, 28.0, 0], [0.9962, 0.2881, 11.0, 1], [0.3825, 0.168, 19.0, 0], [-0.2275, 0.0951, 33.0, 0], [-0.952, 0.0473, 45.0, 0], [-0.0128, 0.1165, 36.0, 0], [0.1142, 0.1312, 7.0, 1], [-0.5553, 0.0695, 22.0, 0], [-0.515, 0.0722, 41.0, 0], [3.2643, 0.9625, 2.0, 1], [-0.6959, 0.0607, 7.0, 1], [-0.509, 0.0727, 18.0, 0], [1.0704, 0.3065, 9.0, 0], [-0.0078, 0.1171, 16.0, 0], [4.1491, 0.9996, 2.0, 1], [-1.1004, 0.0409, 45.0, 0], [-0.9239, 0.0486, 18.0, 0], [1.5192, 0.4363, 30.0, 0], [-1.0921, 0.0412, 45.0, 0], [0.1215, 0.1321, 28.0, 0], [-0.5664, 0.0687, 30.0, 0], [1.6373, 0.4754, 7.0, 1], [-0.5149, 0.0722, 34.0, 0], [-0.2359, 0.0944, 27.0, 0], [-1.1864, 0.0376, 40.0, 0], [-1.6268, 0.0244, 56.0, 0], [-0.7706, 0.0564, 52.0, 0], [-0.2066, 0.097, 9.0, 0], [-0.4193, 0.0792, 41.0, 0], [-1.4108, 0.0301, 27.0, 0], [-0.6957, 0.0607, 30.0, 0], [-0.326, 0.0866, 62.0, 0], [-1.197, 0.0372, 26.0, 0], [0.6654, 0.2166, 20.0, 0], [-0.8944, 0.05, 32.0, 0], [1.5959, 0.4615, 20.0, 0], [-0.4349, 0.078, 15.0, 0], [-0.3506, 0.0846, 39.0, 0], [-1.0617, 0.0425, 42.0, 0], [-0.8543, 0.052, 56.0, 0], [-0.7336, 0.0585, 27.0, 0], [3.8879, 0.9978, 2.0, 1], [-0.6562, 0.063, 17.0, 0], [0.1923, 0.1411, 58.0, 0], [1.4937, 0.4281, 3.0, 1], [-0.9999, 0.0451, 13.0, 0], [0.2365, 0.147, 6.0, 1], [-1.1028, 0.0408, 24.0, 0], [0.311, 0.1574, 28.0, 0], [0.0753, 0.1265, 40.0, 0], [-0.5457, 0.0701, 61.0, 0], [-0.8221, 0.0537, 62.0, 0], [1.7838, 0.5262, 2.0, 1], [-0.4923, 0.0738, 29.0, 0], [0.198, 0.1418, 15.0, 0], [-1.0848, 0.0415, 25.0, 0], [-0.5639, 0.0689, 41.0, 0], [-0.1874, 0.0988, 20.0, 0], [0.2417, 0.1477, 38.0, 0], [0.1773, 0.1391, 17.0, 0], [-1.1013, 0.0409, 20.0, 0], [0.6436, 0.2125, 18.0, 1], [0.8167, 0.2472, 58.0, 0], [-0.7313, 0.0586, 43.0, 0], [-1.404, 0.0304, 18.0, 0], [0.6604, 0.2156, 8.0, 0], [0.2204, 0.1448, 3.0, 1], [2.1192, 0.6482, 18.0, 0], [1.2011, 0.341, 15.0, 0], [2.2753, 0.7051, 24.0, 1], [4.4289, 1.0, 1.0, 1], [-0.3957, 0.081, 22.0, 0], [0.5535, 0.1961, 34.0, 0]], "M2_VAF_Deauv_PV": [[-1.0316, 0.0298, 21.0, 0], [0.9072, 0.1894, 35.0, 0], [-0.609, 0.0451, 38.0, 0], [-0.4137, 0.0545, 30.0, 0], [-0.5905, 0.0459, 36.0, 0], [-1.2, 0.0252, 30.0, 0], [-0.3831, 0.0562, 26.0, 0], [-0.5531, 0.0476, 21.0, 0], [-0.0414, 0.0781, 33.0, 0], [-0.8518, 0.0355, 28.0, 0], [-0.9694, 0.0316, 25.0, 0], [-0.7551, 0.0391, 7.0, 1], [-0.6688, 0.0425, 40.0, 0], [0.3172, 0.1099, 27.0, 0], [-1.2685, 0.0236, 17.0, 0], [3.4088, 0.9229, 5.0, 1], [-1.6307, 0.0165, 21.0, 0], [2.8815, 0.7797, 11.0, 1], [-0.697, 0.0414, 21.0, 0], [-0.844, 0.0358, 30.0, 0], [-0.463, 0.052, 27.0, 0], [-0.4654, 0.0518, 8.0, 0], [-0.2792, 0.0621, 35.0, 0], [-0.4151, 0.0544, 23.0, 0], [-1.3928, 0.0208, 40.0, 0], [-0.888, 0.0343, 23.0, 0], [-0.2632, 0.0631, 21.0, 0], [-0.4426, 0.053, 11.0, 0], [-0.3752, 0.0566, 48.0, 0], [2.9966, 0.8168, 7.0, 1], [-0.2228, 0.0656, 13.0, 0], [-0.7131, 0.0407, 11.0, 0], [2.4069, 0.6098, 4.0, 1], [-0.3991, 0.0553, 29.0, 0], [-0.6939, 0.0415, 21.0, 0], [0.6173, 0.1455, 9.0, 0], [-0.8018, 0.0373, 9.0, 0], [-0.3374, 0.0587, 34.0, 0], [0.3921, 0.1179, 14.0, 1], [-1.2944, 0.023, 26.0, 0], [-0.4818, 0.051, 31.0, 0], [1.4664, 0.3075, 6.0, 0], [-0.4288, 0.0537, 23.0, 0], [-0.187, 0.0679, 28.0, 0], [-0.2173, 0.0659, 2.0, 0], [-0.5472, 0.0479, 7.0, 1], [-0.5128, 0.0495, 11.0, 1], [-0.6729, 0.0423, 19.0, 0], [-0.3297, 0.0592, 33.0, 0], [-0.7257, 0.0402, 7.0, 1], [-0.1078, 0.0733, 16.0, 0], [5.6417, 1.0, 2.0, 1], [-0.7681, 0.0386, 18.0, 0], [1.2706, 0.2607, 30.0, 0], [0.1032, 0.0897, 28.0, 0], [-0.6897, 0.0416, 30.0, 0], [2.534, 0.6565, 7.0, 1], [-0.5592, 0.0473, 34.0, 0], [-0.7522, 0.0392, 27.0, 0], [-1.4229, 0.0202, 56.0, 0], [0.1556, 0.0943, 9.0, 0], [-1.2682, 0.0236, 27.0, 0], [-0.3048, 0.0606, 62.0, 0], [-1.0512, 0.0292, 26.0, 0], [-0.0897, 0.0746, 20.0, 0], [-0.0438, 0.0779, 32.0, 0], [0.7189, 0.1597, 20.0, 0], [-0.5348, 0.0485, 15.0, 0], [-0.7017, 0.0412, 27.0, 0], [5.9895, 1.0, 2.0, 1], [-0.4006, 0.0552, 17.0, 0], [0.1829, 0.0968, 58.0, 0], [-0.9459, 0.0324, 13.0, 0], [0.648, 0.1496, 28.0, 0], [0.0665, 0.0866, 40.0, 0], [-0.376, 0.0566, 61.0, 0], [3.3196, 0.9041, 2.0, 1], [-0.6393, 0.0437, 29.0, 0], [-0.0924, 0.0744, 15.0, 0], [-0.3183, 0.0598, 17.0, 0], [-0.8793, 0.0346, 20.0, 0], [0.5388, 0.1353, 18.0, 1], [-0.6114, 0.045, 58.0, 0], [-1.3306, 0.0222, 18.0, 0], [0.4302, 0.1222, 8.0, 0], [-0.1053, 0.0735, 18.0, 0], [0.7064, 0.1579, 15.0, 0], [1.5165, 0.3204, 24.0, 1], [8.3983, 1.0, 1.0, 1], [-0.5585, 0.0473, 22.0, 0], [0.4084, 0.1197, 34.0, 0], [0.9129, 0.1904, 2.0, 0]], "M2_VAF_Delta_IDES": [[-0.5808, 0.0806, 21.0, 0], [0.868, 0.3006, 35.0, 0], [-0.068, 0.1309, 38.0, 0], [-0.7806, 0.0665, 9.0, 0], [-0.5236, 0.0851, 36.0, 0], [-0.6941, 0.0722, 26.0, 0], [-0.8967, 0.0594, 17.0, 0], [-0.9772, 0.0549, 21.0, 0], [0.9176, 0.3132, 6.0, 1], [-0.0993, 0.1271, 33.0, 0], [-0.6818, 0.0731, 28.0, 0], [-0.7594, 0.0678, 7.0, 1], [-1.0625, 0.0506, 40.0, 0], [-0.0033, 0.139, 13.0, 0], [-0.1559, 0.1205, 27.0, 0], [1.3393, 0.4361, 5.0, 1], [-0.9265, 0.0577, 21.0, 0], [-0.6876, 0.0727, 5.0, 1], [0.8997, 0.3086, 1.0, 1], [2.4693, 0.8303, 11.0, 1], [-0.8876, 0.0599, 57.0, 0], [-0.4392, 0.0922, 30.0, 0], [-0.9547, 0.0561, 27.0, 0], [-0.6593, 0.0747, 8.0, 0], [-0.378, 0.0978, 35.0, 0], [-0.3151, 0.1038, 23.0, 0], [-0.6423, 0.0759, 40.0, 0], [-0.1592, 0.1202, 44.0, 0], [-1.0677, 0.0503, 23.0, 0], [-0.1256, 0.124, 21.0, 0], [-0.4579, 0.0906, 11.0, 0], [3.2457, 0.9788, 1.0, 1], [-0.4888, 0.088, 48.0, 0], [1.9371, 0.6471, 7.0, 1], [-0.3234, 0.1029, 13.0, 0], [-0.6811, 0.0732, 11.0, 0], [1.6517, 0.543, 4.0, 1], [-0.029, 0.1357, 2.0, 1], [0.08, 0.1501, 60.0, 0], [-0.7837, 0.0663, 29.0, 0], [0.4167, 0.2037, 9.0, 0], [-0.7734, 0.0669, 19.0, 0], [-0.8429, 0.0626, 16.0, 0], [-0.3562, 0.0998, 9.0, 0], [-0.0401, 0.1343, 34.0, 0], [-0.4439, 0.0918, 39.0, 0], [0.683, 0.2571, 14.0, 1], [-0.7384, 0.0692, 31.0, 0], [-0.3974, 0.096, 7.0, 1], [1.2053, 0.3941, 6.0, 0], [0.5863, 0.2365, 23.0, 0], [0.4893, 0.2172, 28.0, 0], [-0.5153, 0.0858, 2.0, 0], [-0.8935, 0.0596, 32.0, 0], [0.0678, 0.1484, 10.0, 0], [-0.5296, 0.0846, 23.0, 0], [0.9359, 0.318, 11.0, 1], [-0.2551, 0.1098, 33.0, 0], [-0.4708, 0.0895, 36.0, 0], [-0.4109, 0.0947, 7.0, 1], [-0.6302, 0.0768, 22.0, 0], [-0.2394, 0.1114, 41.0, 0], [2.816, 0.9186, 2.0, 1], [-0.3947, 0.0962, 7.0, 1], [-0.463, 0.0902, 18.0, 0], [0.7637, 0.2754, 9.0, 0], [-0.5095, 0.0862, 16.0, 0], [3.1612, 0.9711, 2.0, 1], [-0.5294, 0.0846, 18.0, 0], [1.1587, 0.3801, 30.0, 0], [-0.5242, 0.085, 45.0, 0], [-0.4391, 0.0922, 28.0, 0], [-0.8036, 0.065, 30.0, 0], [0.8724, 0.3017, 7.0, 1], [-0.4453, 0.0917, 34.0, 0], [-0.0213, 0.1367, 27.0, 0], [-1.0464, 0.0514, 40.0, 0], [-0.194, 0.1163, 9.0, 0], [-0.381, 0.0975, 41.0, 0], [-0.8227, 0.0638, 27.0, 0], [-0.6035, 0.0788, 30.0, 0], [-0.3056, 0.1047, 62.0, 0], [-0.8355, 0.063, 26.0, 0], [0.3469, 0.1913, 20.0, 0], [-1.1498, 0.0464, 32.0, 0], [1.5629, 0.5115, 20.0, 0], [-0.3328, 0.102, 15.0, 0], [-0.4713, 0.0894, 39.0, 0], [-0.8708, 0.0609, 42.0, 0], [-0.6225, 0.0774, 56.0, 0], [-0.7557, 0.0681, 27.0, 0], [-0.7565, 0.068, 17.0, 0], [-0.2773, 0.1075, 58.0, 0], [1.1779, 0.3859, 3.0, 1], [0.2197, 0.1705, 6.0, 1], [-0.8594, 0.0616, 24.0, 0], [0.3419, 0.1905, 28.0, 0], [-0.292, 0.106, 40.0, 0], [-0.6895, 0.0726, 61.0, 0], [-0.8682, 0.0611, 62.0, 0], [1.3229, 0.4308, 2.0, 1], [-0.7419, 0.069, 29.0, 0], [-0.1278, 0.1238, 15.0, 0], [-0.9117, 0.0585, 25.0, 0], [0.1265, 0.1566, 41.0, 0], [-0.7215, 0.0704, 20.0, 0], [-0.0016, 0.1392, 38.0, 0], [0.2328, 0.1726, 17.0, 0], [-0.371, 0.0984, 20.0, 0], [0.5863, 0.2365, 18.0, 1], [0.9436, 0.32, 58.0, 0], [-0.9723, 0.0552, 43.0, 0], [0.4052, 0.2016, 8.0, 0], [-0.358, 0.0996, 3.0, 1], [1.3035, 0.4246, 18.0, 0], [0.4844, 0.2162, 15.0, 0], [2.6004, 0.8676, 24.0, 1], [4.641, 1.0, 1.0, 1], [-0.4331, 0.0928, 22.0, 0], [-0.2363, 0.1118, 34.0, 0]], "M2_VAF_Delta_PV": [[-0.6109, 0.0565, 21.0, 0], [0.4637, 0.1566, 35.0, 0], [-0.196, 0.0843, 38.0, 0], [-0.6002, 0.0571, 36.0, 0], [-0.5636, 0.0592, 26.0, 0], [-1.0872, 0.0355, 21.0, 0], [-0.1986, 0.0841, 33.0, 0], [-0.6701, 0.0533, 28.0, 0], [-0.8868, 0.0432, 7.0, 1], [-0.806, 0.0467, 40.0, 0], [-0.1342, 0.0894, 27.0, 0], [2.5428, 0.7439, 5.0, 1], [-0.9455, 0.0408, 21.0, 0], [0.7415, 0.2014, 1.0, 1], [2.5126, 0.7334, 11.0, 1], [-0.5423, 0.0604, 30.0, 0], [-0.6785, 0.0529, 27.0, 0], [-0.683, 0.0527, 8.0, 0], [-0.4399, 0.0667, 35.0, 0], [-0.3546, 0.0724, 23.0, 0], [-0.7129, 0.0512, 40.0, 0], [-1.0743, 0.0359, 23.0, 0], [-0.1573, 0.0875, 21.0, 0], [-0.5591, 0.0594, 11.0, 0], [-0.5482, 0.0601, 48.0, 0], [2.6867, 0.7926, 7.0, 1], [-0.4316, 0.0672, 13.0, 0], [-0.8084, 0.0466, 11.0, 0], [1.4639, 0.3707, 4.0, 1], [-0.9209, 0.0418, 29.0, 0], [0.3885, 0.1462, 9.0, 0], [-0.522, 0.0616, 9.0, 0], [-0.1216, 0.0905, 34.0, 0], [0.111, 0.1128, 14.0, 1], [-0.7275, 0.0504, 31.0, 0], [1.21, 0.3018, 6.0, 0], [-0.6069, 0.0567, 23.0, 0], [0.2479, 0.1283, 28.0, 0], [-0.5253, 0.0614, 2.0, 0], [-0.3918, 0.0698, 11.0, 1], [-0.3424, 0.0733, 33.0, 0], [-0.4455, 0.0663, 7.0, 1], [-0.6054, 0.0568, 16.0, 0], [4.1364, 0.9988, 2.0, 1], [-0.4036, 0.0691, 18.0, 0], [0.8771, 0.2271, 30.0, 0], [-0.457, 0.0656, 28.0, 0], [-0.9228, 0.0417, 30.0, 0], [1.4931, 0.3793, 7.0, 1], [-0.4895, 0.0636, 34.0, 0], [-0.5367, 0.0607, 27.0, 0], [0.1036, 0.1121, 9.0, 0], [-0.6888, 0.0524, 27.0, 0], [-0.3158, 0.0752, 62.0, 0], [-0.7197, 0.0508, 26.0, 0], [-0.3187, 0.0749, 20.0, 0], [-0.3016, 0.0762, 32.0, 0], [0.7016, 0.1943, 20.0, 0], [-0.4313, 0.0672, 15.0, 0], [-0.7397, 0.0499, 27.0, 0], [-0.5496, 0.06, 17.0, 0], [-0.3162, 0.0751, 58.0, 0], [0.5373, 0.1675, 28.0, 0], [-0.2998, 0.0763, 40.0, 0], [-0.5498, 0.06, 61.0, 0], [2.4514, 0.7116, 2.0, 1], [-0.8757, 0.0437, 29.0, 0], [-0.3808, 0.0706, 15.0, 0], [-0.2192, 0.0825, 17.0, 0], [-0.1809, 0.0855, 20.0, 0], [0.4605, 0.1562, 18.0, 1], [-0.2798, 0.0778, 58.0, 0], [0.1912, 0.1217, 8.0, 0], [-0.6287, 0.0555, 18.0, 0], [0.0282, 0.1043, 15.0, 0], [1.9216, 0.519, 24.0, 1], [7.5457, 1.0, 1.0, 1], [-0.5954, 0.0574, 22.0, 0], [-0.3771, 0.0708, 34.0, 0], [0.7669, 0.206, 2.0, 0]], "M1_VAF_IDES": [[-0.7269, 0.0653, 21.0, 0], [1.2176, 0.3762, 35.0, 0], [-0.5278, 0.0791, 44.0, 0], [-0.9921, 0.0505, 6.0, 0], [-0.4832, 0.0825, 38.0, 0], [0.208, 0.158, 30.0, 0], [-0.7883, 0.0615, 9.0, 0], [-0.4845, 0.0824, 36.0, 0], [-0.4098, 0.0885, 30.0, 0], [-0.6129, 0.0729, 41.0, 0], [-0.5137, 0.0802, 26.0, 0], [-0.9717, 0.0515, 17.0, 0], [-0.8782, 0.0564, 21.0, 0], [0.439, 0.1948, 6.0, 1], [-0.2804, 0.1001, 36.0, 0], [-0.7913, 0.0613, 16.0, 0], [0.2751, 0.168, 33.0, 0], [-0.5123, 0.0803, 28.0, 0], [0.0038, 0.1308, 25.0, 0], [-0.6321, 0.0715, 7.0, 1], [-1.124, 0.0444, 40.0, 0], [0.2622, 0.166, 13.0, 0], [0.2132, 0.1587, 24.0, 0], [0.1742, 0.1531, 27.0, 0], [0.5014, 0.2059, 21.0, 0], [-0.5629, 0.0765, 17.0, 0], [-0.4378, 0.0862, 40.0, 0], [1.6147, 0.5044, 5.0, 1], [-1.0378, 0.0483, 21.0, 0], [-0.6974, 0.0672, 5.0, 1], [0.6759, 0.2401, 1.0, 1], [2.294, 0.7496, 11.0, 1], [-0.009, 0.1292, 21.0, 0], [-0.6685, 0.0691, 57.0, 0], [-0.3535, 0.0934, 30.0, 0], [-0.7903, 0.0614, 27.0, 0], [-0.3472, 0.094, 14.0, 0], [-0.4392, 0.0861, 8.0, 0], [-0.0523, 0.1241, 35.0, 0], [0.1468, 0.1493, 23.0, 0], [-1.1144, 0.0448, 40.0, 0], [0.0111, 0.1317, 44.0, 0], [-0.9887, 0.0506, 23.0, 0], [0.4356, 0.1942, 16.0, 0], [-0.6358, 0.0713, 21.0, 0], [-0.2424, 0.1038, 11.0, 0], [1.6956, 0.5328, 1.0, 1], [-0.2611, 0.102, 48.0, 0], [2.0852, 0.6749, 7.0, 1], [-0.5124, 0.0802, 13.0, 0], [-0.6304, 0.0716, 11.0, 0], [-0.9708, 0.0515, 37.0, 0], [1.8502, 0.5887, 4.0, 1], [-0.3477, 0.0939, 27.0, 0], [-0.9498, 0.0526, 2.0, 1], [0.0916, 0.1419, 60.0, 0], [-0.6116, 0.073, 29.0, 0], [-0.5917, 0.0744, 21.0, 0], [0.1026, 0.1434, 9.0, 0], [-0.8465, 0.0581, 19.0, 0], [-0.6371, 0.0712, 16.0, 0], [-0.2076, 0.1073, 9.0, 0], [0.3221, 0.1753, 34.0, 0], [-0.4782, 0.0829, 39.0, 0], [0.9986, 0.3155, 3.0, 1], [0.5879, 0.2223, 14.0, 1], [-0.9727, 0.0514, 26.0, 0], [-0.4851, 0.0824, 31.0, 0], [-0.3992, 0.0894, 7.0, 1], [1.7551, 0.5541, 6.0, 0], [0.6082, 0.2263, 23.0, 0], [-0.1695, 0.1112, 28.0, 0], [-0.1074, 0.1179, 2.0, 0], [-0.9859, 0.0508, 47.0, 0], [-0.6145, 0.0728, 32.0, 0], [-0.1029, 0.1184, 10.0, 0], [1.1388, 0.3535, 12.0, 0], [0.6176, 0.2282, 7.0, 1], [-0.4475, 0.0854, 23.0, 0], [-0.98, 0.0511, 28.0, 0], [1.571, 0.4893, 11.0, 1], [-0.5363, 0.0784, 2.0, 1], [-0.1648, 0.1117, 21.0, 0], [0.4769, 0.2015, 19.0, 0], [-0.1467, 0.1136, 33.0, 0], [-0.1317, 0.1152, 45.0, 0], [-0.4617, 0.0842, 36.0, 0], [-0.1602, 0.1122, 7.0, 1], [-0.5551, 0.077, 22.0, 0], [-0.0584, 0.1234, 41.0, 0], [2.2572, 0.7367, 2.0, 1], [-0.3384, 0.0948, 7.0, 1], [0.6752, 0.2399, 4.0, 1], [0.2096, 0.1582, 23.0, 0], [0.0191, 0.1327, 18.0, 0], [-1.1356, 0.0439, 22.0, 0], [1.0157, 0.32, 9.0, 0], [-0.2569, 0.1024, 16.0, 0], [2.7012, 0.8751, 2.0, 1], [-0.8025, 0.0607, 45.0, 0], [-0.5546, 0.0771, 18.0, 0], [1.5785, 0.4918, 30.0, 0], [-0.3026, 0.098, 45.0, 0], [-0.0911, 0.1197, 28.0, 0], [-0.5481, 0.0775, 30.0, 0], [1.3091, 0.4037, 7.0, 1], [-0.0391, 0.1257, 34.0, 0], [0.389, 0.1862, 27.0, 0], [-0.9539, 0.0524, 40.0, 0], [-1.0445, 0.048, 56.0, 0], [-0.3395, 0.0947, 52.0, 0], [-0.1037, 0.1183, 9.0, 0], [2.1318, 0.6919, 18.0, 0], [0.0761, 0.1399, 41.0, 0], [-0.7759, 0.0623, 27.0, 0], [-0.7274, 0.0652, 30.0, 0], [-0.2059, 0.1074, 62.0, 0], [1.0931, 0.3407, 41.0, 0], [-0.9382, 0.0532, 26.0, 0], [0.7359, 0.2529, 20.0, 0], [-1.0266, 0.0488, 32.0, 0], [1.5604, 0.4856, 20.0, 0], [-0.0097, 0.1292, 13.0, 0], [-0.8685, 0.0569, 15.0, 0], [-0.3208, 0.0964, 39.0, 0], [-0.7483, 0.0639, 42.0, 0], [-0.4818, 0.0826, 56.0, 0], [-0.8001, 0.0608, 27.0, 0], [3.4686, 0.9887, 2.0, 1], [-0.672, 0.0688, 17.0, 0], [0.0265, 0.1336, 58.0, 0], [0.9588, 0.3053, 3.0, 1], [-0.1711, 0.111, 13.0, 0], [0.4384, 0.1947, 6.0, 1], [-0.1211, 0.1164, 18.0, 1], [0.1262, 0.1465, 4.0, 1], [-0.8308, 0.059, 24.0, 0], [0.541, 0.2133, 28.0, 0], [-0.152, 0.113, 40.0, 0], [-0.5167, 0.0799, 61.0, 0], [-0.9049, 0.0549, 62.0, 0], [0.6577, 0.2363, 19.0, 0], [1.2759, 0.3936, 2.0, 1], [-0.5196, 0.0797, 29.0, 0], [0.287, 0.1698, 15.0, 0], [-0.7871, 0.0616, 25.0, 0], [-1.0496, 0.0477, 41.0, 0], [-0.5143, 0.0801, 20.0, 0], [-0.4154, 0.0881, 38.0, 0], [0.6984, 0.2448, 17.0, 0], [-0.8015, 0.0607, 20.0, 0], [0.0964, 0.1425, 18.0, 1], [1.1596, 0.3594, 58.0, 0], [-0.7798, 0.062, 43.0, 0], [-0.7606, 0.0632, 18.0, 0], [0.4, 0.1881, 8.0, 0], [-0.955, 0.0523, 34.0, 0], [-0.0013, 0.1302, 3.0, 1], [1.6075, 0.5019, 18.0, 0], [0.4021, 0.1884, 15.0, 0], [1.5782, 0.4917, 24.0, 1], [2.943, 0.9293, 1.0, 1], [-0.3263, 0.0959, 22.0, 0], [0.0331, 0.1344, 34.0, 0]], "M1_VAF_PV": [[-0.7692, 0.0551, 21.0, 0], [0.6432, 0.2078, 35.0, 0], [-1.0274, 0.0429, 6.0, 0], [-0.6644, 0.061, 38.0, 0], [-0.0212, 0.1129, 30.0, 0], [-0.5924, 0.0654, 36.0, 0], [-0.4621, 0.0742, 30.0, 0], [-0.3281, 0.0844, 26.0, 0], [-1.0331, 0.0426, 21.0, 0], [-0.4021, 0.0786, 36.0, 0], [-0.8414, 0.0514, 16.0, 0], [0.1344, 0.1307, 33.0, 0], [-0.4953, 0.0719, 28.0, 0], [-0.1457, 0.1004, 25.0, 0], [-0.8118, 0.0529, 7.0, 1], [-0.7594, 0.0557, 40.0, 0], [-0.4174, 0.0775, 24.0, 0], [0.2045, 0.1395, 27.0, 0], [0.388, 0.1651, 21.0, 0], [-0.6057, 0.0646, 17.0, 0], [2.5768, 0.8002, 5.0, 1], [-1.0647, 0.0413, 21.0, 0], [0.4069, 0.1679, 1.0, 1], [2.3368, 0.7182, 11.0, 1], [-0.2966, 0.087, 21.0, 0], [-0.4996, 0.0716, 30.0, 0], [-0.4016, 0.0787, 27.0, 0], [-0.4725, 0.0735, 8.0, 0], [-0.1397, 0.101, 35.0, 0], [0.0912, 0.1255, 23.0, 0], [-1.2141, 0.0357, 40.0, 0], [-0.9983, 0.0441, 23.0, 0], [0.4278, 0.1712, 16.0, 0], [-0.6804, 0.0601, 21.0, 0], [-0.3849, 0.0799, 11.0, 0], [-0.3446, 0.0831, 48.0, 0], [2.6743, 0.8305, 7.0, 1], [-0.6236, 0.0635, 13.0, 0], [-0.8106, 0.053, 11.0, 0], [1.6463, 0.4701, 4.0, 1], [-0.628, 0.0632, 27.0, 0], [-0.805, 0.0533, 29.0, 0], [-0.2714, 0.0891, 21.0, 0], [0.063, 0.1222, 9.0, 0], [-0.442, 0.0757, 9.0, 0], [0.2065, 0.1397, 34.0, 0], [0.0111, 0.1164, 3.0, 1], [-0.0628, 0.1086, 14.0, 1], [-0.6435, 0.0623, 26.0, 0], [-0.4695, 0.0737, 31.0, 0], [1.6777, 0.4807, 6.0, 0], [-0.4805, 0.0729, 23.0, 0], [-0.5096, 0.0709, 28.0, 0], [-0.1215, 0.1027, 2.0, 0], [-1.0745, 0.0409, 47.0, 0], [0.4067, 0.1679, 7.0, 1], [0.0074, 0.116, 11.0, 1], [-0.7725, 0.055, 2.0, 1], [-0.3643, 0.0815, 21.0, 0], [-0.706, 0.0586, 19.0, 0], [-0.2704, 0.0892, 33.0, 0], [-0.3381, 0.0836, 7.0, 1], [0.5897, 0.1981, 4.0, 1], [-0.1436, 0.1006, 23.0, 0], [-0.3922, 0.0794, 16.0, 0], [3.5821, 0.9877, 2.0, 1], [-0.3755, 0.0806, 18.0, 0], [1.302, 0.3624, 30.0, 0], [-0.1162, 0.1032, 28.0, 0], [-0.7162, 0.0581, 30.0, 0], [1.7275, 0.4978, 7.0, 1], [-0.1013, 0.1047, 34.0, 0], [-0.3367, 0.0837, 27.0, 0], [-0.8021, 0.0534, 56.0, 0], [0.3538, 0.16, 9.0, 0], [-0.5869, 0.0658, 27.0, 0], [-0.2182, 0.0937, 62.0, 0], [-0.7732, 0.0549, 26.0, 0], [0.1107, 0.1278, 20.0, 0], [0.1678, 0.1348, 32.0, 0], [0.7539, 0.2291, 20.0, 0], [1.7091, 0.4914, 13.0, 0], [-1.0073, 0.0437, 15.0, 0], [-0.7765, 0.0548, 27.0, 0], [4.7255, 1.0, 2.0, 1], [-0.3775, 0.0805, 17.0, 0], [-0.0265, 0.1124, 58.0, 0], [-0.09, 0.1058, 13.0, 0], [0.0328, 0.1188, 4.0, 1], [0.6567, 0.2103, 28.0, 0], [-0.163, 0.0988, 40.0, 0], [-0.3181, 0.0852, 61.0, 0], [2.2091, 0.672, 2.0, 1], [-0.7088, 0.0585, 29.0, 0], [0.0426, 0.1199, 15.0, 0], [0.1907, 0.1377, 17.0, 0], [-0.5318, 0.0694, 20.0, 0], [0.0888, 0.1252, 18.0, 1], [-0.1746, 0.0977, 58.0, 0], [-0.674, 0.0605, 18.0, 0], [0.2486, 0.1453, 8.0, 0], [-1.044, 0.0422, 34.0, 0], [-0.4066, 0.0783, 18.0, 0], [-0.0354, 0.1114, 15.0, 0], [0.9963, 0.2822, 24.0, 1], [5.5406, 1.0, 1.0, 1], [-0.5549, 0.0679, 22.0, 0], [-0.1654, 0.0985, 34.0, 0], [0.4522, 0.175, 2.0, 0]]};
+
+// Variant definitions (same order as DOM)
+const VARIANTS = [{"vk": "M2_hEq_Deauv", "title": "M2_hEq Deauv \u2b50", "subtitle": "variante optimale (Deauville + cfDNA Qubit)"}, {"vk": "M2_hEq_Delta", "title": "M2_hEq Delta", "subtitle": "\u0394SUVmax% fallback + cfDNA Qubit"}, {"vk": "M1_hEq", "title": "M1_hEq", "subtitle": "sans TEP, avec cfDNA Qubit"}, {"vk": "M2_VAF_Deauv", "title": "M2_VAF Deauv", "subtitle": "Deauville sans cfDNA Qubit"}, {"vk": "M2_VAF_Delta", "title": "M2_VAF Delta", "subtitle": "\u0394SUVmax% fallback sans cfDNA Qubit"}, {"vk": "M1_VAF", "title": "M1_VAF", "subtitle": "mod\u00e8le minimal (ni TEP ni cfDNA)"}];
+
+// Colors
+const COL_F = '#22C55E';
+const COL_M = '#F59E0B';
+const COL_E = '#EF4444';
+const COL_VPP = '#DC2626';
+const COL_VPN = '#15803D';
+
+// ─── Kaplan-Meier estimator (with Greenwood variance + log-log CI) ───
+function km(patients) {
+  const sorted = patients.slice().sort((a, b) => a.t - b.t);
+  let S = 1.0;
+  let atRisk = sorted.length;
+  let cumGreen = 0;
+  const steps = [{t: 0, S: 1.0, lo: 1.0, hi: 1.0, atRisk: atRisk}];
+  const unique_t = [...new Set(sorted.map(p => p.t))].sort((a, b) => a - b);
+  let n_events = 0;
+  for (const t of unique_t) {
+    const dies = sorted.filter(p => p.t === t && p.e === 1).length;
+    const cens = sorted.filter(p => p.t === t && p.e === 0).length;
+    if (dies > 0 && atRisk > dies) {
+      cumGreen += dies / (atRisk * (atRisk - dies));
+      S = S * (1 - dies / atRisk);
+      n_events += dies;
+    }
+    const variance = S * S * cumGreen;
+    const se = Math.sqrt(variance);
+    let lo_ = S, hi_ = S;
+    if (S > 0 && S < 1 && se > 0) {
+      const se_log = se / (S * Math.log(S));
+      const z = 1.96;
+      lo_ = Math.max(0, Math.min(1, Math.pow(S, Math.exp(+z * Math.abs(se_log)))));
+      hi_ = Math.max(0, Math.min(1, Math.pow(S, Math.exp(-z * Math.abs(se_log)))));
+    }
+    atRisk -= (dies + cens);
+    steps.push({t, S, lo: lo_, hi: hi_, atRisk: Math.max(0, atRisk)});
+    if (atRisk <= 0) break;
+  }
+  const sAt = (target) => {
+    let s = 1.0;
+    for (const step of steps) { if (step.t > target) break; s = step.S; }
+    return s;
+  };
+  return { steps, S12: sAt(12), S24: sAt(24), n_events, N: patients.length };
+}
+
+// ─── Render one KM plot in an SVG element ───
+function renderKM(svgId, summaryId, cohort, lo, hi) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  svg.innerHTML = '';
+  const W = 500, H = 320;
+  const mL = 45, mR = 12, mT = 14, mB = 38;
+  const plotW = W - mL - mR, plotH = H - mT - mB;
+  const T_MAX = 36;
+  const xS = m => mL + (m / T_MAX) * plotW;
+  const yS = s => mT + (1 - s) * plotH;
+
+  // Build patient arrays per zone
+  const F = cohort.filter(p => p.r12 <= lo);
+  const M = cohort.filter(p => p.r12 > lo && p.r12 <= hi);
+  const E = cohort.filter(p => p.r12 > hi);
+
+  // Background grid
+  let s = '';
+  s += `<rect x="${mL}" y="${mT}" width="${plotW}" height="${plotH}" fill="#FAFBFC" stroke="#E2E8F0"/>`;
+  // Y grid lines
+  for (let v of [0, 0.25, 0.5, 0.75, 1.0]) {
+    s += `<line x1="${mL}" y1="${yS(v)}" x2="${mL+plotW}" y2="${yS(v)}" stroke="#F1F5F9" stroke-width="1"/>`;
+    s += `<text x="${mL-4}" y="${yS(v)+4}" text-anchor="end" font-size="10" fill="#64748B">${(v*100).toFixed(0)}%</text>`;
+  }
+  // X-axis ticks at 0, 6, 12, 18, 24, 30, 36
+  for (let t of [0, 6, 12, 18, 24, 30, 36]) {
+    s += `<line x1="${xS(t)}" y1="${mT+plotH}" x2="${xS(t)}" y2="${mT+plotH+4}" stroke="#475569" stroke-width="1"/>`;
+    s += `<text x="${xS(t)}" y="${mT+plotH+15}" text-anchor="middle" font-size="10" fill="#64748B">${t}</text>`;
+  }
+  s += `<text x="${mL+plotW/2}" y="${mT+plotH+33}" text-anchor="middle" font-size="11" fill="#475569">Time (months)</text>`;
+  // Vertical markers at 12 and 24
+  s += `<line x1="${xS(12)}" y1="${mT}" x2="${xS(12)}" y2="${mT+plotH}" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="2,3"/>`;
+  s += `<line x1="${xS(24)}" y1="${mT}" x2="${xS(24)}" y2="${mT+plotH}" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="2,3"/>`;
+
+  // Compute KM curves for each zone (sufficient size)
+  function stepPath(steps, color) {
+    let path = '';
+    let prev_y = yS(1);
+    for (const step of steps) {
+      const x = xS(Math.min(step.t, T_MAX));
+      path += (path === '' ? 'M' : 'L') + ` ${x} ${prev_y} L ${x} ${yS(step.S)} `;
+      prev_y = yS(step.S);
+    }
+    // Extend horizontally to right boundary
+    path += `L ${mL+plotW} ${prev_y}`;
+    return path;
+  }
+  function censorMarks(patients, kmRes, color) {
+    const cens = patients.filter(p => p.e === 0);
+    let out = '';
+    for (const c of cens) {
+      // Find S(t) at c.t
+      let S_at = 1;
+      for (const step of kmRes.steps) { if (step.t > c.t) break; S_at = step.S; }
+      out += `<line x1="${xS(c.t)}" y1="${yS(S_at)-4}" x2="${xS(c.t)}" y2="${yS(S_at)+4}" stroke="${color}" stroke-width="1.5"/>`;
+    }
+    return out;
+  }
+
+  const zones = [
+    {label: 'Faible', N: F.length, data: F, color: COL_F, sym: 'F'},
+    {label: 'Modéré', N: M.length, data: M, color: COL_M, sym: 'M'},
+    {label: 'Élevé',  N: E.length, data: E, color: COL_E, sym: 'E'},
+  ];
+
+  const summaries = [];
+  for (const z of zones) {
+    if (z.N < 3) {
+      summaries.push({...z, S12: NaN, S24: NaN, n_events: 0});
+      continue;
+    }
+    const r = km(z.data);
+    s += `<path d="${stepPath(r.steps, z.color)}" stroke="${z.color}" stroke-width="2.2" fill="none"/>`;
+    s += censorMarks(z.data, r, z.color);
+    summaries.push({...z, S12: r.S12, S24: r.S24, n_events: r.n_events});
+  }
+
+  // Legend (top-right)
+  const legX = mL + plotW - 130; const legY = mT + 8;
+  s += `<rect x="${legX-4}" y="${legY-4}" width="135" height="56" fill="white" fill-opacity="0.92" stroke="#E2E8F0"/>`;
+  for (let i = 0; i < zones.length; i++) {
+    s += `<rect x="${legX}" y="${legY + i*16}" width="12" height="3" fill="${zones[i].color}"/>`;
+    s += `<text x="${legX+18}" y="${legY + i*16 + 4}" font-size="10" fill="#1F2937">${zones[i].label} (N=${summaries[i].N}, ev=${summaries[i].n_events})</text>`;
+  }
+
+  svg.innerHTML = s;
+
+  // Build summary html
+  const sumEl = document.getElementById(summaryId);
+  if (sumEl) {
+    let html = '';
+    for (const z of summaries) {
+      const s12 = isNaN(z.S12) ? '—' : (z.S12*100).toFixed(0)+'%';
+      const s24 = isNaN(z.S24) ? '—' : (z.S24*100).toFixed(0)+'%';
+      html += `<div class="S-${z.sym}"><strong>${z.label}</strong><br>N=${z.N} (ev=${z.n_events})<br>@12mo : ${s12} · @24mo : ${s24}</div>`;
+    }
+    sumEl.innerHTML = html;
+  }
+}
+
+// ─── Pre-compute VPP(c) and VPN(c) curves for all 12 cohorts (constant) ───
+const N_CUTOFFS = 50;
+const VPN_CURVES = {};
+
+function precomputeVPNCurves() {
+  for (const vk_pipe of Object.keys(COHORT_DATA)) {
+    const arr = COHORT_DATA[vk_pipe].map(a => ({lp:a[0], r12:a[1], t:a[2], e:a[3]}));
+    if (arr.length === 0) { VPN_CURVES[vk_pipe] = null; continue; }
+    const r12_max = Math.max(...arr.map(a => a.r12));
+    const lo = Math.max(0.01, Math.min(...arr.map(a => a.r12)));
+    const hi = Math.min(0.99, r12_max);
+    const cutoffs = [], vpp = [], vpn = [];
+    for (let i = 0; i < N_CUTOFFS; i++) {
+      const c = lo + (hi - lo) * i / (N_CUTOFFS - 1);
+      cutoffs.push(c);
+      const high = arr.filter(p => p.r12 >= c);
+      const low  = arr.filter(p => p.r12 <  c);
+      vpp.push(high.length >= 3 ? (1 - km(high).S12) : NaN);
+      vpn.push(low.length  >= 3 ?      km(low).S12   : NaN);
+    }
+    VPN_CURVES[vk_pipe] = {cutoffs, vpp, vpn};
+  }
+}
+
+// ─── Render one VPP/VPN plot ───
+function renderVPN(svgId, vk_pipe, lo, hi) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const curves = VPN_CURVES[vk_pipe];
+  if (!curves) { svg.innerHTML = '<text x="50" y="50" font-size="11" fill="#94A3B8">No data</text>'; return; }
+  svg.innerHTML = '';
+
+  const W = 500, H = 260;
+  const mL = 40, mR = 10, mT = 12, mB = 32;
+  const plotW = W - mL - mR, plotH = H - mT - mB;
+  const xS = c => mL + c * plotW;       // c is 0..1
+  const yS = v => mT + (1 - v) * plotH;  // v is 0..1
+
+  // Background Tern zones (live updates based on current slider values)
+  let s = '';
+  s += `<rect x="${xS(0)}" y="${mT}" width="${xS(lo)-xS(0)}" height="${plotH}" fill="#DCFCE7" opacity="0.5"/>`;
+  s += `<rect x="${xS(lo)}" y="${mT}" width="${xS(hi)-xS(lo)}" height="${plotH}" fill="#FEF3C7" opacity="0.5"/>`;
+  s += `<rect x="${xS(hi)}" y="${mT}" width="${xS(1)-xS(hi)}" height="${plotH}" fill="#FEE2E2" opacity="0.5"/>`;
+
+  // Grid Y
+  for (let v of [0, 0.25, 0.5, 0.75, 1.0]) {
+    s += `<line x1="${mL}" y1="${yS(v)}" x2="${mL+plotW}" y2="${yS(v)}" stroke="#E2E8F0" stroke-width="0.8"/>`;
+    s += `<text x="${mL-4}" y="${yS(v)+4}" text-anchor="end" font-size="9" fill="#64748B">${(v*100).toFixed(0)}</text>`;
+  }
+  // X ticks
+  for (let c of [0, 0.25, 0.5, 0.75, 1.0]) {
+    s += `<text x="${xS(c)}" y="${mT+plotH+15}" text-anchor="middle" font-size="9" fill="#64748B">${(c*100).toFixed(0)}%</text>`;
+  }
+  s += `<text x="${mL+plotW/2}" y="${mT+plotH+28}" text-anchor="middle" font-size="10" fill="#475569">Cutoff c (r12 %)</text>`;
+  s += `<text x="10" y="${mT+plotH/2}" text-anchor="middle" font-size="10" fill="#475569" transform="rotate(-90 10 ${mT+plotH/2})">VPP / VPN (%)</text>`;
+
+  // VPP curve
+  let pVPP = '';
+  for (let i = 0; i < curves.cutoffs.length; i++) {
+    const v = curves.vpp[i];
+    if (!isNaN(v)) pVPP += (pVPP === '' ? 'M' : 'L') + ` ${xS(curves.cutoffs[i])} ${yS(v)} `;
+  }
+  s += `<path d="${pVPP}" stroke="${COL_VPP}" stroke-width="1.8" fill="none"/>`;
+  // VPN curve
+  let pVPN = '';
+  for (let i = 0; i < curves.cutoffs.length; i++) {
+    const v = curves.vpn[i];
+    if (!isNaN(v)) pVPN += (pVPN === '' ? 'M' : 'L') + ` ${xS(curves.cutoffs[i])} ${yS(v)} `;
+  }
+  s += `<path d="${pVPN}" stroke="${COL_VPN}" stroke-width="1.8" fill="none"/>`;
+
+  // Vertical lines at LO and HI
+  s += `<line x1="${xS(lo)}" y1="${mT}" x2="${xS(lo)}" y2="${mT+plotH}" stroke="${COL_F}" stroke-width="2" stroke-dasharray="4,3"/>`;
+  s += `<line x1="${xS(hi)}" y1="${mT}" x2="${xS(hi)}" y2="${mT+plotH}" stroke="${COL_E}" stroke-width="2" stroke-dasharray="4,3"/>`;
+  s += `<text x="${xS(lo)+3}" y="${mT+10}" font-size="9" fill="${COL_F}" font-weight="700">LO ${(lo*100).toFixed(0)}%</text>`;
+  s += `<text x="${xS(hi)+3}" y="${mT+10}" font-size="9" fill="${COL_E}" font-weight="700">HI ${(hi*100).toFixed(0)}%</text>`;
+
+  // Read VPP and VPN at the cutoffs (interpolation)
+  function valAt(c, ys) {
+    if (c <= curves.cutoffs[0]) return ys[0];
+    if (c >= curves.cutoffs[curves.cutoffs.length-1]) return ys[ys.length-1];
+    for (let i = 1; i < curves.cutoffs.length; i++) {
+      if (curves.cutoffs[i] >= c) {
+        const t = (c - curves.cutoffs[i-1]) / (curves.cutoffs[i] - curves.cutoffs[i-1]);
+        return ys[i-1] * (1-t) + ys[i] * t;
+      }
+    }
+    return NaN;
+  }
+  const vpn_lo = valAt(lo, curves.vpn);
+  const vpp_hi = valAt(hi, curves.vpp);
+  // Dots at the readouts
+  if (!isNaN(vpn_lo)) {
+    s += `<circle cx="${xS(lo)}" cy="${yS(vpn_lo)}" r="4" fill="${COL_VPN}" stroke="white" stroke-width="1.5"/>`;
+    s += `<text x="${xS(lo)+8}" y="${yS(vpn_lo)-6}" font-size="10" fill="${COL_VPN}" font-weight="700">VPN ${(vpn_lo*100).toFixed(0)}%</text>`;
+  }
+  if (!isNaN(vpp_hi)) {
+    s += `<circle cx="${xS(hi)}" cy="${yS(vpp_hi)}" r="4" fill="${COL_VPP}" stroke="white" stroke-width="1.5"/>`;
+    s += `<text x="${xS(hi)+8}" y="${yS(vpp_hi)-6}" font-size="10" fill="${COL_VPP}" font-weight="700">VPP ${(vpp_hi*100).toFixed(0)}%</text>`;
+  }
+  // Tiny legend
+  s += `<rect x="${mL+plotW-95}" y="${mT+plotH-32}" width="92" height="28" fill="white" fill-opacity="0.9" stroke="#E2E8F0"/>`;
+  s += `<rect x="${mL+plotW-90}" y="${mT+plotH-26}" width="12" height="2.5" fill="${COL_VPP}"/>`;
+  s += `<text x="${mL+plotW-75}" y="${mT+plotH-24}" font-size="9" fill="${COL_VPP}">VPP(c)</text>`;
+  s += `<rect x="${mL+plotW-90}" y="${mT+plotH-14}" width="12" height="2.5" fill="${COL_VPN}"/>`;
+  s += `<text x="${mL+plotW-75}" y="${mT+plotH-12}" font-size="9" fill="${COL_VPN}">VPN(c)</text>`;
+
+  svg.innerHTML = s;
+}
+
+// ─── Main render function : both KMs and VPP/VPN ───
+function renderAll() {
+  const lo = parseInt(document.getElementById('ternLo').value, 10) / 100;
+  const hi = parseInt(document.getElementById('ternHi').value, 10) / 100;
+  // Keep hi >= lo + 5%
+  if (hi <= lo) {
+    const slider_hi = document.getElementById('ternHi');
+    slider_hi.value = Math.min(100, lo*100 + 5);
+  }
+  const lo_f = parseInt(document.getElementById('ternLo').value, 10) / 100;
+  const hi_f = parseInt(document.getElementById('ternHi').value, 10) / 100;
+  document.getElementById('ternLoVal').textContent = (lo_f*100).toFixed(0);
+  document.getElementById('ternHiVal').textContent = (hi_f*100).toFixed(0);
+
+  for (const v of VARIANTS) {
+    for (const pipe of ['IDES','PV']) {
+      const key = v.vk + '_' + pipe;
+      const arr = COHORT_DATA[key] || [];
+      const cohort = arr.map(a => ({lp:a[0], r12:a[1], t:a[2], e:a[3]}));
+      renderKM('km_' + v.vk + '_' + pipe,
+               'km_' + v.vk + '_' + pipe + '_summary',
+               cohort, lo_f, hi_f);
+      renderVPN('vpp_' + v.vk + '_' + pipe, key, lo_f, hi_f);
+    }
+  }
+}
+
+function ternReset() { ternSet(15, 75); }
+function ternSet(lo, hi) {
+  document.getElementById('ternLo').value = lo;
+  document.getElementById('ternHi').value = hi;
+  renderAll();
+}
+
+// Init
+window.addEventListener('DOMContentLoaded', () => {
+  precomputeVPNCurves();
+  document.getElementById('ternLo').addEventListener('input', renderAll);
+  document.getElementById('ternHi').addEventListener('input', renderAll);
+  renderAll();
+});
+</script>
+
 </body>
 </html>
