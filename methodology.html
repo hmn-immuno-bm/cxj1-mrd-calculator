@@ -1787,6 +1787,9 @@ const COL_VPP = '#DC2626';
 const COL_VPN = '#15803D';
 
 // ─── Kaplan-Meier estimator (with Greenwood variance + log-log CI) ───
+// V15.338-fix : the S update MUST happen even when atRisk == dies (S goes to 0).
+// Previously, the `atRisk > dies` guard was on the *whole* block, leaving S=prev
+// when all remaining patients die at once — which made VPP cap below 100%.
 function km(patients) {
   const sorted = patients.slice().sort((a, b) => a.t - b.t);
   let S = 1.0;
@@ -1798,9 +1801,12 @@ function km(patients) {
   for (const t of unique_t) {
     const dies = sorted.filter(p => p.t === t && p.e === 1).length;
     const cens = sorted.filter(p => p.t === t && p.e === 0).length;
-    if (dies > 0 && atRisk > dies) {
-      cumGreen += dies / (atRisk * (atRisk - dies));
-      S = S * (1 - dies / atRisk);
+    if (dies > 0) {
+      // Greenwood variance is undefined when atRisk == dies, but S must still update
+      if (atRisk > dies) {
+        cumGreen += dies / (atRisk * (atRisk - dies));
+      }
+      S = S * (1 - dies / atRisk);  // when atRisk==dies, this gives S=0 (correct)
       n_events += dies;
     }
     const variance = S * S * cumGreen;
@@ -1926,24 +1932,26 @@ function renderKM(svgId, summaryId, cohort, lo, hi) {
 }
 
 // ─── Pre-compute VPP(c) and VPN(c) curves for all 12 cohorts (constant) ───
-const N_CUTOFFS = 50;
+// V15.338-fix : cutoffs span fixed [0.01, 0.99] so curves visually reach
+// VPP=100% on the right edge (was [min_r12, max_r12] which truncated some panels).
+// Min group size lowered to >=2 so small high-risk subgroups still produce a value.
+const N_CUTOFFS = 80;
 const VPN_CURVES = {};
 
 function precomputeVPNCurves() {
   for (const vk_pipe of Object.keys(COHORT_DATA)) {
     const arr = COHORT_DATA[vk_pipe].map(a => ({lp:a[0], r12:a[1], t:a[2], e:a[3]}));
     if (arr.length === 0) { VPN_CURVES[vk_pipe] = null; continue; }
-    const r12_max = Math.max(...arr.map(a => a.r12));
-    const lo = Math.max(0.01, Math.min(...arr.map(a => a.r12)));
-    const hi = Math.min(0.99, r12_max);
+    const lo = 0.01;
+    const hi = 0.99;
     const cutoffs = [], vpp = [], vpn = [];
     for (let i = 0; i < N_CUTOFFS; i++) {
       const c = lo + (hi - lo) * i / (N_CUTOFFS - 1);
       cutoffs.push(c);
       const high = arr.filter(p => p.r12 >= c);
       const low  = arr.filter(p => p.r12 <  c);
-      vpp.push(high.length >= 3 ? (1 - km(high).S12) : NaN);
-      vpn.push(low.length  >= 3 ?      km(low).S12   : NaN);
+      vpp.push(high.length >= 2 ? (1 - km(high).S12) : NaN);
+      vpn.push(low.length  >= 2 ?      km(low).S12   : NaN);
     }
     VPN_CURVES[vk_pipe] = {cutoffs, vpp, vpn};
   }
