@@ -96,6 +96,7 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
   <li><a href="#sec-cohorte">Cohorte d'entraînement</a>
     <ol class="toc-arabic" style="font-size:12.5px;">
       <li><a href="#sec-consort">CONSORT (flow d'inclusion)</a></li>
+      <li><a href="#sec-histo-detail">Histologie détaillée (4 catégories × sous-cats WHO 2022)</a></li>
       <li><a href="#sec-table1">Table 1 (baseline)</a></li>
       <li><a href="#sec-atypiques">Patients atypiques</a></li>
     </ol>
@@ -369,7 +370,72 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 <p class="muted">Diagramme CONSORT vectoriel — modèle V230.1 (endpoint EFS = rechute OR progression, cohorte V230 + 2 patients réintégrés par patches techniques patches anonymisés). <strong>Cascade haute en 3 étapes</strong> : 224 patients screenés → −51 données indisponibles → 173 avec données disponibles → −9 ctDNA non détectable au diag (annotation explicite) → <strong>164 patients avec ctDNA détectable</strong>. <strong>Branche IDES (gauche)</strong> : longue flèche directe (aucun filtre additionnel — le filtre ≥10 UMI est intégré en amont dans les watchlists IDES). <strong>Branche PV (droite)</strong> : 2 étapes intermédiaires explicites car les filtres qualité PV sont appliqués au pipeline (≥10 UMI + ratio VAF&gt;0.3) → 164 → −31 → <strong>133 avec données PV</strong> → −24 → <strong>109 avec variants PV détectés</strong>. Les 2 cohortes <strong>M1 sont alignées horizontalement</strong> (IDES 164 / PV 109) avec annotation centrale « 109 communs » (PV ⊂ IDES strict). Après le filtre TEP-2 Deauville, idem : <strong>M2 IDES ⭐ 138 / M2 PV 92 alignés</strong> avec « 92 communs » au centre. La nature des « 109 communs » : il s'agit littéralement des 109 patients M1 PV, tous strictement inclus dans les 164 M1 IDES (validation V15.288).</p>
 </div>
 
-<h3 id="sec-table1">II.2 Caractéristiques baseline (Table 1)</h3>
+<h3 id="sec-histo-detail">II.2 Distribution histologique détaillée</h3>
+<p>Cohorte CXJ1 (N=224 patients screenés) ventilée par catégorie histologique et sous-classification WHO 2022 :</p>
+
+<div class="variant-grid" style="grid-template-columns: 1fr 1fr;">
+<div class="variant-card" style="background:#eff6ff; border:1px solid #2563eb;">
+<h4 style="color:#1e40af;">🔵 Lymphomes B agressifs (vrais DLBCL et apparentés) — N = 98 (43.8 %)</h4>
+<table style="font-size:12px;">
+<tr><td>DLBCL NOS</td><td><strong>56</strong></td></tr>
+<tr><td>DLBCL NOS (LFt ?)</td><td>2</td></tr>
+<tr><td>PMBL (primary mediastinal B-cell lymphoma)</td><td><strong>9</strong></td></tr>
+<tr><td>HGBL (high-grade B-cell lymphoma, MYC/BCL2/BCL6 DH/TH)</td><td><strong>9</strong></td></tr>
+<tr><td>Burkitt lymphoma</td><td><strong>8</strong></td></tr>
+<tr><td>DLBCL EBV+ (incl. lymphoprolif. post-IS type DLBCL)</td><td>5</td></tr>
+<tr><td>DLBCL des sites immunoprivilégiés (testis, breast, CNS-primary)</td><td>4</td></tr>
+<tr><td>T/HRBCL (T-cell/Histiocyte-rich B-cell lymphoma)</td><td>2</td></tr>
+<tr><td>DLBCL intravasculaire</td><td>1</td></tr>
+<tr><td>DLBCL leg-type</td><td>1</td></tr>
+<tr><td>DLBCL avec réarrangement IRF4</td><td>1</td></tr>
+<tr><td>DLBCL (PMBL ?)</td><td>1</td></tr>
+</table>
+</div>
+
+<div class="variant-card" style="background:#ecfdf5; border:1px solid #16a34a;">
+<h4 style="color:#15803d;">🟢 Hodgkin — N = 88 (39.3 %)</h4>
+<table style="font-size:12px;">
+<tr><td>Hodgkin classique (sous-types : nodulaire sclérosant, cellularité mixte, riche en lymphocytes, déplétion lymphocytaire)</td><td><strong>86</strong></td></tr>
+<tr><td>NLPHL (Hodgkin nodulaire à prédominance lymphocytaire)</td><td>2</td></tr>
+</table>
+<p class="muted" style="margin-top:8px;">Pour le score cinétique, NLPHL est routé vers la trajectoire « DLBCL » (groupe « non-Hodgkin »).</p>
+</div>
+
+<div class="variant-card" style="background:#f5f3ff; border:1px solid #7c3aed; margin-top:14px;">
+<h4 style="color:#6d28d9;">🟣 Lymphomes B agressifs <em>transformés</em> à partir d'indolent — N = 22 (9.8 %)</h4>
+<table style="font-size:12px;">
+<tr><td>Transformation sur LFt (lymphome folliculaire)</td><td><strong>9 + 2 (DLBCL sur LFt) = 11</strong></td></tr>
+<tr><td>HGBL sur LFt</td><td>3</td></tr>
+<tr><td>Transformation sur LZMt (lymphome de la zone marginale)</td><td>3 + 1 (DLBCL sur LZMt) = 4</td></tr>
+<tr><td>DLBCL sur LPLt / Waldenströmt (lymphoplasmocytaire)</td><td>2</td></tr>
+<tr><td>Richter sur LLCt (chronic lymphocytic leukemia)</td><td>1</td></tr>
+<tr><td>Poppema transformé</td><td>1</td></tr>
+</table>
+</div>
+
+<div class="variant-card" style="background:#fff7ed; border:1px solid #ea580c; margin-top:14px;">
+<h4 style="color:#9a3412;">🟠 Lymphomes indolents <em>non transformés</em> — N = 16 (7.1 %)</h4>
+<table style="font-size:12px;">
+<tr><td>LF (lymphome folliculaire grade 1-3a)</td><td>6</td></tr>
+<tr><td>LZM (lymphome de la zone marginale)</td><td>4</td></tr>
+<tr><td>MCL (mantle cell lymphoma)</td><td>3</td></tr>
+<tr><td>Lymphoprolifération B liée à l'EBV</td><td>2</td></tr>
+<tr><td>Waldenström / LPL</td><td>1</td></tr>
+</table>
+</div>
+</div>
+
+<div class="note" style="background:#dcfce7; border-color:#16a34a; margin:14px 0; padding:10px 14px;">
+<strong>📌 Binarisation pour le score cinétique</strong> — Pour le calcul de score_kin (mono-exp par histo × responder),
+on regroupe l'histologie en <strong>2 groupes</strong> :
+<ul style="margin:6px 0 0 18px;">
+<li><strong>Groupe « Hodgkin »</strong> = Hodgkin classique uniquement (NLPHL ré-routé vers DLBCL — comportement biologique distinct).</li>
+<li><strong>Groupe « Non-Hodgkin »</strong> (utilise trajectoire DLBCL) = vrais DLBCL + PMBL + HGBL + Burkitt + transformés indolents + indolents non-transformés.</li>
+</ul>
+Cette binarisation s'est avérée optimale empiriquement vs des stratifications plus fines (LR test χ² avec sous-cats : NS p > 0.30).
+</div>
+
+<h3 id="sec-table1">II.3 Caractéristiques baseline (Table 1)</h3>
 <p>Caractéristiques de la cohorte M2_hEq IDES (N=137 — snapshot pré-patches V15.289/V15.291), ventilées par responder et histologie :</p>
 <table style="font-size:13px;">
 <thead>
@@ -414,7 +480,7 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 </table>
 <p class="muted">Table HTML — entièrement vectorielle, accessible (lecteurs d'écran), copiable. Données brutes : <a href="figs/Table1_cohort.csv">CSV</a>.</p>
 
-<h3 id="sec-atypiques">II.3 Patients atypiques documentés</h3>
+<h3 id="sec-atypiques">II.4 Patients atypiques documentés</h3>
 <p>Quelques profils patients méritent une mention pour la traçabilité de la cohorte (catégories anonymisées) :</p>
 <ul>
 <li><strong>DLBCL réfractaire avec TEP non fait</strong> (N=1) — progression à 2 mo, décès à 4 mo. Routé en M1.</li>
