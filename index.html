@@ -290,7 +290,7 @@ svg { width: 100%; height: 100%; overflow: visible; }
 
     <!-- POSITION DU PATIENT — VPN/VPP/LR observées à 12 mois sur cohorte ordonnée par r12 -->
     <div class="card" id="patientPositionCard" style="display:none;">
-      <h2>📍 Position du patient dans la cohorte (VPN, VPP, LR à 12 mois)</h2>
+      <h2>📍 Position du patient dans la cohorte (VPN/VPP, LR+/LR− à 12 mois)</h2>
       <p style="font-size:12px; color:#475569;">
         On classe la cohorte de développement par r12 prédit et on découpe au score du patient.
         <strong>VPN</strong> = % <em>sans</em> rechute à 12 mois parmi r12 ≤ patient.
@@ -357,15 +357,6 @@ svg { width: 100%; height: 100%; overflow: visible; }
         Le patient appartient aux DEUX groupes car sa valeur est son propre seuil.
       </p>
 
-      <!-- V15.328 — VPP / VPN curves as functions of cutoff, with vertical line at patient -->
-      <h3 style="font-size:13px; color:#444; margin:14px 0 6px; font-weight:600;">📈 Courbes VPP & VPN selon le seuil r12 (cohorte d'entraînement)</h3>
-      <div id="vppvpnChart" style="width:100%; height:280px; margin-top:6px;"></div>
-      <p style="font-size:11px; color:#64748b; font-style:italic; margin-top:4px;">
-        Courbes calculées par Kaplan-Meier dans chaque sous-cohorte définie par le cutoff c (méthode Heagerty 2000) :
-        <span style="color:#dc2626; font-weight:600;">VPP(c)</span> = 1 − S_KM(12) sur les patients avec r12 ≥ c.
-        <span style="color:#15803d; font-weight:600;">VPN(c)</span> = S_KM(12) sur les patients avec r12 &lt; c.
-        Ligne pointillée verticale = position du patient sur l'axe r12. Plus le patient est à droite (haut risque), plus la VPP locale est forte.
-      </p>
     </div>
 
     <div class="card" id="kmCard" style="display:none;">
@@ -744,144 +735,12 @@ function updateRankBasedVPN(pipe, patient_r12) {
     _gridLayout(lrGrid,  true, true);
   }
 
-  // V15.328 — Draw VPP/VPN curves as function of cutoff
-  drawVPPVPNCurves(pipe, patient_r12);
+  // (V15.343 : VPP/VPN curves block removed from UI — call dropped)
 }
 
-// V15.328 — VPP(c) and VPN(c) curves (Heagerty 2000 KM-based)
-// X-axis : cutoff c on predicted r12 (0 to 1)
-// Y-axis : VPP and VPN values (%)
-// Vertical line at patient's r12
-function drawVPPVPNCurves(pipe, patient_r12) {
-  const container = document.getElementById('vppvpnChart');
-  if (!container) return;
-  const cohort = pickCohort()[pipe].cohort;  // [[LP, r12, T, E], ...]
-  if (!cohort || cohort.length === 0) { container.innerHTML = ''; return; }
-
-  // Build cutoff grid : 50 evenly spaced cutoffs from 0 to max observed r12
-  const maxR12 = Math.max(...cohort.map(p => p[1]));
-  const minR12 = Math.min(...cohort.map(p => p[1]));
-  const lo = Math.max(0.01, minR12);
-  const hi = Math.min(0.99, maxR12);
-  const N_GRID = 60;
-  const cutoffs = [];
-  for (let i = 0; i < N_GRID; i++) {
-    cutoffs.push(lo + (hi - lo) * i / (N_GRID - 1));
-  }
-  // For each cutoff, compute VPP and VPN via KM on subgroups
-  const ppvs = [], npvs = [], ppv_lo_arr = [], ppv_hi_arr = [], npv_lo_arr = [], npv_hi_arr = [];
-  for (const c of cutoffs) {
-    const high = cohort.filter(p => p[1] >= c).map(p => ({lp:p[0], r12:p[1], t:p[2], e:p[3]}));
-    const low  = cohort.filter(p => p[1] <  c).map(p => ({lp:p[0], r12:p[1], t:p[2], e:p[3]}));
-    const km_h = high.length >= 3 ? km(high) : null;
-    const km_l = low.length  >= 3 ? km(low)  : null;
-    if (km_h) {
-      ppvs.push(1 - km_h.S12);
-      // Use last KM step's bounds at 12mo
-      const step = km_h.steps.filter(s => s.t <= 12).slice(-1)[0] || km_h.steps[0];
-      ppv_lo_arr.push(1 - step.hi); ppv_hi_arr.push(1 - step.lo);
-    } else {
-      ppvs.push(NaN); ppv_lo_arr.push(NaN); ppv_hi_arr.push(NaN);
-    }
-    if (km_l) {
-      npvs.push(km_l.S12);
-      const step = km_l.steps.filter(s => s.t <= 12).slice(-1)[0] || km_l.steps[0];
-      npv_lo_arr.push(step.lo); npv_hi_arr.push(step.hi);
-    } else {
-      npvs.push(NaN); npv_lo_arr.push(NaN); npv_hi_arr.push(NaN);
-    }
-  }
-
-  // Render SVG
-  const W = container.clientWidth || 540;
-  const H = 280;
-  const mL = 50, mR = 100, mT = 16, mB = 40;
-  const plotW = W - mL - mR, plotH = H - mT - mB;
-  const x = c => mL + (c / 1) * plotW;   // cutoff axis 0..1
-  const y = v => mT + (1 - v) * plotH;   // value axis 0..1
-
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:${H}px;">`;
-  // Background bands (Tern zones) — match calculator 15/75
-  svg += `<rect x="${x(0)}" y="${mT}" width="${x(0.15) - x(0)}" height="${plotH}" fill="#dcfce7" opacity="0.4"/>`;
-  svg += `<rect x="${x(0.15)}" y="${mT}" width="${x(0.75) - x(0.15)}" height="${plotH}" fill="#fef3c7" opacity="0.4"/>`;
-  svg += `<rect x="${x(0.75)}" y="${mT}" width="${x(1) - x(0.75)}" height="${plotH}" fill="#fee2e2" opacity="0.4"/>`;
-  // Axes
-  svg += `<line x1="${mL}" y1="${y(0)}" x2="${mL+plotW}" y2="${y(0)}" stroke="#475569" stroke-width="1"/>`;
-  svg += `<line x1="${mL}" y1="${y(0)}" x2="${mL}" y2="${mT}" stroke="#475569" stroke-width="1"/>`;
-  // Y ticks
-  [0, 0.25, 0.5, 0.75, 1].forEach(v => {
-    svg += `<line x1="${mL-4}" y1="${y(v)}" x2="${mL}" y2="${y(v)}" stroke="#94a3b8" stroke-width="1"/>`;
-    svg += `<text x="${mL-7}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="#64748b">${(v*100).toFixed(0)}%</text>`;
-  });
-  // X ticks
-  [0, 0.15, 0.40, 0.75, 1].forEach(c => {
-    if (c <= 1) {
-      svg += `<line x1="${x(c)}" y1="${y(0)}" x2="${x(c)}" y2="${y(0)+4}" stroke="#94a3b8" stroke-width="1"/>`;
-      svg += `<text x="${x(c)}" y="${y(0)+15}" text-anchor="middle" font-size="10" fill="#64748b">${(c*100).toFixed(0)}%</text>`;
-    }
-  });
-  // X-axis label
-  svg += `<text x="${mL + plotW/2}" y="${y(0)+34}" text-anchor="middle" font-size="11" fill="#475569">Cutoff r12 prédit (%)</text>`;
-  // Y-axis label
-  svg += `<text x="${mL-32}" y="${mT + plotH/2}" text-anchor="middle" font-size="11" fill="#475569" transform="rotate(-90 ${mL-32} ${mT+plotH/2})">Valeur prédictive (%)</text>`;
-  // VPP confidence band (red, transparent)
-  let bandStrPPV = '';
-  for (let i = 0; i < cutoffs.length; i++) {
-    if (!isNaN(ppv_hi_arr[i])) bandStrPPV += `${i === 0 ? 'M' : 'L'} ${x(cutoffs[i])} ${y(ppv_hi_arr[i])} `;
-  }
-  for (let i = cutoffs.length - 1; i >= 0; i--) {
-    if (!isNaN(ppv_lo_arr[i])) bandStrPPV += `L ${x(cutoffs[i])} ${y(ppv_lo_arr[i])} `;
-  }
-  bandStrPPV += 'Z';
-  svg += `<path d="${bandStrPPV}" fill="#fca5a5" opacity="0.25"/>`;
-  // VPN confidence band (green, transparent)
-  let bandStrNPV = '';
-  for (let i = 0; i < cutoffs.length; i++) {
-    if (!isNaN(npv_hi_arr[i])) bandStrNPV += `${i === 0 ? 'M' : 'L'} ${x(cutoffs[i])} ${y(npv_hi_arr[i])} `;
-  }
-  for (let i = cutoffs.length - 1; i >= 0; i--) {
-    if (!isNaN(npv_lo_arr[i])) bandStrNPV += `L ${x(cutoffs[i])} ${y(npv_lo_arr[i])} `;
-  }
-  bandStrNPV += 'Z';
-  svg += `<path d="${bandStrNPV}" fill="#86efac" opacity="0.25"/>`;
-
-  // VPP curve (red)
-  let pathPPV = '';
-  for (let i = 0; i < cutoffs.length; i++) {
-    if (!isNaN(ppvs[i])) pathPPV += `${pathPPV === '' ? 'M' : 'L'} ${x(cutoffs[i])} ${y(ppvs[i])} `;
-  }
-  svg += `<path d="${pathPPV}" stroke="#dc2626" stroke-width="2.2" fill="none"/>`;
-
-  // VPN curve (green)
-  let pathNPV = '';
-  for (let i = 0; i < cutoffs.length; i++) {
-    if (!isNaN(npvs[i])) pathNPV += `${pathNPV === '' ? 'M' : 'L'} ${x(cutoffs[i])} ${y(npvs[i])} `;
-  }
-  svg += `<path d="${pathNPV}" stroke="#15803d" stroke-width="2.2" fill="none"/>`;
-
-  // Vertical line at patient's r12
-  const patient_x = x(Math.min(1, Math.max(0, patient_r12)));
-  svg += `<line x1="${patient_x}" y1="${mT}" x2="${patient_x}" y2="${y(0)}" stroke="#1e3a8a" stroke-width="2" stroke-dasharray="4,3"/>`;
-  svg += `<text x="${patient_x}" y="${mT - 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#1e3a8a">Patient (r12=${(patient_r12*100).toFixed(1)}%)</text>`;
-
-  // Legend in right margin
-  const legX = mL + plotW + 10;
-  svg += `<rect x="${legX}" y="${mT}" width="14" height="3" fill="#dc2626"/>`;
-  svg += `<text x="${legX+18}" y="${mT+5}" font-size="11" fill="#dc2626" font-weight="700">VPP(c)</text>`;
-  svg += `<text x="${legX+18}" y="${mT+18}" font-size="9" fill="#475569">= P(événement | r12 ≥ c)</text>`;
-  svg += `<rect x="${legX}" y="${mT+38}" width="14" height="3" fill="#15803d"/>`;
-  svg += `<text x="${legX+18}" y="${mT+43}" font-size="11" fill="#15803d" font-weight="700">VPN(c)</text>`;
-  svg += `<text x="${legX+18}" y="${mT+56}" font-size="9" fill="#475569">= P(non-événement | r12 &lt; c)</text>`;
-  svg += `<line x1="${legX}" y1="${mT+76}" x2="${legX+14}" y2="${mT+76}" stroke="#1e3a8a" stroke-width="2" stroke-dasharray="3,2"/>`;
-  svg += `<text x="${legX+18}" y="${mT+80}" font-size="10" fill="#1e3a8a">Patient</text>`;
-  // Tern bands legend
-  svg += `<text x="${legX}" y="${mT+110}" font-size="9" fill="#15803d">🟢 Faible ≤ 15%</text>`;
-  svg += `<text x="${legX}" y="${mT+125}" font-size="9" fill="#92400e">🟡 Modéré 15-75%</text>`;
-  svg += `<text x="${legX}" y="${mT+140}" font-size="9" fill="#b91c1c">🔴 Élevé > 75%</text>`;
-
-  svg += `</svg>`;
-  container.innerHTML = svg;
-}
+// V15.343 : drawVPPVPNCurves removed (VPP/VPN curves UI block deleted from §Position du patient).
+// The VPP/VPN/LR information for the patient is now presented exclusively via the 2 (or 1) summary
+// boxes above, conditioned on patient r12 vs histo prevalence (display:none for the irrelevant side).
 
 // VPN(depth) section retirée (V15.272-273) : la depth n'est pas un prédicteur direct de la VPN
 // dans cette cohorte (slope NS p=0.40-0.75) car (1) polish v56/v75 absorbe déjà la qualité technique,
