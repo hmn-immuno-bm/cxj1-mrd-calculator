@@ -1022,29 +1022,59 @@ Trajectoires mono-exp robustes par strate (histo × responder). PV Hodgkin/bad u
 </style>
 
 <div class="tern-controls">
-<h3>🎛 Curseurs Tern interactifs</h3>
-<div class="slider-row">
-  <label for="ternLo">Cutoff <strong>LO</strong>  (Faible↔Modéré)</label>
-  <input type="range" id="ternLo" min="0" max="100" step="1" value="15">
-  <div class="val"><span id="ternLoVal">15</span> %</div>
+<h3>🎛 Curseurs Tern <em>adaptatifs par histologie</em>  (V15.344)</h3>
+<p style="font-size:12px; color:#475569; margin:0 0 12px;">
+  <strong>Pourquoi 2 paires de curseurs ?</strong> La distribution r12 des Hodgkin classiques est très tassée à gauche (médiane ≈ 5 %, Q75 ≈ 8 %), alors que les B agressifs + indolents s'étalent jusqu'à 100 %. Un Tern unique 15 / 75 colle ~95 % des Hodgkin dans la zone Faible et les 3 courbes KM Hodgkin sont indissociables. Le Tern <strong>adaptatif par histo</strong> sépare clairement les 3 zones dans chaque population.
+</p>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px;">
+  <!-- Colonne Hodgkin -->
+  <div style="padding:10px 12px; background:#F5F3FF; border:1.5px solid #7C3AED; border-radius:6px;">
+    <div style="font-weight:700; color:#7C3AED; margin-bottom:8px; font-size:14px;">Hodgkin classique</div>
+    <div class="slider-row" style="grid-template-columns: 80px 1fr 60px;">
+      <label for="ternHLo"><strong>LO</strong></label>
+      <input type="range" id="ternHLo" min="0" max="50" step="1" value="3" style="accent-color:#7C3AED;">
+      <div class="val"><span id="ternHLoVal">3</span> %</div>
+    </div>
+    <div class="slider-row" style="grid-template-columns: 80px 1fr 60px;">
+      <label for="ternHHi"><strong>HI</strong></label>
+      <input type="range" id="ternHHi" min="0" max="100" step="1" value="15" style="accent-color:#7C3AED;">
+      <div class="val"><span id="ternHHiVal">15</span> %</div>
+    </div>
+    <div style="font-size:11px; color:#5b21b6; margin-top:6px;">
+      Défaut <strong>3 / 15</strong> : zero rechute en zone Faible (cohorte agrégée N=110, 9 ev).
+    </div>
+  </div>
+
+  <!-- Colonne Non-Hodgkin -->
+  <div style="padding:10px 12px; background:#FFF7ED; border:1.5px solid #B45309; border-radius:6px;">
+    <div style="font-weight:700; color:#B45309; margin-bottom:8px; font-size:14px;">B agressifs + indolents</div>
+    <div class="slider-row" style="grid-template-columns: 80px 1fr 60px;">
+      <label for="ternNHLo"><strong>LO</strong></label>
+      <input type="range" id="ternNHLo" min="0" max="50" step="1" value="15" style="accent-color:#B45309;">
+      <div class="val"><span id="ternNHLoVal">15</span> %</div>
+    </div>
+    <div class="slider-row" style="grid-template-columns: 80px 1fr 60px;">
+      <label for="ternNHHi"><strong>HI</strong></label>
+      <input type="range" id="ternNHHi" min="0" max="100" step="1" value="75" style="accent-color:#B45309;">
+      <div class="val"><span id="ternNHHiVal">75</span> %</div>
+    </div>
+    <div style="font-size:11px; color:#92400e; margin-top:6px;">
+      Défaut <strong>15 / 75</strong> : seul couple rond avec ordre KM Vert > Orange > Rouge à 12mo ET 24mo.
+    </div>
+  </div>
 </div>
-<div class="slider-row">
-  <label for="ternHi">Cutoff <strong>HI</strong>  (Modéré↔Élevé)</label>
-  <input type="range" id="ternHi" min="0" max="100" step="1" value="75">
-  <div class="val"><span id="ternHiVal">75</span> %</div>
-</div>
-<div class="legend">
+
+<div class="legend" style="margin-top:12px;">
   <span class="legend-item"><span class="legend-sw" style="background:#22C55E;"></span> Faible (r12 ≤ LO)</span>
   <span class="legend-item"><span class="legend-sw" style="background:#F59E0B;"></span> Modéré (LO &lt; r12 ≤ HI)</span>
   <span class="legend-item"><span class="legend-sw" style="background:#EF4444;"></span> Élevé (r12 &gt; HI)</span>
-  <button class="reset-btn" onclick="ternReset()">↻ Reset 15 / 75</button>
-  <button class="reset-btn" onclick="ternSet(10,40)" style="border-color:#94A3B8;color:#475569;">Tern 10 / 40</button>
-  <button class="reset-btn" onclick="ternSet(5,35)"  style="border-color:#94A3B8;color:#475569;">Tern 5 / 35</button>
-  <button class="reset-btn" onclick="ternSet(20,60)" style="border-color:#94A3B8;color:#475569;">Tern 20 / 60</button>
+  <button class="reset-btn" onclick="ternResetAdaptive()">↻ Reset (3/15 H · 15/75 NH)</button>
+  <button class="reset-btn" onclick="ternSetUniform(15, 75)" style="border-color:#94A3B8;color:#475569;">Tern uniforme 15 / 75</button>
 </div>
 </div>
 
-<p class="muted">Seuils par défaut <strong>Tern 15 / 75</strong> sélectionnés (V15.332) par scan exhaustif des couples ronds (lo, hi) — seul seuil rond garantissant l'ordre KM Vert &gt; Orange &gt; Rouge à <strong>12 mois ET 24 mois</strong> simultanément sur les 12 KMs (6 variantes × 2 pipelines), avec gap Faible-Modéré ≥ 18 pt à 12mo (32 pt à 24mo) et Élevé EFS@24 = 0 % partout.</p>
+<p class="muted">Seuils par défaut V15.344 — <strong>Hodgkin : 3 / 15</strong> (scan exhaustif sur N=110 patients agrégés IDES+PV, 0 rechute en zone Faible) ; <strong>B agressifs + indolents : 15 / 75</strong> (V15.332 — seul couple rond avec ordre KM Vert &gt; Orange &gt; Rouge à 12mo ET 24mo).</p>
 
 <h3>Performance par zone × variante (12 KMs interactifs)</h3>
 <div class="warn" style="margin:10px 0 14px; font-size:13px;">
@@ -1216,16 +1246,16 @@ Trajectoires mono-exp robustes par strate (histo × responder). PV Hodgkin/bad u
 <div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
 <strong style="color:#15803d;">🔬 Observations clés</strong><br>
 <ul style="margin:6px 0 0 18px;">
-<li>Hodgkin (violet) — prévalence R/R basse : 8.2 % @12mo, 10.9 % @24mo. Très peu de patients en zone Élevé.</li>
-<li>B agressifs + indolents (orange) — prévalence 2.7× plus haute : 22.1 % @12mo, 26.1 % @24mo.</li>
-<li>Le seuil HI=75 % isole une zone Élevé quasi-exclusivement Non-Hodgkin (EFS@24 = 0 % typiquement).</li>
-<li>Déplacez les curseurs pour explorer d'autres seuils — les 24 KMs (6 variantes × 2 pipelines × 2 histo) se mettent à jour en direct.</li>
+<li><strong>Hodgkin classique</strong> — prévalence R/R = 8.2 % @12mo / 10.9 % @24mo. Distribution r12 très tassée (Q75 ≈ 8 %). Avec Tern <strong>3/15</strong>, les 3 courbes KM se séparent nettement et 0 rechute est ratée en zone Faible (cohorte agrégée IDES+PV : N=110, 9 events).</li>
+<li><strong>B agressifs + indolents</strong> — prévalence R/R = 22.1 % @12mo / 26.1 % @24mo. Distribution r12 étalée jusqu'à 100 %. Tern <strong>15/75</strong> garantit l'ordre KM correct à 12mo ET 24mo (V15.332).</li>
+<li>Si vous appliquez Tern uniforme 15/75 sur Hodgkin (bouton « Tern uniforme »), ~95 % des Hodgkin tombent en zone Faible et les KMs deviennent indissociables — c'est ce qui motive l'adaptation par histologie.</li>
+<li>C-index restreint au sous-groupe Hodgkin : 0.83 (IDES) / 0.94 (PV) — discrimination statistique excellente même si la stratification clinique nécessite des seuils adaptés.</li>
 </ul>
 </div>
 
 <div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
 <strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Tern 15/75 retenu en production. Le split histologique révèle que la zone Élevé est presque exclusivement peuplée de Non-Hodgkin (prévalence élevée), tandis que le Hodgkin est presque tout en zone Faible (haut C-index = ordre conservé). Ceci justifie d'utiliser un score MRD individuel qui dépasse la stratification clinique par histologie.
+<strong>Tern adaptatif par histologie</strong> retenu en production V15.344 : Hodgkin 3 / 15, B agressifs + indolents 15 / 75. Le seuil LO=3 % chez Hodgkin (≈ 1/3 de la prévalence histo) maintient le rapport LO/prévalence cohérent entre les deux groupes (3/10 ≈ 15/22) et capture les rechutés qui passaient sous le seuil global. Le calculateur applique ces seuils automatiquement selon l'histo saisie.
 </div>
 </div>
 
@@ -1757,6 +1787,9 @@ Toute citation académique du modèle ou du calculateur doit référencer la ver
 </div>
 
 </div>
+</body>
+</html>
+</div>
 
 
 <!-- ════════════ INTERACTIVE TERN + VPP/VPN — V15.338 ════════════ -->
@@ -1918,46 +1951,60 @@ function renderKM(svgId, summaryId, cohort, lo, hi) {
   }
 }
 
-// ─── Main render function : 4 KMs per variant (IDES×PV  ×  Hodgkin×NonHodgkin) ───
+// ─── Main render function : 4 KMs per variant — Tern ADAPTATIF par histo (V15.344) ───
+function _getSliderValue(id) { return parseInt(document.getElementById(id).value, 10) / 100; }
+
 function renderAll() {
-  const lo = parseInt(document.getElementById('ternLo').value, 10) / 100;
-  const hi = parseInt(document.getElementById('ternHi').value, 10) / 100;
-  // Keep hi >= lo + 5%
-  if (hi <= lo) {
-    document.getElementById('ternHi').value = Math.min(100, lo*100 + 5);
-  }
-  const lo_f = parseInt(document.getElementById('ternLo').value, 10) / 100;
-  const hi_f = parseInt(document.getElementById('ternHi').value, 10) / 100;
-  document.getElementById('ternLoVal').textContent = (lo_f*100).toFixed(0);
-  document.getElementById('ternHiVal').textContent = (hi_f*100).toFixed(0);
+  // Read 4 slider values + safety checks
+  let lo_H  = _getSliderValue('ternHLo');
+  let hi_H  = _getSliderValue('ternHHi');
+  let lo_NH = _getSliderValue('ternNHLo');
+  let hi_NH = _getSliderValue('ternNHHi');
+  // Enforce hi > lo + 1% each
+  if (hi_H  <= lo_H)  { document.getElementById('ternHHi').value  = Math.min(100, lo_H*100  + 5); hi_H  = _getSliderValue('ternHHi'); }
+  if (hi_NH <= lo_NH) { document.getElementById('ternNHHi').value = Math.min(100, lo_NH*100 + 5); hi_NH = _getSliderValue('ternNHHi'); }
+
+  // Update slider value labels
+  document.getElementById('ternHLoVal').textContent  = (lo_H*100).toFixed(0);
+  document.getElementById('ternHHiVal').textContent  = (hi_H*100).toFixed(0);
+  document.getElementById('ternNHLoVal').textContent = (lo_NH*100).toFixed(0);
+  document.getElementById('ternNHHiVal').textContent = (hi_NH*100).toFixed(0);
 
   for (const v of VARIANTS) {
     for (const pipe of ['IDES','PV']) {
       const key = v.vk + '_' + pipe;
       const arr = COHORT_DATA[key] || [];
-      // Cohort entries [LP, r12, T, E, isHodgkin]
       const all_h  = arr.filter(a => a[4] === 1).map(a => ({lp:a[0], r12:a[1], t:a[2], e:a[3]}));
       const all_nh = arr.filter(a => a[4] === 0).map(a => ({lp:a[0], r12:a[1], t:a[2], e:a[3]}));
+      // Hodgkin panels use H thresholds, Non-Hodgkin panels use NH thresholds
       renderKM('km_' + v.vk + '_' + pipe + '_H',
                'km_' + v.vk + '_' + pipe + '_H_summary',
-               all_h, lo_f, hi_f);
+               all_h, lo_H, hi_H);
       renderKM('km_' + v.vk + '_' + pipe + '_NH',
                'km_' + v.vk + '_' + pipe + '_NH_summary',
-               all_nh, lo_f, hi_f);
+               all_nh, lo_NH, hi_NH);
     }
   }
 }
 
-function ternReset() { ternSet(15, 75); }
-function ternSet(lo, hi) {
-  document.getElementById('ternLo').value = lo;
-  document.getElementById('ternHi').value = hi;
+function ternResetAdaptive() {
+  document.getElementById('ternHLo').value  = 3;
+  document.getElementById('ternHHi').value  = 15;
+  document.getElementById('ternNHLo').value = 15;
+  document.getElementById('ternNHHi').value = 75;
+  renderAll();
+}
+function ternSetUniform(lo, hi) {
+  document.getElementById('ternHLo').value  = lo;
+  document.getElementById('ternHHi').value  = hi;
+  document.getElementById('ternNHLo').value = lo;
+  document.getElementById('ternNHHi').value = hi;
   renderAll();
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('ternLo').addEventListener('input', renderAll);
-  document.getElementById('ternHi').addEventListener('input', renderAll);
+  ['ternHLo','ternHHi','ternNHLo','ternNHHi'].forEach(id =>
+    document.getElementById(id).addEventListener('input', renderAll));
   renderAll();
 });
 </script>
