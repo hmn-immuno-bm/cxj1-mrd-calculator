@@ -105,12 +105,20 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
       <li><a href="#sec-lp">Linear predictor & risque</a></li>
     </ol>
   </li>
-  <li><a href="#sec-variantes">Les 6 variantes V230.1</a></li>
+  <li><a href="#sec-variantes">Les 6 variantes V230.1</a>
+    <ol class="toc-arabic" style="font-size:12.5px;">
+      <li><a href="#sec-pv-vs-ides">PV vs IDES — comparaison sur overlap N=92</a></li>
+    </ol>
+  </li>
   <li><a href="#sec-coefs-v230">Coefficients V230.1 (production)</a></li>
   <li><a href="#sec-traj-fitted">Trajectoires fittées (λ par strate)</a></li>
   <li><a href="#sec-partial-pooling">Partial pooling IDES = PV (justification)</a></li>
   <li><a href="#sec-tern">Stratification clinique Tern 5/35</a></li>
-  <li><a href="#sec-calib-locale">Calibration locale (KNN adaptatif)</a></li>
+  <li><a href="#sec-calib-locale">Calibration locale (KNN adaptatif)</a>
+    <ol class="toc-arabic" style="font-size:12.5px;">
+      <li><a href="#sec-ppv-npv-method">VPP / VPN time-dependent — méthode</a></li>
+    </ol>
+  </li>
   <li><a href="#sec-validation">Validation interne</a>
     <ol class="toc-arabic" style="font-size:12.5px;">
       <li><a href="#sec-bootstrap">Bootstrap C-index optimism-corrigé</a></li>
@@ -286,6 +294,59 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 </div>
 
 <p class="muted" style="margin-top:14px;">→ Pour la comparaison MRD vs TEP seul (baseline clinique), Δ C-index et NRI/IDI : voir <a href="#sec-nri">§XI.6 Reclassification</a>.</p>
+
+<h3 id="sec-pv-vs-ides">V.bis PV vs IDES — comparaison pipeline-pipeline sur cohorte d'overlap N=92</h3>
+<p>Les <em>C-index reportés par variante</em> dans le tableau ci-dessus sont calculés sur des cohortes <strong>différentes</strong> (138 IDES vs 92 PV en M2_hEq Deauv) car PV ⊂ IDES strict (62 % des patients IDES ont aussi un signal PV détectable). Pour isoler l'<strong>effet pipeline pur</strong>, on refait toutes les comparaisons sur la cohorte d'overlap N=92 :</p>
+<table style="font-size:13px;">
+<tr><th>Métrique (overlap N=92, events EFS=17, M2_hEq Deauv)</th><th>IDES</th><th>PV</th><th>Δ (PV − IDES)</th><th>Interprétation</th></tr>
+<tr><td>C-index Harrell</td><td>0.893</td><td>0.890</td><td><strong>−0.002</strong></td><td>Quasi-identique (Δ ≈ bruit)</td></tr>
+<tr><td>Time-dep AUC @ 12 mo</td><td>0.903</td><td>0.905</td><td>+0.002</td><td>Identique</td></tr>
+<tr><td>Time-dep AUC @ 24 mo</td><td>0.925</td><td>0.903</td><td>−0.022</td><td>IDES légèrement meilleur en queue</td></tr>
+<tr><td><strong>NRI continu (PV vs IDES)</strong></td><td>—</td><td>—</td><td><strong>+0.97</strong></td><td>Énorme reclassification ↓ chez non-événements</td></tr>
+<tr><td><strong>IDI</strong></td><td>—</td><td>—</td><td><strong>+0.025</strong></td><td>Discrimination intégrée améliorée</td></tr>
+<tr><td><strong>Brier IPCW @ 12 mo</strong></td><td>0.071</td><td>0.057</td><td><strong>−0.013</strong></td><td>PV mieux calibré (plus bas = mieux)</td></tr>
+<tr><td><strong>R² explained variation @ 12 mo</strong></td><td>0.47</td><td>0.57</td><td><strong>+0.10</strong></td><td>PV explique 10 pts de variance en plus</td></tr>
+<tr><td><strong>Calibration slope (cible = 1.0)</strong></td><td>1.43</td><td>1.09</td><td><strong>−0.34</strong></td><td>PV beaucoup plus proche de la calibration idéale</td></tr>
+<tr><td>Variance du LP</td><td>1.91</td><td>2.84</td><td>+0.93</td><td>PV plus discriminant en magnitude</td></tr>
+<tr><td>HR par 1 SD de LP</td><td>3.98</td><td>5.39</td><td>+1.41</td><td>PV : effet hazard plus marqué</td></tr>
+<tr><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#475569;">— Métriques cliniques (Tern V230) au seuil Élevé r12 ≥ 35% et Faible r12 ≤ 5%, t=12mo —</td></tr>
+<tr><td>N patients zone Élevé</td><td>17 (18 %)</td><td>9 (10 %)</td><td>−8</td><td>PV plus parcimonieux</td></tr>
+<tr><td><strong>VPP zone Élevé</strong> (r12≥35%)</td><td>67.3 %</td><td><strong>100.0 %</strong></td><td>+32.7 pt</td><td>Tout patient PV-Élevé a un événement EFS &lt; 12mo</td></tr>
+<tr><td>Sensibilité zone Élevé</td><td>78.6 %</td><td>64.3 %</td><td>−14.3 pt</td><td>IDES capte plus d'événements mais avec faux+</td></tr>
+<tr><td>Spécificité zone Élevé</td><td>92.3 %</td><td>100.0 %</td><td>+7.7 pt</td><td>PV zéro faux positif</td></tr>
+<tr><td>N patients zone Faible</td><td>20</td><td>47</td><td>+27</td><td>PV alloue davantage en zone sûre</td></tr>
+<tr><td>VPN zone Faible (r12≤5%)</td><td>100.0 %</td><td>97.9 %</td><td>−2.1 pt</td><td>Quasi-équivalent</td></tr>
+</table>
+
+<div class="success" style="margin:14px 0;">
+<strong>Lecture clinique (au-delà du C-index)</strong> — Sur la même cohorte d'overlap, IDES et PV ont une <em>capacité de classement</em> presque identique (C-index 0.89 vs 0.89), mais PV se distingue par :
+<ol style="margin:6px 0 0 18px; padding:0;">
+<li><strong>Une calibration nettement meilleure</strong> (slope 1.09 vs 1.43 ; Brier R² +0.10) — les probabilités absolues prédites sont plus fiables en PV.</li>
+<li><strong>Une utilité clinique supérieure à la zone Élevé</strong> : VPP = 100 % en PV vs 67 % en IDES. PV est plus parcimonieux (9 vs 17 « high-risk ») mais chaque flag est <em>certifié</em> par un événement.</li>
+<li><strong>Un gain NRI massif chez les non-événements</strong> (+0.97) — PV déclasse correctement plus de patients en zone Faible, évitant des sur-traitements.</li>
+<li><strong>Une magnitude de discrimination plus grande</strong> (HR par 1 SD = 5.4 vs 4.0) — le LP PV sépare mieux les extrêmes.</li>
+</ol>
+Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_hEq Deauv) provient principalement de l'effet de <strong>sélection de cohorte</strong> (PV ne contient que des patients avec signal PV-détectable, intrinsèquement plus polarisés), pas d'un avantage discriminatoire pur du pipeline. À cohorte fixée, l'avantage PV est <strong>de calibration et d'utilité clinique</strong>, pas de discrimination brute.
+</div>
+
+<div class="flex" style="gap:14px; margin-top:14px;">
+  <div>
+    <img class="figure" src="figs/methodo/PV_vs_IDES_AUC_t.svg" alt="Time-dep AUC PV vs IDES" style="max-width:100%;">
+  </div>
+  <div>
+    <img class="figure" src="figs/methodo/PV_vs_IDES_DCA.svg" alt="DCA PV vs IDES" style="max-width:100%;">
+  </div>
+</div>
+<div class="flex" style="gap:14px;">
+  <div>
+    <img class="figure" src="figs/methodo/PV_vs_IDES_calibration.svg" alt="Calibration PV vs IDES" style="max-width:100%;">
+  </div>
+  <div>
+    <img class="figure" src="figs/methodo/PV_vs_IDES_r12_distribution.svg" alt="r12 distribution PV vs IDES" style="max-width:100%;">
+  </div>
+</div>
+
+<p class="muted">Script de l'analyse : <code>scripts/_v15_316_PV_vs_IDES_multimetric.py</code> · figures : <code>_v15_317_PV_vs_IDES_figures.py</code>.</p>
 </div>
 
 <!-- ════════════ SECTION 6 : COEFFICIENTS V230 ════════════ -->
@@ -694,6 +755,31 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 </ul>
 
 <p>L'IC95% Greenwood (transformation log-log) est calculé sur l'estimateur KM local et reporté en chiffres sous le graphique.</p>
+
+<h3 id="sec-ppv-npv-method">X.bis VPP / VPN time-dependent — méthode et validation</h3>
+<p>Les valeurs prédictives <strong>positive (VPP) et négative (VPN)</strong> affichées dans le calculateur sont des <em>quantités à temps fixe sous censure</em>. Le calculateur implémente la méthode canonique de référence :</p>
+<div class="formula" style="white-space:pre-wrap;">
+<strong>VPP(t | c)</strong> = P(T ≤ t | M ≥ c) = <strong>1 − S<sub>KM</sub>(t)</strong>  sur le sous-groupe M ≥ c
+<strong>VPN(t | c)</strong> = P(T &gt; t | M &lt; c) =      <strong>S<sub>KM</sub>(t)</strong>  sur le sous-groupe M &lt; c
+</div>
+<p>Où <code>M = r12 prédit</code> et <code>c</code> est un seuil clinique (Tern 5 % ou 35 %). L'IC95% est calculé par variance Greenwood + transformation log-log dans chaque sous-groupe — préservation de l'intervalle [0, 1]. <strong>Référence canonique</strong> : Heagerty PJ, Lumley T, Pepe MS. <em>Time-dependent ROC curves for censored survival data and a diagnostic marker</em>. Biometrics 2000;56(2):337-44. <a href="https://doi.org/10.1111/j.0006-341X.2000.00337.x">DOI: 10.1111/j.0006-341X.2000.00337.x</a>.</p>
+
+<p>Vérification empirique contre l'estimateur IPCW (Inverse Probability of Censoring Weighting, Uno-style) sur la cohorte d'overlap N=92 (M2_hEq Deauv) :</p>
+<table style="font-size:13px;">
+<tr><th>Pipeline</th><th>Cutoff</th><th>t (mois)</th><th>KM-based (calculateur)</th><th>IPCW (Uno)</th><th>Δ (KM − IPCW)</th></tr>
+<tr><td rowspan="2"><strong>PV</strong></td><td>r12 ≥ 35% (PPV)</td><td>12</td><td>100.0% [IC95% 100.0–100.0] · N=9</td><td>100.0%</td><td>+0.00 pt</td></tr>
+<tr><td>r12 ≤ 5% (NPV)</td><td>12</td><td>97.9% [IC95% 85.8–99.7] · N=47</td><td>97.9%</td><td>−0.05 pt</td></tr>
+<tr><td rowspan="2"><strong>IDES</strong></td><td>r12 ≥ 35% (PPV)</td><td>12</td><td>67.3% [IC95% 44.8–87.8] · N=17</td><td>66.9%</td><td>+0.42 pt</td></tr>
+<tr><td>r12 ≤ 5% (NPV)</td><td>12</td><td>100.0% [IC95% 100.0–100.0] · N=20</td><td>100.0%</td><td>+0.00 pt</td></tr>
+</table>
+<p class="muted">Sous censure non-informative, KM-based ≡ IPCW asymptotiquement (Uno 2007). Empiriquement la différence est &lt;0.5 pt sur notre cohorte → méthode du calculateur validée. Voir Heagerty &amp; Saha-Chaudhuri (2013) et le package R <code>timeROC</code> de Blanche &amp; Latouche (2013) pour le même choix méthodologique.</p>
+
+<div class="center">
+  <img class="figure" src="figs/methodo/PPV_NPV_time_dependent.svg" alt="VPP et VPN time-dependent" style="max-width: 95%;">
+  <p class="muted">VPP(t) et VPN(t) de t=3 à t=36 mois aux seuils Tern Élevé (r12 ≥ 35 %, panels rouges) et Faible (r12 ≤ 5 %, panels verts). Bande = IC95% Greenwood log-log. Les courbes IPCW (pointillées) se superposent quasi-parfaitement aux courbes KM (= calculateur), confirmant la cohérence des 2 estimateurs.</p>
+</div>
+
+<p class="muted">Script de validation : <code>scripts/_v15_318_VPP_VPN_censored_verification.py</code>.</p>
 </div>
 
 <!-- ════════════ SECTION 11 : VALIDATION INTERNE ════════════ -->
