@@ -978,16 +978,28 @@ function calculate(doScroll) {
   const _km_histo = _histo_pts.length >= 3 ? km(_histo_pts) : {S12: NaN, N: _histo_pts.length, n_events: 0};
   const _prev12 = isNaN(_km_histo.S12) ? NaN : (1 - _km_histo.S12);
   const _prev_str = isNaN(_prev12) ? '—' : (_prev12*100).toFixed(1) + ' %';
-  // Transformed input values
-  const _ctDNA_cxj1 = vc_polish * cfdna_cxj1;  // hEq/mL (0 if polish gate failed)
-  const _log10_ctDNA = _ctDNA_cxj1 > 0 ? Math.log10(_ctDNA_cxj1).toFixed(2) : '— (polish-neg)';
-  let _tep_str;
-  if (noTep) {
-    _tep_str = 'Modèle M1 (TEP exclue)';
-  } else if (useDelta) {
-    _tep_str = 'ΔSUVmax = ' + (delta_suv_val >= 0 ? '+' : '') + delta_suv_val.toFixed(1) + ' %';
-  } else {
-    _tep_str = 'Deauville = ' + (tep_dvil_raw || '—');
+  // Transformed input values — V15.344 : only "diminution" metrics
+  //   log10(ctDNA C2J1 en VAF %)    smaller = better treatment response
+  //   log10(ctDNA C2J1 en hEq/mL)   smaller = better treatment response
+  //   ΔSUVmax %                     negative = decrease, better
+  // Deauville is NOT a decrease metric → not shown here.
+  const _vaf_cxj1_pct = vc_polish * 100;  // % (already polished)
+  const _ctDNA_cxj1_hEq = vc_polish * cfdna_cxj1;  // hEq/mL
+  const _log10_VAF = _vaf_cxj1_pct > 0 ? Math.log10(_vaf_cxj1_pct).toFixed(2) : '—';
+  const _log10_ctDNA = _ctDNA_cxj1_hEq > 0 ? Math.log10(_ctDNA_cxj1_hEq).toFixed(2) : '—';
+  const _polish_neg = (vc_polish === 0);
+
+  // ΔSUVmax — try to compute whenever both inputs are present (even if Deauville is the model term)
+  let _delta_suv_str = '—';
+  const _suv_d_in = document.getElementById('suvmax_diag');
+  const _suv_2_in = document.getElementById('suvmax_2');
+  if (_suv_d_in && _suv_2_in) {
+    const _sd = parseFloat(_suv_d_in.value);
+    const _s2 = parseFloat(_suv_2_in.value);
+    if (!isNaN(_sd) && !isNaN(_s2) && _sd > 0) {
+      const _d = (_s2 - _sd) / _sd * 100;
+      _delta_suv_str = (_d >= 0 ? '+' : '') + _d.toFixed(1) + ' %';
+    }
   }
 
   banner.innerHTML =
@@ -999,9 +1011,10 @@ function calculate(doScroll) {
         `<div style="opacity:0.65; font-size:11px; margin-top:2px;">(cohorte d'entraînement : N=${_km_histo.N}, ${_km_histo.n_events} ev — KM @ 12 mo)</div>` +
       `</div>` +
       `<div>` +
-        `<div style="opacity:0.72; text-transform:uppercase; font-size:10px; letter-spacing:0.6px; margin-bottom:4px;">Données d'entrée — transformées</div>` +
-        `<div>log<sub>10</sub>(ctDNA C2J1) = <strong style="font-family:ui-monospace,monospace;">${_log10_ctDNA}</strong></div>` +
-        `<div>${_tep_str}</div>` +
+        `<div style="opacity:0.72; text-transform:uppercase; font-size:10px; letter-spacing:0.6px; margin-bottom:4px;">Données d'entrée — diminutions</div>` +
+        `<div>log<sub>10</sub>(VAF C2J1 %)   = <strong style="font-family:ui-monospace,monospace;">${_log10_VAF}</strong>${_polish_neg ? ' <span style="opacity:0.65; font-size:10.5px;">(polish-neg)</span>' : ''}</div>` +
+        `<div>log<sub>10</sub>(ctDNA C2J1 hEq) = <strong style="font-family:ui-monospace,monospace;">${_log10_ctDNA}</strong>${_polish_neg ? ' <span style="opacity:0.65; font-size:10.5px;">(polish-neg)</span>' : ''}</div>` +
+        `<div>ΔSUVmax = <strong style="font-family:ui-monospace,monospace;">${_delta_suv_str}</strong></div>` +
       `</div>` +
     `</div>` +
     `<div style="font-size:13px; opacity:.8; margin-bottom:8px;">Risque prédit par le modèle Cox (EFS)</div>` +
