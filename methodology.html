@@ -2172,35 +2172,22 @@ function renderKM(svgId, summaryId, cohort, lo, hi) {
 
   svg.innerHTML = s;
 
-  // V15.350 : summary HTML — vraies VPP/VPN par zone + effectifs at-risk
-  //   Zone Faible (r12 ≤ LO) : VPN @12mo = S_KM(12) ;  VPN @24mo = S_KM(24)
-  //   Zone Modéré          : R/R observée @12mo = 1 - S_KM(12)
-  //   Zone Élevé (r12 > HI) : VPP @12mo = 1 - S_KM(12) ; VPP @24mo = 1 - S_KM(24)
+  // V15.351 : summary HTML — VPP ET VPN pour LES 3 ZONES (pas de mix)
+  //   VPP @t = 1 − S_KM(t) sur la zone   (proportion avec événement)
+  //   VPN @t =     S_KM(t) sur la zone   (proportion sans événement)
   const sumEl = document.getElementById(summaryId);
   if (sumEl) {
     let html = '';
     for (const z of summaries) {
-      let metric_label, val_12, val_24;
-      if (z.sym === 'F') {
-        // Faible → VPN
-        metric_label = 'VPN';
-        val_12 = isNaN(z.S12) ? '—' : (z.S12*100).toFixed(0)+'%';
-        val_24 = isNaN(z.S24) ? '—' : (z.S24*100).toFixed(0)+'%';
-      } else if (z.sym === 'E') {
-        // Élevé → VPP
-        metric_label = 'VPP';
-        val_12 = isNaN(z.S12) ? '—' : ((1-z.S12)*100).toFixed(0)+'%';
-        val_24 = isNaN(z.S24) ? '—' : ((1-z.S24)*100).toFixed(0)+'%';
-      } else {
-        // Modéré → ni VPN ni VPP, juste R/R observée
-        metric_label = 'R/R';
-        val_12 = isNaN(z.S12) ? '—' : ((1-z.S12)*100).toFixed(0)+'%';
-        val_24 = isNaN(z.S24) ? '—' : ((1-z.S24)*100).toFixed(0)+'%';
-      }
+      const vpp12 = isNaN(z.S12) ? '—' : ((1-z.S12)*100).toFixed(0)+'%';
+      const vpp24 = isNaN(z.S24) ? '—' : ((1-z.S24)*100).toFixed(0)+'%';
+      const vpn12 = isNaN(z.S12) ? '—' : (z.S12*100).toFixed(0)+'%';
+      const vpn24 = isNaN(z.S24) ? '—' : (z.S24*100).toFixed(0)+'%';
       html += `<div class="S-${z.sym}">` +
                 `<strong>${z.label}</strong>  ·  N=${z.N} (ev=${z.n_events})<br>` +
                 `<span style="font-size:10.5px; color:#475569;">N at-risk : t0=${z.atRisk0} · 12mo=${z.atRisk12} · 24mo=${z.atRisk24}</span><br>` +
-                `<strong>${metric_label}</strong> @12mo : <strong>${val_12}</strong>  ·  @24mo : <strong>${val_24}</strong>` +
+                `<span style="color:#dc2626;">VPP</span> @12 : <strong>${vpp12}</strong> · @24 : <strong>${vpp24}</strong><br>` +
+                `<span style="color:#15803d;">VPN</span> @12 : <strong>${vpn12}</strong> · @24 : <strong>${vpn24}</strong>` +
               `</div>`;
     }
     sumEl.innerHTML = html;
