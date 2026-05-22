@@ -1650,8 +1650,9 @@ Cette DCA stratifiée par histologie remplace (V15.352) la DCA globale précéde
 <p>Comparaison de la classification Tern (Faible/Modéré/Élevé) du modèle complet vs Cox TEP seul :</p>
 <table>
 <tr><th>Métrique</th><th>Valeur</th><th>Interprétation</th></tr>
-<tr><td>C-index TEP seul (sur cohorte d'évaluation NRI/IDI, N=163)</td><td>0.635</td><td>Référence clinique (≠ 0.646 ci-dessus, calculé sur N=183 pooled — voir note ci-dessous)</td></tr>
-<tr><td>C-index modèle complet</td><td><strong>0.792</strong></td><td>+0.157 vs TEP seul</td></tr>
+<tr><td>C-index TEP seul (Cox univarié binaire TEP2_pos, EFS, N=139)</td><td><strong>0.688</strong> (V15.362 refit EFS)</td><td>Référence clinique (≠ 0.646 PFS / 0.635 PFS-NRI ci-dessous — voir note de cohortes)</td></tr>
+<tr><td>C-index modèle complet (V230.1 EFS, apparent)</td><td><strong>0.844</strong></td><td><strong>Δ C = +0.156</strong> vs TEP seul (quasi-identique au +0.157 sous PFS)</td></tr>
+<tr><td>C-index modèle complet (V230.1 EFS, optimism-corrected)</td><td>0.835</td><td>Bootstrap Harrell B=500 (V15.294)</td></tr>
 <tr><td>NRI continu</td><td><strong>+0.559</strong></td><td>Net reclassification améliorée</td></tr>
 <tr><td>IDI</td><td>+0.061</td><td>Integrated discrimination améliorée</td></tr>
 </table>
@@ -1662,7 +1663,7 @@ Cette DCA stratifiée par histologie remplace (V15.352) la DCA globale précéde
 Apport MRD ajouté au TEP : Δ C-index ≈ +0.18-0.20 (énorme). Apport TEP ajouté au MRD (M1 → M2) : Δ ≈ +0.03-0.04 (modéré mais consistant). NRI continu +0.559, IDI +0.061. Le MRD ctDNA est le marqueur pronostique DOMINANT ; le TEP retient une valeur incrémentale combinée mais ne peut pas remplacer la MRD.
 </div>
 
-<p class="muted">NRI/IDI fittés en V229.1 (cohorte de référence) avec endpoint PFS. Sous V230 EFS, les ordres de grandeur sont préservés mais les chiffres exacts diffèrent légèrement (refit à venir).</p>
+<p class="muted">NRI/IDI fittés initialement en V229.1 (endpoint PFS). <strong>Refit V230.1 endpoint EFS (V15.362)</strong> confirme : C TEP seul = 0.688 (EFS, N=139, vs 0.646 PFS), C V230.1 modèle complet = 0.844 apparent / 0.835 corrigé, <strong>Δ C = +0.156</strong> (vs +0.157 sous PFS — quasi-identique, le retrait des 3 morts non-lymphome modifie marginalement l'apport relatif). NRI continu et IDI exacts en EFS attendus dans le même ordre de grandeur (+0.55 / +0.06). Données : <code>output/V15_362_NRI_IDI_EFS.json</code>.</p>
 
 <h3 id="sec-forest">XII.7 Forest plot par sous-groupe (4 covariables)</h3>
 <p>HR par 1 SD de chaque covariable Cox dans les sous-groupes cliniques (Hodgkin/DLBCL, Stade I-II/III-IV, Age &lt;60/≥60). On vérifie qu'aucune covariable n'a un effet inversé ou massivement différent dans un sous-groupe.</p>
