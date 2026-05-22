@@ -1076,10 +1076,11 @@ function calculate(doScroll) {
     `<div style="font-size:14px; margin-bottom:10px;">${action}</div>` +
     (function() {
       // V15.354 : gauge gradient adaptatif par histo.
-      //   Hodgkin     = bicolore ORANGE jusqu'à la prévalence baseline (~5-8 %), GRIS au-dessus.
-      //                 Aucun chiffre numérique de la prévalence affiché (visuel uniquement).
-      //                 La calibration Hodgkin est OK en dessous de la prévalence (VPN excellente),
-      //                 mais sur-prédit au-dessus (slope 0.70, VPP plafonne ~50 %) — voir §XII.4.
+      //   Hodgkin     = TRICOLORE (vert 0→5 % · orange 5 %→prévalence baseline · gris >prévalence).
+      //                 La valeur numérique de la prévalence n'est PAS affichée sur la jauge (visuel
+      //                 uniquement). Vert = zone Faible (VPN excellente). Orange = zone de risque
+      //                 baseline (modèle ≈ population). Gris = zone non actionnable (sur-prédiction
+      //                 slope 0.70, VPP plafonne ~50 %) — voir §XII.4.
       //   Non-Hodgkin = tricolore (vert ≤5 %, orange 5-45 %, rouge >45 %) — V15.345.
       const lo_pct = (TERN_LO*100).toFixed(0);
       const hi_pct = (TERN_HI*100).toFixed(0);
@@ -1087,10 +1088,17 @@ function calculate(doScroll) {
       let lo_label = '';
       let hi_label = '';
       if (_isHodgkin_pt) {
-        // Hodgkin : transition orange→gris à la prévalence baseline (dynamique, ~5-8 %).
-        const _prev_pct = isNaN(_prev12) ? 5 : Math.max(1, Math.min(99, _prev12*100));
-        gradient = `linear-gradient(to right, #f59e0b 0%, #f59e0b ${_prev_pct.toFixed(1)}%, #94a3b8 ${_prev_pct.toFixed(1)}%, #94a3b8 100%)`;
-        // Pas de labels intermédiaires (ni 5 %, ni la valeur de la prévalence).
+        // Hodgkin : vert 0→5 %, orange 5 %→prévalence, gris >prévalence.
+        // Prévalence dynamique (_prev12, KM @12mo). Si NaN, fallback à 7 % (~baseline observée).
+        const _prev_pct_raw = isNaN(_prev12) ? 7 : _prev12*100;
+        // Garantir prévalence > Tern LO (sinon la zone orange disparaît).
+        const _prev_pct = Math.max(parseFloat(lo_pct) + 0.5, Math.min(99, _prev_pct_raw));
+        gradient = `linear-gradient(to right, ` +
+                   `#22c55e 0%, #22c55e ${lo_pct}%, ` +
+                   `#f59e0b ${lo_pct}%, #f59e0b ${_prev_pct.toFixed(1)}%, ` +
+                   `#94a3b8 ${_prev_pct.toFixed(1)}%, #94a3b8 100%)`;
+        // Label du Tern LO conservé (frontière vert↔orange). Pas de label numérique pour la prévalence.
+        lo_label = `<span style="position:absolute; left:${lo_pct}%; transform:translateX(-50%);">${lo_pct}%</span>`;
       } else {
         gradient = `linear-gradient(to right, #22c55e 0%, #22c55e ${lo_pct}%, #f59e0b ${lo_pct}%, #f59e0b ${hi_pct}%, #ef4444 ${hi_pct}%, #ef4444 100%)`;
         lo_label = `<span style="position:absolute; left:${lo_pct}%; transform:translateX(-50%);">${lo_pct}%</span>`;
