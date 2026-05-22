@@ -299,14 +299,13 @@ svg { width: 100%; height: 100%; overflow: visible; }
         Cible 12 mois car la dynamique précoce du ctDNA n'a pas été validée pour prédire les rechutes tardives.
       </p>
 
-      <!-- Référence histo + seuils Tern (V15.345 zone-based) -->
+      <!-- Référence histo + cutoff prévalence (V15.355) -->
       <div style="margin:10px 0 14px; padding:10px 14px; background:#f1f5f9; border-left:4px solid #64748b; border-radius:4px; font-size:13px; color:#334155;">
         <strong>Prévalence R/R @ 12 mo dans votre catégorie histo :</strong> <span id="prev_histo">--</span>
         <br><span style="font-size:11.5px; color:#64748b; font-style:italic;">
-          Seuils utilisés (V15.345) :
-          <strong>Hodgkin classique</strong> = cutoff unique 5 % (zone Faible / Indéterminé) ·
-          <strong>B agressifs + indolents</strong> = Tern 5 / 45 (zone Faible / Modéré / Élevé).
-          Les indicateurs (VPN, LR−, VPP, LR+) ne s'affichent que dans la zone concernée ; zone Modéré ou Indéterminé = aucun indicateur fiable.
+          Cutoff utilisé pour les indicateurs : la <strong>prévalence baseline</strong> ci-dessus.
+          Si <code>r12 &lt; prévalence</code> → on affiche <strong>VPN + LR−</strong> (informatif vers le bas).
+          Si <code>r12 ≥ prévalence</code> → on affiche <strong>VPP + LR+</strong> (informatif vers le haut).
         </span>
       </div>
 
@@ -701,15 +700,12 @@ function updateRankBasedVPN(pipe, patient_r12) {
   if (lrPlusEl)  lrPlusEl.textContent  = fmt_lr(LR_plus);
   if (lrMinusEl) lrMinusEl.textContent = fmt_lr(LR_minus);
 
-  // V15.345 : Conditional VPN/VPP/LR display — ZONE-BASED
-  //   Zone Faible (r12 ≤ 5 %)               : VPN + LR−
-  //   Zone Élevé (r12 > 45 %, Non-Hodgkin)   : VPP + LR+
-  //   Zone Modéré / Indéterminé              : ni l'un ni l'autre (cards cachées)
-  // V15.354 : aussi conditionner les paragraphes Repères + Interprétation (bug : ils
-  //           restaient visibles avec des chiffres concrets même quand toutes les
-  //           cards étaient cachées → l'encart paraissait cassé).
-  const _TERN_LO_v = 0.05;
-  const _TERN_HI_v = isHodgkinPatient ? 1.01 : 0.45;
+  // V15.355 : Conditional VPN/VPP/LR display — PREVALENCE-BASED (not Tern-based).
+  //   r12 <  prévalence baseline histo  → VPN + LR−  (informatif vers le bas)
+  //   r12 ≥  prévalence baseline histo  → VPP + LR+  (informatif vers le haut)
+  //   La prévalence est calculée par KM @12mo sur la sous-cohorte histo de la
+  //   variante active. Le seuil Tern (5 / 45) reste utilisé uniquement pour la
+  //   coloration de la jauge (cf. banner), pas pour l'affichage des indicateurs.
   const vpnCard      = document.getElementById('vpn_card');
   const vppCard      = document.getElementById('vpp_card');
   const lrPlusCard   = document.getElementById('lr_plus_card');
@@ -727,8 +723,16 @@ function updateRankBasedVPN(pipe, patient_r12) {
     if (!gridEl) return;
     gridEl.style.gridTemplateColumns = (leftVisible && rightVisible) ? '1fr 1fr' : '1fr';
   }
-  if (patient_r12 <= _TERN_LO_v) {
-    // Zone Faible → VPN + LR−
+  if (isNaN(prevalence12)) {
+    // Fallback rarissime (cohorte histo < 3 patients) : on cache tout et on alerte.
+    _setVisible(vpnCard, false); _setVisible(vppCard, false);
+    _setVisible(lrPlusCard, false); _setVisible(lrMinusCard, false);
+    _setVisible(lrLegend, false);
+    _setVisible(vpvInterpEl, false);
+    _setVisible(vpvUnavail, true);
+    if (vpvZoneLbl) vpvZoneLbl.textContent = 'cohorte histo insuffisante pour calculer la prévalence';
+  } else if (patient_r12 < prevalence12) {
+    // r12 < prévalence → VPN + LR−
     _setVisible(vpnCard, true);    _setVisible(vppCard, false);
     _setVisible(lrMinusCard, true); _setVisible(lrPlusCard, false);
     _gridLayout(vpvGrid, true, false);
@@ -738,8 +742,8 @@ function updateRankBasedVPN(pipe, patient_r12) {
     if (vpnInterp)  vpnInterp.style.display  = '';
     if (vppInterp)  vppInterp.style.display  = 'none';
     _setVisible(vpvUnavail, false);
-  } else if (patient_r12 > _TERN_HI_v) {
-    // Zone Élevé (Non-Hodgkin uniquement) → VPP + LR+
+  } else {
+    // r12 ≥ prévalence → VPP + LR+
     _setVisible(vpnCard, false);   _setVisible(vppCard, true);
     _setVisible(lrMinusCard, false); _setVisible(lrPlusCard, true);
     _gridLayout(vpvGrid, false, true);
@@ -749,18 +753,6 @@ function updateRankBasedVPN(pipe, patient_r12) {
     if (vpnInterp)  vpnInterp.style.display  = 'none';
     if (vppInterp)  vppInterp.style.display  = '';
     _setVisible(vpvUnavail, false);
-  } else {
-    // Zone Modéré (Non-Hodgkin) OU Indéterminé (Hodgkin) : ni VPN ni VPP, ni LR
-    _setVisible(vpnCard, false); _setVisible(vppCard, false);
-    _setVisible(lrPlusCard, false); _setVisible(lrMinusCard, false);
-    // V15.354 : également masquer Repères + Interprétation, remplacer par un message clair.
-    _setVisible(lrLegend, false);
-    _setVisible(vpvInterpEl, false);
-    _setVisible(vpvUnavail, true);
-    if (vpvZoneLbl) {
-      vpvZoneLbl.textContent = isHodgkinPatient ? 'zone Indéterminée (Hodgkin · r12 > 5 %)'
-                                                : 'zone Modérée (5 % < r12 ≤ 45 %)';
-    }
   }
 
   // (V15.343 : VPP/VPN curves block removed from UI — call dropped)
