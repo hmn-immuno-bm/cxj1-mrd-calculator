@@ -1271,6 +1271,16 @@ Cette stratégie KNN-adaptative divise par 10 l'ACE_tail (erreur de calibration 
 
 <p class="muted">Script de validation : <code>scripts/_v15_318_VPP_VPN_censored_verification.py</code>.</p>
 
+<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés</strong><br>
+Le calculateur utilise la méthode KM canonique (Heagerty 2000) plutôt qu'IPCW : sous censure non-informative, les deux estimateurs sont asymptotiquement équivalents (Uno 2007), et la cohérence empirique &lt; 0.5 pt confirme l'absence de biais sur cette cohorte. Le choix KM-based est volontaire — il est plus stable aux faibles effectifs de sous-groupe (notamment zone Élevé N=9-17) et reproductible dans le calculateur JS sans dépendance à un modèle de censure auxiliaire.
+</div>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
+Les VPP/VPN affichées par le calculateur sont des quantités à <strong>temps fixe (12 mois)</strong>, calculées par Kaplan-Meier sur sous-groupe avec IC95 % Greenwood log-log. Méthode validée empiriquement contre IPCW (Δ &lt; 0.5 pt sur 4 cellules clés). Référence canonique : Heagerty PJ et al., <em>Biometrics</em> 2000.
+</div>
+
 
 </div>
 
