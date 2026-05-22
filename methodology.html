@@ -1591,16 +1591,31 @@ La calibration <strong>doit être systématiquement stratifiée par sous-groupes
 </ul>
 </div>
 
-<h3 id="sec-dca">XII.5 Decision Curve Analysis (DCA) — net benefit clinique</h3>
-<p>Le modèle a un <strong>net benefit positif</strong> sur l'intervalle de seuils [5%, 50%], dépassant les stratégies « traiter tous » et « ne traiter personne ». La décision basée sur le calculateur évite plus de récidives qu'elle ne génère de surtraitements inutiles.</p>
-<div class="center">
-<img class="figure" src="figs/DCA_M2_hEq.png" alt="Decision Curve Analysis @ 12mo" style="max-width: 95%;">
-<p class="muted">DCA à 12 mois pour IDES (gauche) et PV (droite) M2_hEq. La courbe bleue domine les stratégies par défaut.</p>
-<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
-<strong style="color:#15803d;">🔬 Observations clés</strong><br>
-Net benefit positif sur la plage clinique 5-50 % de probabilité de rechute. Le modèle MRD complet dépasse systématiquement les stratégies « traiter tous » et « ne traiter personne ». À un seuil clinique de 30 %, NB ≈ 0.10 = 10 vraies rechutes correctement flagged pour 100 patients sans surtraitement excessif.
+<h3 id="sec-dca">XII.5 Decision Curve Analysis (DCA) — net benefit clinique, stratifié par histologie</h3>
+
+<div class="warn" style="margin:10px 0; padding:14px 18px; background:#FEF3C7; border-left:5px solid #B45309; border-radius:4px; color:#78350F;">
+<strong>⚠ Pourquoi la stratification est essentielle pour la DCA</strong><br>
+Le <em>net benefit</em> NB(p) = TP/N − FP/N × (p/(1−p)) (Vickers &amp; Elkin 2006) <strong>dépend directement de la prévalence</strong> du groupe : (i) NB max théorique = prévalence ; (ii) la courbe « traiter tous » a une pente qui dépend aussi de la prévalence ; (iii) l'échelle de l'axe Y diffère du simple au quintuple selon les sous-groupes (Hodgkin prévalence R/R @12mo ≈ 5 % vs Non-Hodgkin ≈ 26 %). Une DCA globale sur cohorte mixte hématologique <strong>masque l'utilité clinique réelle dans chaque sous-groupe</strong> et est trompeuse.
 </div>
 
+<div class="center">
+<img class="figure" src="figs/DCA_per_histo_all_variants_V15352.png" alt="DCA stratifiée par histologie et variante" style="max-width: 100%;">
+<p class="muted">DCA @ 12 mois pour les 6 variantes du modèle V230.1 × 2 sous-groupes histologiques (Hodgkin classique violet  ·  B agressifs + indolents orange). Cohorte agrégée IDES + PV par histo. Courbe pleine = modèle Cox V230.1 ; tirets = stratégie « traiter tous » (référence prévalence) ; ligne horizontale = « ne traiter personne ». Zone colorée semi-transparente = plage où le modèle <strong>domine</strong> les deux stratégies de référence. Notez les échelles Y radicalement différentes entre les deux colonnes.</p>
+</div>
+
+<div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés (DCA stratifiée)</strong>
+<ul style="margin:6px 0 0 18px;">
+<li><strong>Hodgkin classique</strong> (panneaux violets) : prévalence R/R @12mo ≈ 5 % → <strong>NB max théorique ≈ 0.05</strong>. La courbe modèle dépasse à peine la stratégie « ne traiter personne » sur certaines plages, sans avantage clinique substantiel. Cohérent avec la <strong>limite biologique</strong> de la MRD ctDNA mid-traitement chez Hodgkin (§XII.4-bis).</li>
+<li><strong>B agressifs + indolents</strong> (panneaux orange) : prévalence R/R @12mo ≈ 26 % → <strong>NB max ≈ 0.26</strong>. La courbe modèle domine clairement les deux stratégies de référence sur la plage clinique 5-45 % de probabilité-seuil. À p=15 % (seuil LO du Tern), NB ≈ +0.15-0.20 selon variante = 15-20 vraies rechutes correctement flagged pour 100 patients sans surtraitement.</li>
+<li><strong>Toutes les variantes M2 (avec TEP)</strong> dominent toutes les variantes M1 (sans TEP) chez Non-Hodgkin sur la plage clinique 10-40 %, confirmant l'apport additionnel du Deauville.</li>
+<li><strong>Conclusion clinique</strong> : la DCA confirme que le calculateur a une utilité décisionnelle robuste chez les B agressifs + indolents, mais marginale chez Hodgkin classique — ce qui justifie le mode dégradé « cutoff unique 5 % » pour Hodgkin (V15.345).</li>
+</ul>
+</div>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Note méthodologique</strong><br>
+Cette DCA stratifiée par histologie remplace (V15.352) la DCA globale précédente (V15.196), qui aggrégait Hodgkin + DLBCL et donnait une image trop favorable. La nouvelle figure montre les <strong>6 variantes × 2 histos = 12 panels</strong> ; les axes Y sont indépendants pour respecter les échelles propres à chaque prévalence. Données : <code>output/V15_352_dca_per_histo_data.json</code>. Script : <code>scripts/_v15_352_dca_per_histo_all_variants.py</code>.
 </div>
 
 <h3 id="sec-nri">XII.6 Comparaison MRD vs TEP seul (C-index, NRI / IDI)</h3>
