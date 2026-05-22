@@ -300,15 +300,12 @@ svg { width: 100%; height: 100%; overflow: visible; }
         Cible 12 mois car la dynamique précoce du ctDNA n'a pas été validée pour prédire les rechutes tardives.
       </p>
 
-      <!-- Référence histo + cutoff prévalence (V15.355) -->
-      <div style="margin:10px 0 14px; padding:10px 14px; background:#f1f5f9; border-left:4px solid #64748b; border-radius:4px; font-size:13px; color:#334155;">
-        <strong>Prévalence R/R @ 12 mo dans votre catégorie histo :</strong> <span id="prev_histo">--</span>
-        <br><span style="font-size:11.5px; color:#64748b; font-style:italic;">
-          Cutoff utilisé pour les indicateurs : la <strong>prévalence baseline</strong> ci-dessus.
-          Si <code>r12 &lt; prévalence</code> → on affiche <strong>VPN + LR−</strong> (informatif vers le bas).
-          Si <code>r12 ≥ prévalence</code> → on affiche <strong>VPP + LR+</strong> (informatif vers le haut).
-        </span>
-      </div>
+      <!-- Cutoff prévalence (V15.359 : prévalence affichée dans l'encart principal ci-haut, non répétée ici) -->
+      <p style="font-size:11.5px; color:#64748b; font-style:italic; margin:8px 0 14px;">
+        Cutoff utilisé pour les indicateurs : la <strong>prévalence baseline R/R @ 12 mo</strong> de votre catégorie histologique (rappelée dans l'encart principal).
+        Si <code>r12 &lt; prévalence</code> → on affiche <strong>VPN + LR−</strong> (informatif vers le bas).
+        Si <code>r12 ≥ prévalence</code> → on affiche <strong>VPP + LR+</strong> (informatif vers le haut).
+      </p>
 
       <div class="summary-grid" id="vpv_grid" style="grid-template-columns: 1fr 1fr; gap:14px;">
         <div class="summary-box" id="vpn_card" style="border-left-color:#22c55e;">
