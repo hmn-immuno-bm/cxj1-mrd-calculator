@@ -328,6 +328,11 @@ svg { width: 100%; height: 100%; overflow: visible; }
           </div>
         </div>
       </div>
+      <!-- V15.358 : interprétation placée directement sous l'encart VPN/VPP (avant les LR) -->
+      <p id="vpv_interpretation" style="font-size:11px; color:#64748b; font-style:italic; margin-top:8px;">
+        <span id="vpn_interp" style="display:none;">Interprétation : « Parmi les <span id="grp_le_n_inline">--</span> patients à risque <strong>inférieur ou égal</strong> au vôtre, <span id="grp_le_v12_inline">--</span> n'ont pas rechuté à 12 mois (VPN). »</span>
+        <span id="vpp_interp" style="display:none;">Interprétation : « Parmi les <span id="grp_ge_n_inline">--</span> patients à risque <strong>supérieur ou égal</strong> au vôtre, <span id="grp_ge_v12_inline">--</span> ont rechuté à 12 mois (VPP). »</span>
+      </p>
 
       <!-- LR+ / LR- — prevalence-independent (V15.342) ; only the relevant one is shown (V15.343) -->
       <div class="summary-grid" id="lr_grid" style="grid-template-columns: 1fr 1fr; gap:14px; margin-top:12px;">
@@ -350,10 +355,6 @@ svg { width: 100%; height: 100%; overflow: visible; }
         Repères : LR+ &gt; 10 = très informatif (+) · 5–10 = informatif · 2–5 = utile · &lt; 2 = peu informatif.
         LR− &lt; 0.1 = très informatif (−) · 0.1–0.2 = informatif · 0.2–0.5 = utile · &gt; 0.5 = peu informatif.
         LR sont indépendants de la prévalence (transposables à d'autres populations).
-      </p>
-      <p id="vpv_interpretation" style="font-size:11px; color:#64748b; font-style:italic; margin-top:6px;">
-        <span id="vpn_interp" style="display:none;">Interprétation : « Parmi les <span id="grp_le_n_inline">--</span> patients à risque <strong>inférieur ou égal</strong> au vôtre, <span id="grp_le_v12_inline">--</span> n'ont pas rechuté à 12 mois (VPN). »</span>
-        <span id="vpp_interp" style="display:none;">Interprétation : « Parmi les <span id="grp_ge_n_inline">--</span> patients à risque <strong>supérieur ou égal</strong> au vôtre, <span id="grp_ge_v12_inline">--</span> ont rechuté à 12 mois (VPP). »</span>
       </p>
       <div id="vpv_unavailable" style="display:none; margin-top:8px; padding:10px 14px; background:#fef3c7; border-left:4px solid #f59e0b; border-radius:4px; font-size:12.5px; color:#78350f;">
         ⓘ <strong>Aucun indicateur fiable dans cette zone</strong> — le score du patient se situe en <strong id="vpv_zone_lbl">zone intermédiaire</strong>, où la cohorte de développement ne permet pas d'isoler une VPN, une VPP ou un LR robuste. Référez-vous au TEP Deauville et au contexte clinique pour la stratification.
