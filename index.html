@@ -53,6 +53,7 @@ input[type="number"]:focus, select:focus { outline: none; border-color: #2E75B6;
 .risk-low { background: #dcfce7; color: #15803d; border-left: 6px solid #22c55e; }
 .risk-mid { background: #fef3c7; color: #92400e; border-left: 6px solid #f59e0b; }
 .risk-high { background: #fee2e2; color: #991b1b; border-left: 6px solid #ef4444; }
+.risk-gray { background: #f1f5f9; color: #475569; border-left: 6px solid #94a3b8; }
 .risk-gauge { margin-top: 32px; }  /* assez d'espace pour le label du marqueur qui dépasse de 22px au-dessus du bar */
 .risk-gauge-track { height: 12px; background: linear-gradient(to right, #22c55e 0%, #22c55e 15%, #f59e0b 15%, #f59e0b 75%, #ef4444 75%, #ef4444 100%);
                      border-radius: 6px; position: relative; }
@@ -678,11 +679,16 @@ function updateRankBasedVPN(pipe, patient_r12) {
   document.getElementById('grp_le_n').textContent   = km_le.N.toString();
   document.getElementById('grp_le_e').textContent   = km_le.n_events.toString();
   const [vpn_lo, vpn_hi] = wilsonCI(km_le.N - km_le.n_events, km_le.N);
-  document.getElementById('grp_le_v12').textContent = fmt_p(vpn) + ' [' + (vpn_lo*100).toFixed(1) + '%; ' + (vpn_hi*100).toFixed(1) + '%]';
+  // V15.357 : IC95 % en gris non-gras, valeur principale conserve l'emphase via <strong>
+  document.getElementById('grp_le_v12').innerHTML = fmt_p(vpn) +
+    ' <span style="font-weight:400; font-size:12.5px; color:#64748b;">[IC95% ' +
+    (vpn_lo*100).toFixed(1) + '–' + (vpn_hi*100).toFixed(1) + '%]</span>';
   document.getElementById('grp_ge_n').textContent   = km_ge.N.toString();
   document.getElementById('grp_ge_e').textContent   = km_ge.n_events.toString();
   const [vpp_lo, vpp_hi] = wilsonCI(km_ge.n_events, km_ge.N);
-  document.getElementById('grp_ge_v12').textContent = fmt_p(vpp) + ' [' + (vpp_lo*100).toFixed(1) + '%; ' + (vpp_hi*100).toFixed(1) + '%]';
+  document.getElementById('grp_ge_v12').innerHTML = fmt_p(vpp) +
+    ' <span style="font-weight:400; font-size:12.5px; color:#64748b;">[IC95% ' +
+    (vpp_lo*100).toFixed(1) + '–' + (vpp_hi*100).toFixed(1) + '%]</span>';
   document.getElementById('grp_le_n_inline').textContent   = km_le.N.toString();
   document.getElementById('grp_le_v12_inline').textContent = fmt_p(vpn);
   document.getElementById('grp_ge_n_inline').textContent   = km_ge.N.toString();
@@ -956,6 +962,16 @@ function calculate(doScroll) {
   const TERN_HI = _isHodgkin_pt ? 1.01 : 0.45;  // 1.01 = pas de zone Élevé chez Hodgkin
   const _ternLabel = _isHodgkin_pt ? 'Hodgkin (cutoff unique 5 %)' : 'B agressifs (5 / 45)';
 
+  // V15.357 — Précompute prevalence baseline AVANT la logique de zone, pour que le
+  // banner Hodgkin r12 ≥ prévalence soit gris (cohérent avec la jauge).
+  const _isHodgkin = _isHodgkin_pt ? 1 : 0;
+  const _histoName = _isHodgkin ? 'Hodgkin classique' : 'DLBCL & co. (B agressifs + indolents)';
+  const _histo_subset = pickCohort()[pipe].cohort.filter(p => (p[4] || 0) === _isHodgkin);
+  const _histo_pts = _histo_subset.map(p => ({t:p[2], e:p[3]}));
+  const _km_histo = _histo_pts.length >= 3 ? km(_histo_pts) : {S12: NaN, N: _histo_pts.length, n_events: 0};
+  const _prev12 = isNaN(_km_histo.S12) ? NaN : (1 - _km_histo.S12);
+  const _prev_str = isNaN(_prev12) ? '—' : (_prev12*100).toFixed(1) + ' %';
+
   let zone, zoneLabel, zoneCSS, action;
   let zoneStats;
   if (r12 <= TERN_LO) {
@@ -968,7 +984,10 @@ function calculate(doScroll) {
       : 'B agressifs · Tern 5/45 : 26 patients Faible, 1 rechute → VPN = 96.2 % @12mo, LR− = 0.05 (M2_hEq Deauv agrégé N=120, 33 ev).';
   } else if (_isHodgkin_pt) {
     // Hodgkin r12 > 5 % : zone INDÉTERMINÉE — le modèle MRD ne stratifie pas le haut-risque chez Hodgkin
-    zone = 'indeterminate'; zoneLabel = 'INDÉTERMINÉ'; zoneCSS = 'mid';
+    // V15.357 : banner orange si 5 % < r12 < prévalence (zone orange de la jauge),
+    //           banner gris si r12 ≥ prévalence (zone gris de la jauge, modèle non actionnable).
+    zone = 'indeterminate'; zoneLabel = 'INDÉTERMINÉ';
+    zoneCSS = (!isNaN(_prev12) && r12 >= _prev12) ? 'gray' : 'mid';
     action = 'Le modèle MRD ctDNA n\'a pas de valeur prédictive positive robuste chez Hodgkin classique au-dessus de ce seuil.';
     zoneStats = 'Hodgkin · r12 > 5 % : 51 patients agrégés, 8 rechutes. R/R observé ≈ 16 % mais sans pouvoir distinguer haut vs bas risque par MRD ctDNA seul (VPP plafonne ~40 % avec IC très large).';
   } else if (r12 <= TERN_HI) {
@@ -1007,14 +1026,8 @@ function calculate(doScroll) {
       `</div>`;
   }
   // V15.343 : header block — baseline risk for patient's histo + transformed input values
-  const _isHodgkin = (mapHisto(histo_label) === 'HODGKIN') ? 1 : 0;
-  const _histoName = _isHodgkin ? 'Hodgkin classique' : 'DLBCL & co. (B agressifs + indolents)';
-  // Baseline prevalence in patient's histo subset (KM @ 12mo)
-  const _histo_subset = pickCohort()[pipe].cohort.filter(p => (p[4] || 0) === _isHodgkin);
-  const _histo_pts = _histo_subset.map(p => ({t:p[2], e:p[3]}));
-  const _km_histo = _histo_pts.length >= 3 ? km(_histo_pts) : {S12: NaN, N: _histo_pts.length, n_events: 0};
-  const _prev12 = isNaN(_km_histo.S12) ? NaN : (1 - _km_histo.S12);
-  const _prev_str = isNaN(_prev12) ? '—' : (_prev12*100).toFixed(1) + ' %';
+  // (V15.357 : _isHodgkin / _histoName / _prev12 / _prev_str sont maintenant calculés
+  //            en amont, avant la logique de zone, pour piloter la couleur du banner.)
   // Transformed input values — V15.344 : only "diminution" metrics
   //   log10(ctDNA C2J1 en VAF %)    smaller = better treatment response
   //   log10(ctDNA C2J1 en hEq/mL)   smaller = better treatment response
