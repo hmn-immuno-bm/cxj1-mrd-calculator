@@ -1298,13 +1298,17 @@ function drawKM(pipe, lp) {
       `La calibration locale doit être interprétée avec prudence car la biologie des rechutes peut différer entre les deux groupes.` +
       `</div>`;
   }
-  // Note Hodgkin-spécifique : lien vers §XII.4-bis
+  // Note Hodgkin-spécifique : uniquement si r12_pt ≥ prévalence Hodgkin (~5%)
+  // En dessous de la prévalence, la calibration Hodgkin est OK (VPN excellente) →
+  // pas d'alerte nécessaire. Au-dessus, le modèle sur-prédit (slope 0.70) → warn.
+  const HODGKIN_PREVALENCE = 0.05;  // prévalence R/R @12mo Hodgkin classique (~4.6-5.5%)
+  const r12_pt = 1 - Math.pow(m.baseline_S0[12], expLP);
   let hodgkinNote = '';
-  if (isHodgkin_pt_v) {
+  if (isHodgkin_pt_v && r12_pt >= HODGKIN_PREVALENCE) {
     hodgkinNote =
       `<div style="margin-top:8px; padding:8px 10px; background:#F5F3FF; border-left:3px solid #7C3AED; border-radius:3px; font-size:11.5px; color:#5b21b6;">` +
-      `ℹ <strong>Patient Hodgkin classique</strong> — la calibration globale du modèle Cox V230.1 est moins fiable chez Hodgkin (sur-prédiction systématique, slope = 0.70 vs 1.04 pour les B agressifs). ` +
-      `Voir <a href="methodology.html#sec-calib" style="color:#7C3AED;font-weight:600;text-decoration:underline;">§XII.4-bis</a> et la <a href="methodology.html#sec-vpp-vpn-curves" style="color:#7C3AED;font-weight:600;text-decoration:underline;">courbe VPP(c)</a>. Le calculateur a donc une utilité diagnostique limitée chez Hodgkin (VPN excellente, VPP plafonnée). Référez-vous au TEP Deauville pour la stratification du haut-risque.` +
+      `ℹ <strong>Patient Hodgkin classique avec r12 ≥ ${(HODGKIN_PREVALENCE*100).toFixed(0)} %</strong> — la calibration du modèle Cox V230.1 est moins fiable chez Hodgkin aux scores supérieurs à la prévalence (sur-prédiction systématique, slope = 0.70 vs 1.04 pour les B agressifs). ` +
+      `Voir <a href="methodology.html#sec-calib" style="color:#7C3AED;font-weight:600;text-decoration:underline;">§XII.4</a> et la <a href="methodology.html#sec-vpp-vpn-curves" style="color:#7C3AED;font-weight:600;text-decoration:underline;">courbe VPP(c)</a>. Au-dessus de la prévalence (~5 %), la VPP plafonne ~50 % → impossible d'isoler un groupe à haut risque pur. Référez-vous au TEP Deauville pour la stratification du haut-risque chez Hodgkin.` +
       `</div>`;
   }
 
