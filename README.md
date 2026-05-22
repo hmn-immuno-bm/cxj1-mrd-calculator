@@ -160,8 +160,8 @@ PV's real advantages on the same cohort :
 
 V230.1 = V230 + 2 patients re-integrated after audit (V15.289-291):
 
-- **PATIENT_A** (DLBCL bad responder): inconsistent MOABI WL prefix (`NGA_*.xlsx` at C2J1 vs `YOU_*.xlsx` at C3J1, due to compound surname). The default parser only matched `YOU` and silently lost the C2J1 file. Patch: `scripts/_patient_aliases.py` documents the `NGA → PATIENT_A` alias (NAS files untouched). Audit V15.289 confirmed this was the only such case among 191 WL_NGS files.
-- **PATIENT_B** (Hodgkin bad responder): C1J1 date error in the clinical database (`2022-11-03` was actually C3J1+1d due to a copy-paste in the wrong cell ; the true C1J1 is `2022-09-21`, confirmed by user 2026-05-20). With the corrected date, `delai_real(C2J1) = +21 d` and the patient correctly enters the M1 IDES cohort. Patch: `scripts/_clinical_patches.py` applies the correction in memory (NAS clinical file untouched).
+- **Patient A** (DLBCL bad responder): inconsistent MOABI WL prefix between C2J1 and C3J1 (different 3-letter prefixes due to a compound surname). The default parser only matched one prefix and silently lost the other timepoint file. Patch: an internal alias module documents the prefix mapping (NAS files untouched). Audit confirmed this was the only such case among 191 WL_NGS files.
+- **Patient B** (Hodgkin bad responder): C1J1 date error in the clinical database (a copy-paste typo placed the C3J1+1d date in the C1J1 cell ; the true C1J1 was confirmed by clinical re-review). With the corrected date, `delai_real(C2J1) = +21 d` (instead of negative) and the patient correctly enters the M1 IDES cohort. Patch: an internal clinical-patches module applies the correction in memory (NAS clinical file untouched).
 
 **Impact**: +2 M1 IDES (162→164), +1 M1 PV (108→109), +2 M2 IDES (136→138), +1 M2 PV (91→92). ΔC-index < 0.005 ; model coefficients changed by < 2%. The architecture is unchanged from V230 — only the cohort is enriched by 2 real-world cases.
 
