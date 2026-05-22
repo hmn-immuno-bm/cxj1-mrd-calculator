@@ -1316,6 +1316,105 @@ Cette stratégie KNN-adaptative divise par 10 l'ACE_tail (erreur de calibration 
 
 <!-- ════════════ SECTION 11 : VALIDATION INTERNE ════════════ -->
 <div class="card">
+<h2>XI.ter Courbes VPP/VPN — interactives stratifiées</h2>
+<h3 id="sec-vpp-vpn-curves">XI.ter Courbes VPP(c) et VPN(c) — interactives, stratifiées par histologie</h3>
+<p>Pour chaque variante de modèle × histologie, courbes <strong style="color:#dc2626;">VPP(c)</strong> (rouge) et <strong style="color:#15803d;">VPN(c)</strong> (vert) en fonction du cutoff <code>c</code> sur <code>r12</code> prédit (méthode Heagerty 2000 — KM-based dans sous-groupes). Lignes pointillées verticales = cutoffs <strong>LO/HI</strong> pilotés par les sliders du §X. Cohorte agrégée IDES + PV par histo.</p>
+
+<div class="warn" style="margin:10px 0 14px; font-size:12.5px;">
+<strong>Ce que cette figure révèle :</strong> chez <span style="color:#7C3AED;font-weight:600;">Hodgkin</span>, la courbe VPP plafonne à ~50 % et s'arrête (N&lt;2 au-delà de c ≈ 25 %). Chez <span style="color:#B45309;font-weight:600;">B agressifs + indolents</span>, elle atteint 100 % à c ≥ 75 %. C'est la justification de la différence de stratification dans le calculateur (V15.345).
+</div>
+
+<style>
+.vpn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+.vpn-cell { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 10px; }
+.vpn-cell .vpn-title { text-align: center; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.vpn-cell svg { width: 100%; height: 280px; }
+.vpn-cell .histo-H  { color: #7C3AED; }
+.vpn-cell .histo-NH { color: #B45309; }
+@media (max-width: 800px) { .vpn-grid { grid-template-columns: 1fr; } }
+</style>
+<div class="km-block">
+<h4>M2_hEq Deauv ⭐</h4>
+<div class="vpn-grid">
+  <div class="vpn-cell">
+    <div class="vpn-title histo-H">Hodgkin classique  ·  sliders Hodgkin §X</div>
+    <svg id="vpp_M2_hEq_Deauv_H"  viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title histo-NH">B agressifs + indolents  ·  sliders B agr. §X</div>
+    <svg id="vpp_M2_hEq_Deauv_NH" viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+</div>
+</div>
+<div class="km-block">
+<h4>M2_hEq Delta</h4>
+<div class="vpn-grid">
+  <div class="vpn-cell">
+    <div class="vpn-title histo-H">Hodgkin classique  ·  sliders Hodgkin §X</div>
+    <svg id="vpp_M2_hEq_Delta_H"  viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title histo-NH">B agressifs + indolents  ·  sliders B agr. §X</div>
+    <svg id="vpp_M2_hEq_Delta_NH" viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+</div>
+</div>
+<div class="km-block">
+<h4>M1_hEq</h4>
+<div class="vpn-grid">
+  <div class="vpn-cell">
+    <div class="vpn-title histo-H">Hodgkin classique  ·  sliders Hodgkin §X</div>
+    <svg id="vpp_M1_hEq_H"  viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title histo-NH">B agressifs + indolents  ·  sliders B agr. §X</div>
+    <svg id="vpp_M1_hEq_NH" viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+</div>
+</div>
+<div class="km-block">
+<h4>M2_VAF Deauv</h4>
+<div class="vpn-grid">
+  <div class="vpn-cell">
+    <div class="vpn-title histo-H">Hodgkin classique  ·  sliders Hodgkin §X</div>
+    <svg id="vpp_M2_VAF_Deauv_H"  viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title histo-NH">B agressifs + indolents  ·  sliders B agr. §X</div>
+    <svg id="vpp_M2_VAF_Deauv_NH" viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+</div>
+</div>
+<div class="km-block">
+<h4>M2_VAF Delta</h4>
+<div class="vpn-grid">
+  <div class="vpn-cell">
+    <div class="vpn-title histo-H">Hodgkin classique  ·  sliders Hodgkin §X</div>
+    <svg id="vpp_M2_VAF_Delta_H"  viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title histo-NH">B agressifs + indolents  ·  sliders B agr. §X</div>
+    <svg id="vpp_M2_VAF_Delta_NH" viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+</div>
+</div>
+<div class="km-block">
+<h4>M1_VAF</h4>
+<div class="vpn-grid">
+  <div class="vpn-cell">
+    <div class="vpn-title histo-H">Hodgkin classique  ·  sliders Hodgkin §X</div>
+    <svg id="vpp_M1_VAF_H"  viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="vpn-cell">
+    <div class="vpn-title histo-NH">B agressifs + indolents  ·  sliders B agr. §X</div>
+    <svg id="vpp_M1_VAF_NH" viewBox="0 0 500 280" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+</div>
+</div>
+<p class="muted">Méthode Heagerty PJ, Lumley T, Pepe MS. <em>Biometrics</em> 2000;56:337-44. <a href="https://doi.org/10.1111/j.0006-341X.2000.00337.x">DOI</a>. Script : <code>scripts/_v15_338_interactive_tern_vpn.py</code> (V15.349).</p>
+</div>
+
+<div class="card">
 <h2 id="sec-validation">XII. Validation interne</h2>
 <p>Battery de tests internes du modèle Cox V230.1. Tous les bootstraps utilisent la méthode Harrell (B=500, optimism-corrected sur tirages avec remise) sauf indication contraire.</p>
 
@@ -2054,6 +2153,126 @@ function renderKM(svgId, summaryId, cohort, lo, hi) {
   }
 }
 
+// ─── Precompute VPP(c) and VPN(c) curves stratified by histology (V15.349) ───
+// Pour chaque (variant, histo), agrège IDES + PV puis compute KM-based VPP/VPN
+// sur grille de cutoffs [0.01, 0.99]. Stocké dans VPN_CURVES_HISTO.
+const N_CUTOFFS = 80;
+const VPN_CURVES_HISTO = {};  // key = "vk_H" or "vk_NH"
+
+function precomputeVPNCurvesHisto() {
+  for (const v of VARIANTS) {
+    for (const histo of ['H', 'NH']) {
+      const isHodg = (histo === 'H') ? 1 : 0;
+      // Aggregate across IDES + PV for this histo
+      const arr = [];
+      for (const pipe of ['IDES','PV']) {
+        const cohort = COHORT_DATA[v.vk + '_' + pipe] || [];
+        for (const a of cohort) {
+          if (a[4] === isHodg) arr.push({lp:a[0], r12:a[1], t:a[2], e:a[3]});
+        }
+      }
+      const cutoffs = [], vpp = [], vpn = [], n_high = [], n_low = [];
+      for (let i = 0; i < N_CUTOFFS; i++) {
+        const c = 0.01 + (0.99 - 0.01) * i / (N_CUTOFFS - 1);
+        cutoffs.push(c);
+        const hi = arr.filter(p => p.r12 >= c);
+        const lo = arr.filter(p => p.r12 <  c);
+        vpp.push(hi.length >= 2 ? (1 - km(hi).S12) : NaN);
+        vpn.push(lo.length >= 2 ?      km(lo).S12  : NaN);
+        n_high.push(hi.length); n_low.push(lo.length);
+      }
+      VPN_CURVES_HISTO[v.vk + '_' + histo] = {cutoffs, vpp, vpn, n_high, n_low, N_total: arr.length};
+    }
+  }
+}
+
+// ─── Render one VPP/VPN plot (V15.349) ───
+function renderVPNHisto(svgId, key, lo, hi) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const curves = VPN_CURVES_HISTO[key];
+  if (!curves || curves.N_total < 5) {
+    svg.innerHTML = '<text x="50" y="50" font-size="11" fill="#94A3B8">Cohorte trop petite</text>';
+    return;
+  }
+  const W = 500, H = 280;
+  const mL = 40, mR = 12, mT = 12, mB = 36;
+  const plotW = W - mL - mR, plotH = H - mT - mB;
+  const xS = c => mL + c * plotW;
+  const yS = v => mT + (1 - v) * plotH;
+
+  let s = '';
+  // Tern background bands using current slider values
+  s += `<rect x="${xS(0)}" y="${mT}" width="${xS(lo)-xS(0)}" height="${plotH}" fill="#DCFCE7" opacity="0.45"/>`;
+  s += `<rect x="${xS(lo)}" y="${mT}" width="${xS(hi)-xS(lo)}" height="${plotH}" fill="#FEF3C7" opacity="0.45"/>`;
+  s += `<rect x="${xS(hi)}" y="${mT}" width="${xS(1)-xS(hi)}" height="${plotH}" fill="#FEE2E2" opacity="0.45"/>`;
+  // Grid Y
+  for (let v of [0, 0.25, 0.5, 0.75, 1.0]) {
+    s += `<line x1="${mL}" y1="${yS(v)}" x2="${mL+plotW}" y2="${yS(v)}" stroke="#E2E8F0" stroke-width="0.8"/>`;
+    s += `<text x="${mL-4}" y="${yS(v)+4}" text-anchor="end" font-size="9" fill="#64748B">${(v*100).toFixed(0)}</text>`;
+  }
+  // X ticks
+  for (let c of [0, 0.25, 0.5, 0.75, 1.0]) {
+    s += `<text x="${xS(c)}" y="${mT+plotH+15}" text-anchor="middle" font-size="9" fill="#64748B">${(c*100).toFixed(0)}%</text>`;
+  }
+  s += `<text x="${mL+plotW/2}" y="${mT+plotH+28}" text-anchor="middle" font-size="10" fill="#475569">Cutoff c (r12 prédit, %)</text>`;
+  s += `<text x="10" y="${mT+plotH/2}" text-anchor="middle" font-size="10" fill="#475569" transform="rotate(-90 10 ${mT+plotH/2})">VPP / VPN (%)</text>`;
+
+  // VPP curve (red)
+  let pVPP = '';
+  for (let i = 0; i < curves.cutoffs.length; i++) {
+    const v = curves.vpp[i];
+    if (!isNaN(v)) pVPP += (pVPP === '' ? 'M' : 'L') + ` ${xS(curves.cutoffs[i])} ${yS(v)} `;
+  }
+  s += `<path d="${pVPP}" stroke="#DC2626" stroke-width="2" fill="none"/>`;
+  // VPN curve (green)
+  let pVPN = '';
+  for (let i = 0; i < curves.cutoffs.length; i++) {
+    const v = curves.vpn[i];
+    if (!isNaN(v)) pVPN += (pVPN === '' ? 'M' : 'L') + ` ${xS(curves.cutoffs[i])} ${yS(v)} `;
+  }
+  s += `<path d="${pVPN}" stroke="#15803D" stroke-width="2" fill="none"/>`;
+
+  // Vertical lines at LO and HI
+  s += `<line x1="${xS(lo)}" y1="${mT}" x2="${xS(lo)}" y2="${mT+plotH}" stroke="#22C55E" stroke-width="2" stroke-dasharray="4,3"/>`;
+  s += `<line x1="${xS(hi)}" y1="${mT}" x2="${xS(hi)}" y2="${mT+plotH}" stroke="#EF4444" stroke-width="2" stroke-dasharray="4,3"/>`;
+  s += `<text x="${xS(lo)+3}" y="${mT+10}" font-size="9" fill="#16A34A" font-weight="700">LO ${(lo*100).toFixed(0)}%</text>`;
+  s += `<text x="${xS(hi)+3}" y="${mT+10}" font-size="9" fill="#DC2626" font-weight="700">HI ${(hi*100).toFixed(0)}%</text>`;
+
+  // Read VPP(HI) and VPN(LO) and annotate
+  function valAt(c, ys) {
+    if (c <= curves.cutoffs[0]) return ys[0];
+    if (c >= curves.cutoffs[curves.cutoffs.length-1]) return ys[ys.length-1];
+    for (let i = 1; i < curves.cutoffs.length; i++) {
+      if (curves.cutoffs[i] >= c) {
+        const t = (c - curves.cutoffs[i-1]) / (curves.cutoffs[i] - curves.cutoffs[i-1]);
+        return ys[i-1] * (1-t) + ys[i] * t;
+      }
+    }
+    return NaN;
+  }
+  const vpp_hi = valAt(hi, curves.vpp);
+  const vpn_lo = valAt(lo, curves.vpn);
+  if (!isNaN(vpn_lo)) {
+    s += `<circle cx="${xS(lo)}" cy="${yS(vpn_lo)}" r="4" fill="#15803D" stroke="white" stroke-width="1.5"/>`;
+    s += `<text x="${xS(lo)+8}" y="${yS(vpn_lo)-6}" font-size="10" fill="#15803D" font-weight="700">VPN ${(vpn_lo*100).toFixed(0)}%</text>`;
+  }
+  if (!isNaN(vpp_hi)) {
+    s += `<circle cx="${xS(hi)}" cy="${yS(vpp_hi)}" r="4" fill="#DC2626" stroke="white" stroke-width="1.5"/>`;
+    s += `<text x="${xS(hi)+8}" y="${yS(vpp_hi)-6}" font-size="10" fill="#DC2626" font-weight="700">VPP ${(vpp_hi*100).toFixed(0)}%</text>`;
+  }
+  // Tiny legend bottom-right
+  s += `<rect x="${mL+plotW-100}" y="${mT+plotH-32}" width="95" height="28" fill="white" fill-opacity="0.92" stroke="#E2E8F0"/>`;
+  s += `<rect x="${mL+plotW-95}" y="${mT+plotH-26}" width="12" height="2.5" fill="#DC2626"/>`;
+  s += `<text x="${mL+plotW-80}" y="${mT+plotH-24}" font-size="9" fill="#DC2626">VPP(c)</text>`;
+  s += `<rect x="${mL+plotW-95}" y="${mT+plotH-14}" width="12" height="2.5" fill="#15803D"/>`;
+  s += `<text x="${mL+plotW-80}" y="${mT+plotH-12}" font-size="9" fill="#15803D">VPN(c)</text>`;
+  // N badge in upper-right
+  s += `<text x="${mL+plotW-6}" y="${mT+14}" font-size="9" fill="#64748B" text-anchor="end">N=${curves.N_total}</text>`;
+
+  svg.innerHTML = s;
+}
+
 // ─── Main render function : 4 KMs per variant — Tern ADAPTATIF par histo (V15.344) ───
 function _getSliderValue(id) { return parseInt(document.getElementById(id).value, 10) / 100; }
 
@@ -2087,6 +2306,9 @@ function renderAll() {
                'km_' + v.vk + '_' + pipe + '_NH_summary',
                all_nh, lo_NH, hi_NH);
     }
+    // V15.349 : render VPP/VPN curves (1 per variant × histo, IDES+PV aggregated)
+    renderVPNHisto('vpp_' + v.vk + '_H',  v.vk + '_H',  lo_H,  hi_H);
+    renderVPNHisto('vpp_' + v.vk + '_NH', v.vk + '_NH', lo_NH, hi_NH);
   }
 }
 
@@ -2106,6 +2328,7 @@ function ternSetUniform(lo, hi) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  precomputeVPNCurvesHisto();
   ['ternHLo','ternHHi','ternNHLo','ternNHHi'].forEach(id =>
     document.getElementById(id).addEventListener('input', renderAll));
   renderAll();
