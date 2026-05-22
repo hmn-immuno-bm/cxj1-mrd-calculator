@@ -1320,9 +1320,34 @@ Cette stratégie KNN-adaptative divise par 10 l'ACE_tail (erreur de calibration 
 <h3 id="sec-vpp-vpn-curves">XI.ter Courbes VPP(c) et VPN(c) — interactives, stratifiées par histologie</h3>
 <p>Pour chaque variante de modèle × histologie, courbes <strong style="color:#dc2626;">VPP(c)</strong> (rouge) et <strong style="color:#15803d;">VPN(c)</strong> (vert) en fonction du cutoff <code>c</code> sur <code>r12</code> prédit (méthode Heagerty 2000 — KM-based dans sous-groupes). Lignes pointillées verticales = cutoffs <strong>LO/HI</strong> pilotés par les sliders du §X. Cohorte agrégée IDES + PV par histo.</p>
 
-<div class="warn" style="margin:10px 0 14px; font-size:12.5px;">
-<strong>Ce que cette figure révèle :</strong> chez <span style="color:#7C3AED;font-weight:600;">Hodgkin</span>, la courbe VPP plafonne à ~50 % et s'arrête (N&lt;2 au-delà de c ≈ 25 %). Chez <span style="color:#B45309;font-weight:600;">B agressifs + indolents</span>, elle atteint 100 % à c ≥ 75 %. C'est la justification de la différence de stratification dans le calculateur (V15.345).
+<div class="warn" style="margin:10px 0 14px; font-size:13px;">
+<strong>Ce que ces figures révèlent (lecture rapide) :</strong> chez <span style="color:#7C3AED;font-weight:600;">Hodgkin</span>, la courbe VPP plafonne à ~50 % et s'arrête (N&lt;2 au-delà de c ≈ 25 %) — <strong>aucun cutoff ne permet d'isoler un groupe à risque pur</strong>. Chez <span style="color:#B45309;font-weight:600;">B agressifs + indolents</span>, elle atteint 100 % à c ≥ 75 %. C'est la justification empirique de la différence de stratification dans le calculateur (V15.345).
 </div>
+
+<details style="margin:8px 0 16px;">
+<summary style="cursor:pointer; font-weight:600; color:#1E40AF;">📊 Détail chiffré du contraste (V15.348) — cliquer pour développer</summary>
+<div style="overflow-x:auto; margin-top:10px;">
+<table style="width:100%; border-collapse:collapse; font-size:13px;">
+<thead style="background:#1E40AF; color:white;"><tr>
+<th style="padding:8px 12px;">Cutoff r12</th>
+<th style="padding:8px 12px;">VPP Hodgkin (N)</th>
+<th style="padding:8px 12px;">VPP Non-Hodgkin (N)</th>
+<th style="padding:8px 12px;">Écart</th>
+</tr></thead>
+<tbody>
+<tr><td style="padding:6px 12px; text-align:center;">5 %</td>      <td style="padding:6px 12px; text-align:center;">8.1 % (N=51)</td>  <td style="padding:6px 12px; text-align:center;">32.8 % (N=94)</td>  <td style="padding:6px 12px; text-align:center;">+24.7 pt</td></tr>
+<tr><td style="padding:6px 12px; text-align:center;">10 %</td>     <td style="padding:6px 12px; text-align:center;">17.1 % (N=19)</td> <td style="padding:6px 12px; text-align:center;">39.1 % (N=64)</td>  <td style="padding:6px 12px; text-align:center;">+22.0 pt</td></tr>
+<tr><td style="padding:6px 12px; text-align:center;">15 %</td>     <td style="padding:6px 12px; text-align:center;">21.2 % (N=10)</td> <td style="padding:6px 12px; text-align:center;">46.4 % (N=52)</td>  <td style="padding:6px 12px; text-align:center;">+25.2 pt</td></tr>
+<tr><td style="padding:6px 12px; text-align:center;">25 %</td>     <td style="padding:6px 12px; text-align:center; color:#7C3AED; font-weight:600;">50.0 % (N=2)</td>  <td style="padding:6px 12px; text-align:center;">67.0 % (N=33)</td>  <td style="padding:6px 12px; text-align:center;">+17.0 pt</td></tr>
+<tr style="background:#FFFBEB;"><td style="padding:6px 12px; text-align:center;">45 %</td>     <td style="padding:6px 12px; text-align:center; color:#9CA3AF;">N&lt;2 (plateau)</td> <td style="padding:6px 12px; text-align:center; color:#B45309; font-weight:600;">87.0 % (N=23)</td>  <td style="padding:6px 12px; text-align:center;">—</td></tr>
+<tr style="background:#FFFBEB;"><td style="padding:6px 12px; text-align:center;">55 %</td>     <td style="padding:6px 12px; text-align:center; color:#9CA3AF;">N&lt;2</td>           <td style="padding:6px 12px; text-align:center; color:#B45309; font-weight:600;">89.5 % (N=19)</td>  <td style="padding:6px 12px; text-align:center;">—</td></tr>
+<tr style="background:#FEF2F2;"><td style="padding:6px 12px; text-align:center;">75 %</td>     <td style="padding:6px 12px; text-align:center; color:#9CA3AF;">N&lt;2</td>           <td style="padding:6px 12px; text-align:center; color:#B91C1C; font-weight:700;">100 % (N=12)</td>   <td style="padding:6px 12px; text-align:center;">—</td></tr>
+<tr style="background:#FEF2F2;"><td style="padding:6px 12px; text-align:center;">85 %</td>     <td style="padding:6px 12px; text-align:center; color:#9CA3AF;">N&lt;2</td>           <td style="padding:6px 12px; text-align:center; color:#B91C1C; font-weight:700;">100 % (N=10)</td>   <td style="padding:6px 12px; text-align:center;">—</td></tr>
+</tbody>
+</table>
+<p class="muted" style="margin-top:8px;">Référence M2_hEq Deauv agrégé IDES + PV (cohorte M2 hEq Deauv stratifiée par histo). Le contraste apparaît dès c = 5 % : VPP Hodgkin = 8 % (proche prévalence baseline 10 %, peu d'information apportée) vs Non-Hodgkin = 33 % (3× la baseline 11 %, déjà un mouvement diagnostique). Cette figure aurait dû figurer dans la validation initiale V15.196 — la limite biologique Hodgkin aurait été identifiée d'emblée et l'interface du calculateur conçue en conséquence.</p>
+</div>
+</details>
 
 <style>
 .vpn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
@@ -1472,24 +1497,20 @@ Hypothèse PH respectée pour les 4 covariables (p_rank > 0.18 partout). L'inter
 </div>
 
 
-<h3 id="sec-calib">XII.4 Calibration (globale + sous-groupes)</h3>
-<p>Le prédicteur Cox V230.1 est calibré sur toute la gamme des risques [0, 60%] — pas de sur/sous-estimation systématique. IC95% Greenwood par bin (5 bins équi-effectifs).</p>
+<h3 id="sec-calib">XII.4 Calibration (globale + stratifiée par histologie)</h3>
+<p>Le prédicteur Cox V230.1 est calibré sur toute la gamme des risques [0, 60%] — pas de sur/sous-estimation systématique globalement. IC95% Greenwood par bin (5 bins équi-effectifs).</p>
 <div class="center">
 <img class="figure" src="figs/Calibration_M2_hEq.png" alt="Calibration plot M2_hEq" style="max-width: 95%;">
 <p class="muted">Calibration M2_hEq Deauv : risque prédit vs observé. Bissectrice = calibration parfaite.</p>
 </div>
-<p>Le modèle reste calibré séparément chez Hodgkin/DLBCL, &lt;60/≥60 ans, stade I-II/III-IV — pas d'effet d'interaction non capturé.</p>
-<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
-<strong style="color:#15803d;">🔬 Observations clés</strong><br>
-Calibration globale OK sur 5 bins équi-effectifs (bissectrice respectée). Slope global M2_hEq Deauv ≈ 1.4 IDES vs 1.1 PV : PV plus proche de la calibration idéale (slope = 1.0).
-</div>
+<p>Le modèle reste également calibré séparément en <strong>&lt;60/≥60 ans</strong> et <strong>stade I-II/III-IV</strong> — pas d'effet d'interaction non capturé sur ces axes.</p>
 
 <div class="center">
-<img class="figure" src="figs/Calibration_subgroup.png" alt="Calibration par sous-groupe" style="max-width: 95%;">
+<img class="figure" src="figs/Calibration_subgroup.png" alt="Calibration par sous-groupe (âge, stade)" style="max-width: 95%;">
 </div>
 
-<!-- ──────────────────────────────────────────────────────────────────────── -->
-<h4 style="margin-top:24px; color:#7C3AED;">XII.4-bis  ·  Calibration stratifiée par histologie (V15.347) — limite découverte</h4>
+<!-- ── Calibration stratifiée par histologie (intégrée depuis l'ancien §XII.4-bis V15.347) ── -->
+<h4 style="margin-top:24px; color:#7C3AED;">Calibration stratifiée par histologie (V15.347)</h4>
 
 <div class="warn" style="margin:10px 0; padding:14px 18px; background:#FEF3C7; border-left:5px solid #B45309; border-radius:4px; color:#78350F;">
 <strong>⚠ Trou méthodologique identifié post-hoc (mai 2026)</strong><br>
@@ -1535,12 +1556,12 @@ les deux groupes histologiques ont des slopes de calibration <strong>très diff�
 </div>
 
 <div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
-<strong style="color:#15803d;">🔬 Observations clés (calibration stratifiée)</strong>
+<strong style="color:#15803d;">🔬 Observations clés (calibration globale + stratifiée)</strong>
 <ul style="margin:6px 0 0 18px;">
+<li>Calibration <strong>globale</strong> OK sur 5 bins équi-effectifs (bissectrice respectée). Slope global M2_hEq Deauv ≈ 1.4 IDES vs 1.1 PV : PV plus proche de la calibration idéale.</li>
 <li><strong>Point estimate slope Hodgkin = 0.70</strong> (vs 1.04 Non-Hodgkin) — tendance claire de <strong>sur-prédiction systématique chez Hodgkin</strong> aux scores élevés. Tous les bins r12 > 5 % ont O/E &lt; 1 chez Hodgkin.</li>
 <li>MAIS <strong>IC95 % bootstrap Hodgkin = [−0.21 ; +2.84]</strong> — extrêmement large (inclut 1) à cause des 9 events seulement. <strong>Statistiquement non concluant</strong>.</li>
-<li>Hosmer-Lemeshow Hodgkin p=0.34 NS (puissance insuffisante).</li>
-<li>Non-Hodgkin slope 1.04 [0.83 ; 1.23] : calibration ~parfaite. HL p=0.029 reflète un petit mismatch local sur les bins intermédiaires sans biais directionnel.</li>
+<li>Hosmer-Lemeshow Hodgkin p=0.34 NS (puissance insuffisante). Non-Hodgkin slope 1.04 [0.83 ; 1.23] : calibration ~parfaite ; HL p=0.029 reflète un petit mismatch local sur les bins intermédiaires sans biais directionnel.</li>
 <li>Conséquence clinique : justifie le passage à <strong>cutoff unique 5 % chez Hodgkin</strong> (zone Faible/Indéterminé, V15.345 production) plutôt qu'à 3 zones, car la zone Élevé n'est pas robuste.</li>
 </ul>
 </div>
@@ -1548,47 +1569,6 @@ les deux groupes histologiques ont des slopes de calibration <strong>très diff�
 <div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
 <strong style="color:#854d0e; font-size:14px;">📌 Leçon méthodologique</strong><br>
 La calibration <strong>doit être systématiquement stratifiée par sous-groupes cliniquement pertinents</strong> (histologie, âge, stade), pas seulement globale. Dans une cohorte hétérogène (Hodgkin + DLBCL ici), le partial pooling des coefs Cox tend à favoriser le sous-groupe majoritaire et à mal calibrer le minoritaire. La méthodologie standard de validation TRIPOD+AI inclut Hosmer-Lemeshow stratifié + slope/intercept par sous-groupes — c'est ce qui aurait dû être fait dans le rapport V15.196.
-</div>
-
-<!-- ──────────────────────────────────────────────────────────────────── -->
-<h4 style="margin-top:28px; color:#7C3AED;">XII.4-ter  ·  Courbes VPP(c) stratifiées par histologie — preuve visuelle (V15.348)</h4>
-
-<p>Le diagnostic le plus parlant : tracer la <strong>VPP(c) = P(événement EFS @ 12 mo | r12 ≥ c)</strong> en fonction du cutoff c, séparément par histologie. Le contraste est saisissant.</p>
-
-<div class="center">
-<img class="figure" src="figs/VPP_curves_per_histo_V15348.png" alt="Courbes VPP(c) stratifiées par histologie" style="max-width: 100%;">
-<p class="muted">VPP @ 12 mois en fonction du cutoff r12. Bande colorée = IC95 % Wilson. Annotations N = effectif à risque à chaque cutoff. M2_hEq Deauv agrégé IDES + PV.</p>
-</div>
-
-<div style="overflow-x:auto;">
-<table style="width:100%; border-collapse:collapse; margin:14px 0; font-size:13px;">
-<thead style="background:#1E40AF; color:white;"><tr>
-<th style="padding:8px 12px;">Cutoff r12</th>
-<th style="padding:8px 12px;">VPP Hodgkin (N)</th>
-<th style="padding:8px 12px;">VPP Non-Hodgkin (N)</th>
-<th style="padding:8px 12px;">Écart</th>
-</tr></thead>
-<tbody>
-<tr><td style="padding:6px 12px; text-align:center;">5 %</td>      <td style="padding:6px 12px; text-align:center;">8.1 % (N=51)</td>  <td style="padding:6px 12px; text-align:center;">32.8 % (N=94)</td>  <td style="padding:6px 12px; text-align:center;">+24.7 pt</td></tr>
-<tr><td style="padding:6px 12px; text-align:center;">10 %</td>     <td style="padding:6px 12px; text-align:center;">17.1 % (N=19)</td> <td style="padding:6px 12px; text-align:center;">39.1 % (N=64)</td>  <td style="padding:6px 12px; text-align:center;">+22.0 pt</td></tr>
-<tr><td style="padding:6px 12px; text-align:center;">15 %</td>     <td style="padding:6px 12px; text-align:center;">21.2 % (N=10)</td> <td style="padding:6px 12px; text-align:center;">46.4 % (N=52)</td>  <td style="padding:6px 12px; text-align:center;">+25.2 pt</td></tr>
-<tr><td style="padding:6px 12px; text-align:center;">25 %</td>     <td style="padding:6px 12px; text-align:center; color:#7C3AED; font-weight:600;">50.0 % (N=2)</td>  <td style="padding:6px 12px; text-align:center;">67.0 % (N=33)</td>  <td style="padding:6px 12px; text-align:center;">+17.0 pt</td></tr>
-<tr style="background:#FFFBEB;"><td style="padding:6px 12px; text-align:center;">45 %</td>     <td style="padding:6px 12px; text-align:center; color:#9CA3AF;">N&lt;2 (plateau)</td> <td style="padding:6px 12px; text-align:center; color:#B45309; font-weight:600;">87.0 % (N=23)</td>  <td style="padding:6px 12px; text-align:center;">—</td></tr>
-<tr style="background:#FFFBEB;"><td style="padding:6px 12px; text-align:center;">55 %</td>     <td style="padding:6px 12px; text-align:center; color:#9CA3AF;">N&lt;2</td>           <td style="padding:6px 12px; text-align:center; color:#B45309; font-weight:600;">89.5 % (N=19)</td>  <td style="padding:6px 12px; text-align:center;">—</td></tr>
-<tr style="background:#FEF2F2;"><td style="padding:6px 12px; text-align:center;">75 %</td>     <td style="padding:6px 12px; text-align:center; color:#9CA3AF;">N&lt;2</td>           <td style="padding:6px 12px; text-align:center; color:#B91C1C; font-weight:700;">100 % (N=12)</td>   <td style="padding:6px 12px; text-align:center;">—</td></tr>
-<tr style="background:#FEF2F2;"><td style="padding:6px 12px; text-align:center;">85 %</td>     <td style="padding:6px 12px; text-align:center; color:#9CA3AF;">N&lt;2</td>           <td style="padding:6px 12px; text-align:center; color:#B91C1C; font-weight:700;">100 % (N=10)</td>   <td style="padding:6px 12px; text-align:center;">—</td></tr>
-</tbody>
-</table>
-</div>
-
-<div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
-<strong style="color:#15803d;">🔬 Observations clés (courbe VPP)</strong>
-<ul style="margin:6px 0 0 18px;">
-<li><strong>Chez Hodgkin classique</strong> : la VPP <strong>plafonne à ~50 %</strong> dès c ≈ 25 %, et au-delà la cohorte tombe à N=1-2 → IC95 % énorme, impossible d'isoler un groupe à risque pur. <strong>Conséquence directe : la zone Élevé n'a aucun sens cliniquement chez Hodgkin</strong> — justifie le choix de production V15.345 (cutoff unique 5 %, zones Faible/Indéterminé seulement).</li>
-<li><strong>Chez B agressifs + indolents</strong> : la VPP monte régulièrement jusqu'à <strong>100 % à partir de c ≈ 75 %</strong> (12-19 patients, tous rechutés), avec IC95 % serré. La zone Élevé du Tern 5/45 (c=45 %, VPP=87 %) est cliniquement actionnable.</li>
-<li>Le contraste apparaît dès c = 5 % : VPP Hodgkin = 8 % (proche de la prévalence baseline 10 %, donc peu d'information) vs Non-Hodgkin = 33 % (3× la baseline 11 %, déjà un mouvement diagnostique).</li>
-<li>Cette figure aurait dû figurer dans la validation initiale V15.196 — la limite Hodgkin aurait été identifiée d'emblée et l'interface du calculateur conçue en conséquence.</li>
-</ul>
 </div>
 
 <h3 id="sec-dca">XII.5 Decision Curve Analysis (DCA) — net benefit clinique, stratifié par histologie</h3>
@@ -1600,13 +1580,13 @@ Le <em>net benefit</em> NB(p) = TP/N − FP/N × (p/(1−p)) (Vickers &amp; Elki
 
 <div class="center">
 <img class="figure" src="figs/DCA_per_histo_all_variants_V15352.png" alt="DCA stratifiée par histologie et variante" style="max-width: 100%;">
-<p class="muted">DCA @ 12 mois pour les 6 variantes du modèle V230.1 × 2 sous-groupes histologiques (Hodgkin classique violet  ·  B agressifs + indolents orange). Cohorte agrégée IDES + PV par histo. Courbe pleine = modèle Cox V230.1 ; tirets = stratégie « traiter tous » (référence prévalence) ; ligne horizontale = « ne traiter personne ». Zone colorée semi-transparente = plage où le modèle <strong>domine</strong> les deux stratégies de référence. Notez les échelles Y radicalement différentes entre les deux colonnes.</p>
+<p class="muted">DCA @ 12 mois pour les 6 variantes du modèle V230.1 × 2 sous-groupes histologiques (Hodgkin classique violet  ·  B agressifs + indolents orange). Cohorte agrégée IDES + PV par histo. Courbe pleine colorée = modèle Cox V230.1 ; tirets gris = stratégie « traiter tous » (référence prévalence) ; <strong>pointillés noirs (NB = 0) = stratégie « traiter personne »</strong>. Zone colorée semi-transparente = plage où le modèle <strong>domine</strong> les deux stratégies de référence. Notez les échelles Y radicalement différentes entre les deux colonnes.</p>
 </div>
 
 <div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
 <strong style="color:#15803d;">🔬 Observations clés (DCA stratifiée)</strong>
 <ul style="margin:6px 0 0 18px;">
-<li><strong>Hodgkin classique</strong> (panneaux violets) : prévalence R/R @12mo ≈ 5 % → <strong>NB max théorique ≈ 0.05</strong>. La courbe modèle dépasse à peine la stratégie « ne traiter personne » sur certaines plages, sans avantage clinique substantiel. Cohérent avec la <strong>limite biologique</strong> de la MRD ctDNA mid-traitement chez Hodgkin (§XII.4-bis).</li>
+<li><strong>Hodgkin classique</strong> (panneaux violets) : prévalence R/R @12mo ≈ 5 % → <strong>NB max théorique ≈ 0.05</strong>. La courbe modèle dépasse à peine la stratégie « ne traiter personne » sur certaines plages, sans avantage clinique substantiel. Cohérent avec la <strong>limite biologique</strong> de la MRD ctDNA mid-traitement chez Hodgkin (cf. calibration stratifiée §<a href="#sec-calib">XII.4</a>).</li>
 <li><strong>B agressifs + indolents</strong> (panneaux orange) : prévalence R/R @12mo ≈ 26 % → <strong>NB max ≈ 0.26</strong>. La courbe modèle domine clairement les deux stratégies de référence sur la plage clinique 5-45 % de probabilité-seuil. À p=15 % (seuil LO du Tern), NB ≈ +0.15-0.20 selon variante = 15-20 vraies rechutes correctement flagged pour 100 patients sans surtraitement.</li>
 <li><strong>Toutes les variantes M2 (avec TEP)</strong> dominent toutes les variantes M1 (sans TEP) chez Non-Hodgkin sur la plage clinique 10-40 %, confirmant l'apport additionnel du Deauville.</li>
 <li><strong>Conclusion clinique</strong> : la DCA confirme que le calculateur a une utilité décisionnelle robuste chez les B agressifs + indolents, mais marginale chez Hodgkin classique — ce qui justifie le mode dégradé « cutoff unique 5 % » pour Hodgkin (V15.345).</li>
@@ -1969,17 +1949,12 @@ Le modèle suit la checklist TRIPOD+AI 2024 (Collins et al., BMJ 2024) pour le r
 <div class="card">
 <h2 id="sec-limites">XV. Limites & disclaimer</h2>
 <div class="warning">
-<p>Le calculateur est un <strong>prototype de recherche</strong>. Il n'est pas validé pour la prise en charge clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante d'un médecin hématologue qualifié.</p>
-<p>La calibration aux extrêmes de risque (r12 &gt; 75% ou ctDNA_diag &lt; 500 hEq/mL) est limitée par la taille de la cohorte de développement. Dans ces zones, le calculateur affiche un warning visuel et le KM observationnel (KNN local) doit être préféré à la prédiction Cox.</p>
+<p><strong>Le calculateur est un prototype de recherche.</strong> Il n'est pas validé pour la prise en charge clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante d'un médecin hématologue qualifié.</p>
+<p><strong>Cohorte d'entraînement mono-centrique</strong> (224 patients GHU Mondor 2020-2026). Effectif events limité (26-32 par variante) → bootstrap optimism faible (+0.01-0.03) mais IC95% larges aux extrêmes.</p>
+<p>La <strong>calibration aux extrêmes de risque</strong> (r12 &gt; 75% ou ctDNA_diag &lt; 500 hEq/mL) est limitée par la taille de la cohorte de développement. Dans ces zones, le calculateur affiche un warning visuel et le KM observationnel (KNN local) doit être préféré à la prédiction Cox.</p>
+<p><strong>Sous-groupe Hodgkin spécifiquement limité</strong> (cf. <a href="#sec-calib">§XII.4</a>) : calibration slope point estimate 0.70 (IC95% [−0.21 ; +2.84]) suggérant une sur-prédiction aux scores élevés, et VPP plafonnant à ~50 % quel que soit le cutoff. Production V15.345 dégrade volontairement le calculateur à un cutoff unique 5 % (zones Faible / Indéterminé) chez Hodgkin classique — la zone Élevé n'est pas robuste pour ce sous-groupe.</p>
 <p><strong>Validation externe sur cohorte indépendante en cours.</strong> Les chiffres de C-index et calibration reportés ici sont des estimations <em>internes</em> avec optimism-correction par bootstrap Harrell, mais ne garantissent pas la performance sur une cohorte externe.</p>
 </div>
-
-
-<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
-<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Cohorte d'entraînement mono-centrique (224 patients GHU Mondor 2020-2026). Effectif events limité (26-32 par variante) → bootstrap optimism faible (+0.01-0.03) mais IC95% larges aux extrêmes. Le calculateur est un prototype de recherche : il n'est PAS validé pour la prise en charge clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante d'un hématologue qualifié. Validation externe sur cohorte indépendante en cours.
-</div>
-
 </div>
 
 <!-- ────────────────────────────────────────────────────── -->
@@ -1989,24 +1964,16 @@ Cohorte d'entraînement mono-centrique (224 patients GHU Mondor 2020-2026). Effe
 Calculateur MRD CXJ1 — Cox proportional hazards models for ctDNA MRD in adult B-cell and Hodgkin lymphomas after mid-treatment timepoint. Partial pooling between IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines. Mono-exponential decay trajectories per histology × responder strata. Integrated baseline tumor burden term.<br>
 Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), 2026.
 </p>
+<p class="muted" style="margin-top:10px; font-size:13px;">
+Toute citation académique du modèle ou du calculateur doit référencer la version <strong>V230.1 (mai 2026)</strong> et le repo public <code>hmn-immuno-bm/cxj1-mrd-calculator</code>. Le code est licencié MIT, les coefficients du modèle et la méthodologie sont en open access pour reproduction et adaptation.
+</p>
 </div>
 
-<p class="center muted" style="margin-top: 24px;">
+<!-- Footer minimal -->
+<p class="center muted" style="margin-top: 24px; padding: 12px 0; border-top: 1px solid #e2e8f0;">
   <a href="index.html">← Retour au calculateur</a> ·
   <a href="https://github.com/hmn-immuno-bm/cxj1-mrd-calculator">GitHub repo</a>
 </p>
-
-
-
-<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
-<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Toute citation académique du modèle ou du calculateur doit référencer la version V230.1 (mai 2026) et le repo public hmn-immuno-bm/cxj1-mrd-calculator. Le code est licencié MIT, les coefficients du modèle et la méthodologie sont en open access pour reproduction et adaptation.
-</div>
-
-</div>
-</body>
-</html>
-</div>
 
 
 <!-- ════════════ INTERACTIVE TERN + VPP/VPN — V15.338 ════════════ -->
