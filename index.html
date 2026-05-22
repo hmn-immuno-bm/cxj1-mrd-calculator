@@ -977,7 +977,7 @@ function calculate(doScroll) {
   } else if (_isHodgkin_pt) {
     // Hodgkin r12 > 5 % : zone INDÉTERMINÉE — le modèle MRD ne stratifie pas le haut-risque chez Hodgkin
     zone = 'indeterminate'; zoneLabel = 'INDÉTERMINÉ'; zoneCSS = 'mid';
-    action = 'Le modèle MRD ctDNA n\'a pas de valeur prédictive positive robuste chez Hodgkin classique au-dessus de ce seuil. Référez-vous au TEP Deauville et à l\'Hasenclever pour la stratification clinique du haut-risque.';
+    action = 'Le modèle MRD ctDNA n\'a pas de valeur prédictive positive robuste chez Hodgkin classique au-dessus de ce seuil.';
     zoneStats = 'Hodgkin · r12 > 5 % : 51 patients agrégés, 8 rechutes. R/R observé ≈ 16 % mais sans pouvoir distinguer haut vs bas risque par MRD ctDNA seul (VPP plafonne ~40 % avec IC très large).';
   } else if (r12 <= TERN_HI) {
     zone = 'mid';  zoneLabel = 'MODÉRÉ'; zoneCSS = 'mid';
