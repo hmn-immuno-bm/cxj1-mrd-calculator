@@ -555,15 +555,14 @@ function pickTraj()    { return CALC_NO_QUBIT ? TRAJ_VAF : DATA_V2_SPL.TRAJ; }
 function knn(pipe, LP_target, _legacy_K) {
   const cohort = pickCohort()[pipe].cohort;
   const radius = 1.0, K_min = 8, K_max = 40;
-  const arr = cohort.map(p => ({ lp:p[0], r12:p[1], t:p[2], e:p[3], d:Math.abs(p[0]-LP_target) }));
+  // V15.353 : p[4] = isHodgkin (cohort_arrays 5-element format depuis V15.341)
+  const arr = cohort.map(p => ({ lp:p[0], r12:p[1], t:p[2], e:p[3], h:(p[4]||0), d:Math.abs(p[0]-LP_target) }));
   arr.sort((a,b) => a.d - b.d);
   // Sélection par rayon
   let selected = arr.filter(n => n.d <= radius);
   if (selected.length < K_min) {
-    // Zone très éparse : élargir au K_min plus proches
     selected = arr.slice(0, K_min);
   } else if (selected.length > K_max) {
-    // Zone très dense : limiter
     selected = arr.slice(0, K_max);
   }
   return selected;
@@ -1281,17 +1280,50 @@ function drawKM(pipe, lp) {
     : isCompact
       ? `<span style="color:#16a34a;">✓ Voisinage compact</span> (plage LP=${sparsity.toFixed(2)}). `
       : `<span style="color:#ca8a04;">Voisinage modéré</span> (plage LP=${sparsity.toFixed(2)}). `;
+  // V15.353 : Composition histologique des voisins KNN
+  const histo_label_v = document.getElementById('histo_label').value;
+  const isHodgkin_pt_v = (mapHisto(histo_label_v) === 'HODGKIN') ? 1 : 0;
+  const n_H_neigh  = neighbors.filter(n => (n.h || 0) === 1).length;
+  const n_NH_neigh = K - n_H_neigh;
+  const pt_histo_lbl = isHodgkin_pt_v ? 'Hodgkin classique' : 'B agressifs + indolents';
+  const same_histo_n = isHodgkin_pt_v ? n_H_neigh : n_NH_neigh;
+  const pct_same = K > 0 ? (same_histo_n / K * 100) : 0;
+  // Warning si majorité des voisins est de l'AUTRE histo
+  let compositionWarning = '';
+  if (K > 0 && pct_same < 50) {
+    const other_histo = isHodgkin_pt_v ? 'B agressifs + indolents' : 'Hodgkin classique';
+    compositionWarning =
+      `<div style="margin-top:10px; padding:8px 10px; background:#fef3c7; border-left:3px solid #f59e0b; border-radius:3px; font-size:11.5px; color:#78350f;">` +
+      `⚠ <strong>Voisinage hétéroclite</strong> — votre voisinage MRD est dominé par des patients ${other_histo} (≠ votre histo ${pt_histo_lbl}). ` +
+      `La calibration locale doit être interprétée avec prudence car la biologie des rechutes peut différer entre les deux groupes.` +
+      `</div>`;
+  }
+  // Note Hodgkin-spécifique : lien vers §XII.4-bis
+  let hodgkinNote = '';
+  if (isHodgkin_pt_v) {
+    hodgkinNote =
+      `<div style="margin-top:8px; padding:8px 10px; background:#F5F3FF; border-left:3px solid #7C3AED; border-radius:3px; font-size:11.5px; color:#5b21b6;">` +
+      `ℹ <strong>Patient Hodgkin classique</strong> — la calibration globale du modèle Cox V230.1 est moins fiable chez Hodgkin (sur-prédiction systématique, slope = 0.70 vs 1.04 pour les B agressifs). ` +
+      `Voir <a href="methodology.html#sec-calib" style="color:#7C3AED;font-weight:600;text-decoration:underline;">§XII.4-bis</a> et la <a href="methodology.html#sec-vpp-vpn-curves" style="color:#7C3AED;font-weight:600;text-decoration:underline;">courbe VPP(c)</a>. Le calculateur a donc une utilité diagnostique limitée chez Hodgkin (VPN excellente, VPP plafonnée). Référez-vous au TEP Deauville pour la stratification du haut-risque.` +
+      `</div>`;
+  }
+
   document.getElementById('localCalibStats').innerHTML =
     `<strong>Calibration locale</strong> — KNN adaptatif (radius=1.0, K_min=8, K_max=40) : <strong>${K} voisins</strong> (LP ${lp_min.toFixed(2)} à ${lp_max.toFixed(2)}, vous=${lp.toFixed(2)}). ` +
     sparsityNote +
     `<strong>${kmLocal.n_events}</strong> événement(s) observé(s).<br>` +
+    `<strong>Composition histo des voisins :</strong> ` +
+    `<span style="color:#7C3AED;font-weight:600;">${n_H_neigh} Hodgkin</span> / ` +
+    `<span style="color:#B45309;font-weight:600;">${n_NH_neigh} B agressifs + indolents</span> ` +
+    `<span style="color:#64748b;font-size:11px;">(votre histo = ${pt_histo_lbl}, soit ${pct_same.toFixed(0)} % des voisins)</span><br>` +
     `KM observé : <strong>S(12mo) = ${(s12.S*100).toFixed(1)}%</strong> ` +
     `<span style="color:#7c3aed;font-size:11px;">[IC95% ${(s12.lo*100).toFixed(0)}–${(s12.hi*100).toFixed(0)}%]</span>, ` +
     `<strong>S(24mo) = ${(s24.S*100).toFixed(1)}%</strong> ` +
     `<span style="color:#7c3aed;font-size:11px;">[IC95% ${(s24.lo*100).toFixed(0)}–${(s24.hi*100).toFixed(0)}%]</span><br>` +
     `<em>Cox prédit : ${((1-Math.pow(m.baseline_S0[12], expLP))*100).toFixed(1)}% à 12mo, ` +
     `${((1-Math.pow(m.baseline_S0[24], expLP))*100).toFixed(1)}% à 24mo.</em> ` +
-    `L'<strong>IC95% Greenwood</strong> (entre crochets ci-dessus) reflète l'incertitude : plus l'intervalle est large, plus le risque réel est mal estimé pour des patients comme vous.`;
+    `L'<strong>IC95% Greenwood</strong> (entre crochets ci-dessus) reflète l'incertitude : plus l'intervalle est large, plus le risque réel est mal estimé pour des patients comme vous.` +
+    compositionWarning + hodgkinNote;
 }
 
 // drawVPNDepth supprimé (V15.272-273) : la depth n'est pas un prédicteur direct de la VPN
