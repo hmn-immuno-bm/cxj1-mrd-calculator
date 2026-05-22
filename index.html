@@ -346,17 +346,18 @@ svg { width: 100%; height: 100%; overflow: visible; }
           </div>
         </div>
       </div>
-      <p style="font-size:11px; color:#64748b; font-style:italic; margin-top:8px;">
+      <p id="lr_legend" style="font-size:11px; color:#64748b; font-style:italic; margin-top:8px;">
         Repères : LR+ &gt; 10 = très informatif (+) · 5–10 = informatif · 2–5 = utile · &lt; 2 = peu informatif.
         LR− &lt; 0.1 = très informatif (−) · 0.1–0.2 = informatif · 0.2–0.5 = utile · &gt; 0.5 = peu informatif.
         LR sont indépendants de la prévalence (transposables à d'autres populations).
       </p>
-      <p style="font-size:11px; color:#64748b; font-style:italic; margin-top:6px;">
-        Interprétation : "Parmi les <span id="grp_le_n_inline">--</span> patients à risque <strong>inférieur ou égal</strong> au vôtre,
-        <span id="grp_le_v12_inline">--</span> n'ont pas rechuté à 12 mois (VPN). Parmi les <span id="grp_ge_n_inline">--</span> patients à risque
-        <strong>supérieur ou égal</strong> au vôtre, <span id="grp_ge_v12_inline">--</span> ont rechuté à 12 mois (VPP)."
-        Le patient appartient aux DEUX groupes car sa valeur est son propre seuil.
+      <p id="vpv_interpretation" style="font-size:11px; color:#64748b; font-style:italic; margin-top:6px;">
+        <span id="vpn_interp" style="display:none;">Interprétation : « Parmi les <span id="grp_le_n_inline">--</span> patients à risque <strong>inférieur ou égal</strong> au vôtre, <span id="grp_le_v12_inline">--</span> n'ont pas rechuté à 12 mois (VPN). »</span>
+        <span id="vpp_interp" style="display:none;">Interprétation : « Parmi les <span id="grp_ge_n_inline">--</span> patients à risque <strong>supérieur ou égal</strong> au vôtre, <span id="grp_ge_v12_inline">--</span> ont rechuté à 12 mois (VPP). »</span>
       </p>
+      <div id="vpv_unavailable" style="display:none; margin-top:8px; padding:10px 14px; background:#fef3c7; border-left:4px solid #f59e0b; border-radius:4px; font-size:12.5px; color:#78350f;">
+        ⓘ <strong>Aucun indicateur fiable dans cette zone</strong> — le score du patient se situe en <strong id="vpv_zone_lbl">zone intermédiaire</strong>, où la cohorte de développement ne permet pas d'isoler une VPN, une VPP ou un LR robuste. Référez-vous au TEP Deauville et au contexte clinique pour la stratification.
+      </div>
 
     </div>
 
@@ -621,9 +622,11 @@ function updateRankBasedVPN(pipe, patient_r12) {
   if (isNaN(patient_r12) || patient_r12 == null) {
     ['grp_le_n','grp_le_e','grp_le_v12','grp_ge_n','grp_ge_e','grp_ge_v12',
      'grp_le_n_inline','grp_le_v12_inline','grp_ge_n_inline','grp_ge_v12_inline',
-     'lr_plus','lr_minus','prev_histo'].forEach(id => {
+     'lr_plus','lr_minus','prev_histo','vpv_zone_lbl'].forEach(id => {
       const el = document.getElementById(id); if (el) el.textContent = '--';
     });
+    // V15.354 : also hide the unavailability message when there's no input
+    const _u = document.getElementById('vpv_unavailable'); if (_u) _u.style.display = 'none';
     return;
   }
   // V15.342 : cohort entries now [LP, r12, T, E, isHodgkin]
@@ -702,6 +705,9 @@ function updateRankBasedVPN(pipe, patient_r12) {
   //   Zone Faible (r12 ≤ 5 %)               : VPN + LR−
   //   Zone Élevé (r12 > 45 %, Non-Hodgkin)   : VPP + LR+
   //   Zone Modéré / Indéterminé              : ni l'un ni l'autre (cards cachées)
+  // V15.354 : aussi conditionner les paragraphes Repères + Interprétation (bug : ils
+  //           restaient visibles avec des chiffres concrets même quand toutes les
+  //           cards étaient cachées → l'encart paraissait cassé).
   const _TERN_LO_v = 0.05;
   const _TERN_HI_v = isHodgkinPatient ? 1.01 : 0.45;
   const vpnCard      = document.getElementById('vpn_card');
@@ -710,6 +716,12 @@ function updateRankBasedVPN(pipe, patient_r12) {
   const lrMinusCard  = document.getElementById('lr_minus_card');
   const vpvGrid      = document.getElementById('vpv_grid');
   const lrGrid       = document.getElementById('lr_grid');
+  const lrLegend     = document.getElementById('lr_legend');
+  const vpvInterpEl  = document.getElementById('vpv_interpretation');
+  const vpnInterp    = document.getElementById('vpn_interp');
+  const vppInterp    = document.getElementById('vpp_interp');
+  const vpvUnavail   = document.getElementById('vpv_unavailable');
+  const vpvZoneLbl   = document.getElementById('vpv_zone_lbl');
   function _setVisible(card, visible) { if (card) card.style.display = visible ? '' : 'none'; }
   function _gridLayout(gridEl, leftVisible, rightVisible) {
     if (!gridEl) return;
@@ -721,17 +733,34 @@ function updateRankBasedVPN(pipe, patient_r12) {
     _setVisible(lrMinusCard, true); _setVisible(lrPlusCard, false);
     _gridLayout(vpvGrid, true, false);
     _gridLayout(lrGrid,  false, true);
+    _setVisible(lrLegend, true);
+    _setVisible(vpvInterpEl, true);
+    if (vpnInterp)  vpnInterp.style.display  = '';
+    if (vppInterp)  vppInterp.style.display  = 'none';
+    _setVisible(vpvUnavail, false);
   } else if (patient_r12 > _TERN_HI_v) {
     // Zone Élevé (Non-Hodgkin uniquement) → VPP + LR+
     _setVisible(vpnCard, false);   _setVisible(vppCard, true);
     _setVisible(lrMinusCard, false); _setVisible(lrPlusCard, true);
     _gridLayout(vpvGrid, false, true);
     _gridLayout(lrGrid,  true, false);
+    _setVisible(lrLegend, true);
+    _setVisible(vpvInterpEl, true);
+    if (vpnInterp)  vpnInterp.style.display  = 'none';
+    if (vppInterp)  vppInterp.style.display  = '';
+    _setVisible(vpvUnavail, false);
   } else {
     // Zone Modéré (Non-Hodgkin) OU Indéterminé (Hodgkin) : ni VPN ni VPP, ni LR
     _setVisible(vpnCard, false); _setVisible(vppCard, false);
     _setVisible(lrPlusCard, false); _setVisible(lrMinusCard, false);
-    // (Les grilles peuvent être vides — pas grave car les cartes ne sont pas affichées)
+    // V15.354 : également masquer Repères + Interprétation, remplacer par un message clair.
+    _setVisible(lrLegend, false);
+    _setVisible(vpvInterpEl, false);
+    _setVisible(vpvUnavail, true);
+    if (vpvZoneLbl) {
+      vpvZoneLbl.textContent = isHodgkinPatient ? 'zone Indéterminée (Hodgkin · r12 > 5 %)'
+                                                : 'zone Modérée (5 % < r12 ≤ 45 %)';
+    }
   }
 
   // (V15.343 : VPP/VPN curves block removed from UI — call dropped)
@@ -1046,25 +1075,34 @@ function calculate(doScroll) {
     `</div>` +
     `<div style="font-size:14px; margin-bottom:10px;">${action}</div>` +
     (function() {
-      // V15.345 : gauge gradient adaptatif. Hodgkin = bicolore (vert ≤5%, gris >5%).
-      // Non-Hodgkin = tricolore (vert ≤5%, orange 5-45%, rouge >45%).
+      // V15.354 : gauge gradient adaptatif par histo.
+      //   Hodgkin     = bicolore ORANGE jusqu'à la prévalence baseline (~5-8 %), GRIS au-dessus.
+      //                 Aucun chiffre numérique de la prévalence affiché (visuel uniquement).
+      //                 La calibration Hodgkin est OK en dessous de la prévalence (VPN excellente),
+      //                 mais sur-prédit au-dessus (slope 0.70, VPP plafonne ~50 %) — voir §XII.4.
+      //   Non-Hodgkin = tricolore (vert ≤5 %, orange 5-45 %, rouge >45 %) — V15.345.
       const lo_pct = (TERN_LO*100).toFixed(0);
       const hi_pct = (TERN_HI*100).toFixed(0);
       let gradient;
+      let lo_label = '';
+      let hi_label = '';
       if (_isHodgkin_pt) {
-        gradient = `linear-gradient(to right, #22c55e 0%, #22c55e ${lo_pct}%, #94a3b8 ${lo_pct}%, #94a3b8 100%)`;
+        // Hodgkin : transition orange→gris à la prévalence baseline (dynamique, ~5-8 %).
+        const _prev_pct = isNaN(_prev12) ? 5 : Math.max(1, Math.min(99, _prev12*100));
+        gradient = `linear-gradient(to right, #f59e0b 0%, #f59e0b ${_prev_pct.toFixed(1)}%, #94a3b8 ${_prev_pct.toFixed(1)}%, #94a3b8 100%)`;
+        // Pas de labels intermédiaires (ni 5 %, ni la valeur de la prévalence).
       } else {
         gradient = `linear-gradient(to right, #22c55e 0%, #22c55e ${lo_pct}%, #f59e0b ${lo_pct}%, #f59e0b ${hi_pct}%, #ef4444 ${hi_pct}%, #ef4444 100%)`;
+        lo_label = `<span style="position:absolute; left:${lo_pct}%; transform:translateX(-50%);">${lo_pct}%</span>`;
+        hi_label = `<span style="position:absolute; left:${hi_pct}%; transform:translateX(-50%);">${hi_pct}%</span>`;
       }
-      const hi_label = _isHodgkin_pt ? '' :
-        `<span style="position:absolute; left:${hi_pct}%; transform:translateX(-50%);">${hi_pct}%</span>`;
       return `<div class="risk-gauge">` +
         `<div class="risk-gauge-track" style="background:${gradient};">` +
           `<div class="risk-gauge-marker" style="left:${gaugeLeft}%" data-val="${(r12*100).toFixed(1)}%"></div>` +
         `</div>` +
         `<div class="risk-gauge-labels">` +
           `<span>0%</span>` +
-          `<span style="position:absolute; left:${lo_pct}%; transform:translateX(-50%);">${lo_pct}%</span>` +
+          lo_label +
           hi_label +
           `<span>100%</span>` +
         `</div>` +
