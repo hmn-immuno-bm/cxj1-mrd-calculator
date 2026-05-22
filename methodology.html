@@ -98,7 +98,6 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
       <li><a href="#sec-consort">CONSORT (flow d'inclusion)</a></li>
       <li><a href="#sec-histo-detail">Histologie détaillée (4 catégories × sous-cats WHO 2022)</a></li>
       <li><a href="#sec-table1">Table 1 (baseline)</a></li>
-      <li><a href="#sec-atypiques">Patients atypiques</a></li>
     </ol>
   </li>
   <li><a href="#sec-inputs">Variables d'entrée</a></li>
@@ -110,9 +109,9 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
       <li><a href="#sec-v5a">Signal driver v5A_gated (D11)</a></li>
       <li><a href="#sec-tep-var">Composante TEP</a></li>
       <li><a href="#sec-lp">Linear predictor & risque</a></li>
+      <li><a href="#sec-formules">Synthèse compacte des formules</a></li>
     </ol>
   </li>
-  <li><a href="#sec-formules">Synthèse des formules</a></li>
   <li><a href="#sec-variantes">Les 6 variantes V230.1</a>
     <ol class="toc-arabic" style="font-size:12.5px;">
       <li><a href="#sec-pv-vs-ides">PV vs IDES — comparaison sur overlap N=92</a></li>
@@ -300,8 +299,7 @@ Le modèle V230.1 prédit l'EFS (Event-Free Survival = Rechute OR Progression) �
   <text x="270" y="623" class="t-b" text-anchor="middle">M1 IDES (sans TEP)</text>
   <text x="270" y="640" class="t" text-anchor="middle">N = 164 · events = 32 (EFS)</text>
   <text x="270" y="654" class="t-tp" text-anchor="middle">(96 C2 + 68 C3)</text>
-  <text x="270" y="668" class="t-s" text-anchor="middle">C-corr = 0.81 [0.73 − 0.89]</text>
-  <text x="270" y="678" class="t-s" text-anchor="middle" style="font-style:italic; font-size:10.5px;">cohorte de référence</text>
+  <text x="270" y="672" class="t-s" text-anchor="middle">C-corr = 0.81 [0.73 − 0.89]</text>
 
   <!-- M1 PV box (right, aligned, same style as IDES — no more dashed) -->
   <rect class="nd" x="590" y="605" width="280" height="74"/>
@@ -448,64 +446,35 @@ Cette binarisation s'est avérée optimale empiriquement vs des stratifications 
 </div>
 
 <h3 id="sec-table1">II.3 Caractéristiques baseline (Table 1)</h3>
-<p>Caractéristiques de la cohorte M2_hEq IDES (N=137 — snapshot pré-patches V15.289/V15.291), ventilées par responder et histologie :</p>
-<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
-<strong style="color:#15803d;">🔬 Observations clés</strong><br>
-Distribution : 43.8 % B agressifs (DLBCL NOS 56 + variants 12 + PMBL 9 + HGBL 9 + Burkitt 8 + immunoprivilégiés 4 + T/HRBCL 2), 39.3 % Hodgkin classique (86 + 2 NLPHL), 9.8 % B agressifs transformés (LFt 11, LZMt 4, HGBL/LFt 3, autres 4), 7.1 % indolents non-transformés (LF 6, LZM 4, MCL 3, EBV 2, Waldenström 1). Pour le score_kin, binarisation Hodgkin classique vs tout autre (NLPHL → DLBCL).
-</div>
+<p>Caractéristiques de la cohorte <strong>M1 IDES V230.1</strong> (cohorte la plus large utilisée pour le modèle MRD sans TEP, N=164) :</p>
 
 <table style="font-size:13px;">
 <thead>
 <tr>
-  <th style="background:#1e40af !important; color:white !important;">Caractéristique</th>
-  <th style="background:#1e40af !important; color:white !important;">Toute la cohorte<br/>(N=137)</th>
-  <th style="background:#1e40af !important; color:white !important;">Good responder<br/>(N=114)</th>
-  <th style="background:#1e40af !important; color:white !important;">Bad responder (EFS@12)<br/>(N=23)</th>
-  <th style="background:#1e40af !important; color:white !important;">Hodgkin<br/>(N=69)</th>
-  <th style="background:#1e40af !important; color:white !important;">DLBCL bucket<br/>(N=68)</th>
+  <th style="background:#1e40af !important; color:white !important; width:55%;">Caractéristique</th>
+  <th style="background:#1e40af !important; color:white !important;">Cohorte M1 IDES (N=164)</th>
 </tr>
 </thead>
 <tbody>
-<tr><td><strong>Démographie</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
-<tr><td>Age médian [IQR]</td><td>45 [30-62]</td><td>41 [29-60]</td><td>54 [43-67]</td><td>33 [27-49]</td><td>58 [43-73]</td></tr>
-<tr><td>Age ≥ 60 ans, N (%)</td><td>40 (29%)</td><td>30 (26%)</td><td>10 (43%)</td><td>7 (10%)</td><td>33 (49%)</td></tr>
-<tr><td>Sexe masculin, N (%)</td><td>83 (61%)</td><td>68 (60%)</td><td>15 (65%)</td><td>38 (55%)</td><td>45 (66%)</td></tr>
-<tr><td><strong>Histologie</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
-<tr><td>Hodgkin classique, N (%)</td><td>69 (50%)</td><td>64 (56%)</td><td>5 (22%)</td><td>69 (100%)</td><td>0 (0%)</td></tr>
-<tr><td>DLBCL / autres B agressifs, N (%)</td><td>68 (50%)</td><td>50 (44%)</td><td>18 (78%)</td><td>0 (0%)</td><td>68 (100%)</td></tr>
-<tr><td>Stade III-IV (Ann Arbor), N (%)</td><td>79 (58%)</td><td>60 (53%)</td><td>19 (83%)</td><td>33 (48%)</td><td>46 (68%)</td></tr>
-<tr><td><strong>MRD ctDNA au diagnostic</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
-<tr><td>ctDNA_diag (hEq/mL, médian [IQR])</td><td>19 201 [5 388-56 496]</td><td>13 972 [4 581-41 425]</td><td><strong>92 896</strong> [47 358-148 317]</td><td>10 222 [3 785-24 691]</td><td>46 012 [10 112-175 651]</td></tr>
-<tr><td>cfDNA_diag (ng/mL, médian [IQR])</td><td>4 023 [2 256-9 432]</td><td>3 750 [2 122-8 288]</td><td>9 148 [5 263-14 602]</td><td>2 796 [2 000-5 910]</td><td>6 080 [3 450-13 806]</td></tr>
-<tr><td><strong>Évaluation interim</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
-<tr><td>TEP2 Deauville ≥ 4, N (%)</td><td>38 (28%)</td><td>25 (22%)</td><td>13 (57%)</td><td>10 (14%)</td><td>28 (41%)</td></tr>
-<tr><td><strong>Évolution clinique</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
-<tr><td>Événement EFS @ 12mo, N (%)</td><td>23 (17%)</td><td>0 (0%)</td><td>23 (100%)</td><td>5 (7%)</td><td>18 (26%)</td></tr>
-<tr><td>Événement EFS (any time), N (%)</td><td>26 (19%)</td><td>3 (3%)</td><td>23 (100%)</td><td>7 (10%)</td><td>19 (28%)</td></tr>
-<tr><td>Suivi (mois, médian [IQR])</td><td>23 [11-34]</td><td>27 [18-38]</td><td>5 [2-7]</td><td>28 [18-40]</td><td>20 [8-28]</td></tr>
-<tr><td><strong>Chimiothérapie 1ère ligne</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
-<tr><td>· RCHOP-based, N (%)</td><td>59 (43%)</td><td>44 (39%)</td><td>15 (65%)</td><td>—</td><td>59 (87%)</td></tr>
-<tr><td>· BEACOPP/BrECADD, N (%)</td><td>47 (34%)</td><td>43 (38%)</td><td>4 (17%)</td><td>47 (68%)</td><td>—</td></tr>
-<tr><td>· ABVD/AVD-based, N (%)</td><td>23 (17%)</td><td>21 (18%)</td><td>2 (9%)</td><td>22 (32%)</td><td>1 (1%)</td></tr>
-<tr><td>· LMBA (Burkitt), N (%)</td><td>4 (3%)</td><td>4 (4%)</td><td>—</td><td>—</td><td>4 (6%)</td></tr>
-<tr><td>· Obinutuzumab-based, N (%)</td><td>2 (1%)</td><td>1 (1%)</td><td>1 (4%)</td><td>—</td><td>2 (3%)</td></tr>
-<tr><td>· Autre, N (%)</td><td>2 (1%)</td><td>1 (1%)</td><td>1 (4%)</td><td>—</td><td>2 (3%)</td></tr>
-<tr><td><strong>Traitement de 2ème ligne</strong></td><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
-<tr><td>2ème ligne reçue, N (%)</td><td>25 (18%)</td><td>3 (3%)</td><td>22 (96%)</td><td>7 (10%)</td><td>18 (26%)</td></tr>
-<tr><td>· dont CAR-T (Axi-cel/Liso-cel), N (%)</td><td>13 (9%)</td><td>1 (1%)</td><td>12 (52%)</td><td>1 (1%)</td><td>12 (18%)</td></tr>
+<tr><td><strong>Démographie</strong></td><td style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
+<tr><td>Age médian [IQR]</td><td>50 [31-69]</td></tr>
+<tr><td>Age ≥ 60 ans, N (%)</td><td>61 (37 %)</td></tr>
+<tr><td>Sexe masculin, N (%)</td><td>96 (59 %)</td></tr>
+<tr><td><strong>Histologie (4 groupes)</strong></td><td style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
+<tr><td>Lymphomes B agressifs (vrais DLBCL et apparentés), N (%)</td><td>66 (40 %)</td></tr>
+<tr><td>Hodgkin classique, N (%)</td><td>70 (43 %)</td></tr>
+<tr><td>Lymphomes B agressifs transformés à partir d'indolent, N (%)</td><td>16 (10 %)</td></tr>
+<tr><td>Lymphomes indolents non transformés, N (%)</td><td>12 (7 %)</td></tr>
+<tr><td>Stade Ann Arbor III-IV, N (%)</td><td>100 (61 %)</td></tr>
+<tr><td><strong>Évolution clinique</strong></td><td style="background:#f1f5f9; font-style:italic; color:#64748b;">—</td></tr>
+<tr><td>Événement EFS (any time), N (%)</td><td>32 (20 %)</td></tr>
 </tbody>
 </table>
-<p class="muted">Table HTML — entièrement vectorielle, accessible (lecteurs d'écran), copiable. Données brutes : <a href="figs/Table1_cohort.csv">CSV</a>.</p>
 
-<h3 id="sec-atypiques">II.4 Patients atypiques documentés</h3>
-<p>Quelques profils patients méritent une mention pour la traçabilité de la cohorte (catégories anonymisées) :</p>
-<ul>
-<li><strong>DLBCL réfractaire avec TEP non fait</strong> (N=1) — progression à 2 mo, décès à 4 mo. Routé en M1.</li>
-<li><strong>Échec d'extraction cfDNA au diagnostic</strong> (N=1) — <code>numero_run_diag = 'non_sequence?'</code> → exclu de la cohorte (VAF_diag indétectable).</li>
-<li><strong>Hodgkin classique sous 2BEACOPP + 4ABVD</strong> (N=1) — étiqueté C3J1 mais délai réel 98 j post-C1J1, compatible avec C4J1 (cycles longs). Bon répondeur clinique (Deauville 2, EFS=0 @ 34 mo) ; impact production minimal car VAF_CXJ1=0 (polish actif).</li>
-<li><strong>DLBCL sous 6 RCHOP</strong> (N=1) — étiqueté C3J1 mais délai <strong>105 j = exactement C6J1</strong> (6 × 21 j). Échantillon probablement post-fin de traitement, mal étiqueté. Éligible M1_hEq, r12 prédit ≈ 20 % (zone Modéré), EFS=0 @ 23 mo confirmé.</li>
-<li><strong>2 patients vivants perdus de vue tardivement</strong> — PFS=1 mal encodé dans la base (cf. <a href="#sec-endpoint">§XII.10</a>). Exclus des cohortes V230.1 par <code>VAF_diag=NaN</code>.</li>
-</ul>
+<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés</strong><br>
+Cohorte hétérogène avec les 4 grandes catégories de lymphomes adultes traités au GHU Mondor. Pour le score_kin, on binarise <strong>Hodgkin classique vs tout autre</strong> (NLPHL → groupe DLBCL — comportement biologique distinct). La sur-représentation Hodgkin (43 %) reflète le recrutement local mais n'introduit pas de biais (partial pooling B′ V230.1 valide les coefs IDES = PV, cf. §XI).
+</div>
 
 <div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
 <strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
@@ -629,16 +598,9 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>   avec S₀ stratifiée pipeline (IDES ou P
 LP_offset M2_hEq Deauv : IDES +3.92, PV +4.09. Validation JS ⇔ Python : erreur max < 1e-6 sur cohorte entière (V213). Patient typique « low risk » : LP ≈ -1.5 → r12 ≈ 3 % ; patient « high risk » : LP ≈ +2.5 → r12 ≈ 80 %.
 </div>
 
-<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
-<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Le modèle Cox V230.1 repose sur 4 covariables indépendantes : (i) score_kin cinétique mono-exp par strate, (ii) log_burden tumeur baseline, (iii) v5A_gated signal driver D11 quality-filtered, (iv) TEP interim (Deauville linéaire ou ΔSUVmax% fallback). LP centré sur la cohorte (LP_offset) puis r(t) = 1 − S₀(t)^exp(LP), S₀ stratifiée pipeline.
-</div>
-</div>
-
-<!-- ════════════ SECTION 4 : STRUCTURE DÉTAILLÉE ════════════ -->
-<div class="card">
-<h2 id="sec-formules">V. Synthèse des formules</h2>
-<p>Récapitulatif compact des étapes de calcul du risque <code>r(t)</code> pour un patient. Notations détaillées en <a href="#sec-modele">§IV</a>.</p>
+<!-- ════════════ Synthèse compacte des formules (intégrée depuis l'ancien §V) ════════════ -->
+<h3 id="sec-formules">IV.7 Synthèse compacte des formules</h3>
+<p>Récapitulatif lisible-en-un-bloc des étapes de calcul du risque <code>r(t)</code>. Notations détaillées : §IV.1 à §IV.6 ci-dessus.</p>
 <div class="formula" style="white-space:pre-wrap; padding:14px; background:#f8fafc; border-left:4px solid #1e40af;">
 <strong>Burden au diagnostic</strong>
 ctDNA_diag = VAF_diag(%) × cfDNA_diag      (hEq, ng·% par mL)
@@ -664,12 +626,10 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>      avec S₀ stratifiée pipeline IDES/PV
 <strong>r(t) = 1 − S(t | x)</strong>
 </div>
 
-
 <div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
 <strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Le risque prédit r(t) = 1 − S₀(t)^exp(LP) est calculé en 5 étapes : (1) score_kin par mono-exp histo×responder, (2) log_burden tumeur baseline, (3) v5A_gated signal driver D11, (4) terme TEP optionnel, (5) centrage LP_offset. La validation JS ⇔ Python est à 1e-6 près (V213 fix critique). Toutes les formules sont reproductibles depuis les coefs publiés en §VIII.
+Le modèle Cox V230.1 repose sur 4 covariables indépendantes : (i) score_kin cinétique mono-exp par strate, (ii) log_burden tumeur baseline, (iii) v5A_gated signal driver D11 quality-filtered, (iv) TEP interim (Deauville linéaire ou ΔSUVmax% fallback). Le risque r(t) = 1 − S₀(t)^exp(LP) est calculé en 5 étapes, LP centré sur la cohorte (LP_offset) puis r(t) = 1 − S₀(t)^exp(LP), S₀ stratifiée pipeline. Validation JS ⇔ Python à 1e-6 près (V213 fix critique). Toutes les formules sont reproductibles depuis les coefs publiés en §VIII.
 </div>
-
 </div>
 
 <!-- ════════════ SECTION 5 : LES 6 VARIANTES V230 ════════════ -->
