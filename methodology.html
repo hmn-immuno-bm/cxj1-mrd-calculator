@@ -1955,14 +1955,15 @@ DeltaSUV continu (modèle C) et Deauville linéaire (modèle A) captent la même
 <p class="muted"><strong>Optimism très faible</strong> (max +0.0116, médiane +0.0086) — meilleure généralisation que V230.1 (max +0.027). Le strata h0 par (pipeline, histo) régularise sans coût en complexité. Bootstrap stacked sur la cohorte unifiée IDES+PV avec partial pooling B′ refitté à chaque tirage. Données : <code>output/V15_381_bootstrap_V230_2.json</code>.</p>
 
 <div class="warn" style="margin:14px 0; padding:12px 16px; background:#FEF3C7; border-left:5px solid #B45309; border-radius:4px; color:#78350F;">
-<strong>⚠ Nuance importante chez Hodgkin (V15.380)</strong><br>
-Bien que V230.2 améliore globalement le C-index Hodgkin (0.849 vs 0.759 pour Deauv_bin seul, ΔC = +0.09), le <strong>Deauville binaire 1-3 vs 4-5</strong> reste un <strong>excellent stratificateur à long terme</strong> chez Hodgkin classique :
+<strong>⚠ Nuance importante chez Hodgkin (V15.383, MÊME cohorte N=110, 9 events)</strong><br>
+Comparaison head-to-head V230.2 (Cox ctDNA + Deauv) vs Deauville binaire seul (1-3 vs 4-5) sur la <strong>même cohorte Hodgkin</strong> :
 <ul style="margin:6px 0 0 18px;">
-<li>Deauv 4-5 chez Hodgkin (17 patients sur 110) → S(24) = 49 %, soit <strong>VPP @ 24 mo = 51 %</strong></li>
-<li>Log-rank Deauv 1-3 vs 4-5 chez Hodgkin : χ²=24.3, p<0.0001</li>
-<li>La zone Élevé V230.2 (r12 ≥ 15 %) chez Hodgkin contient 30 patients avec 1 event @ any → VPP @ 12 mo = 0 %, peu polarisée</li>
+<li><strong>Deauv 4-5 seul</strong> : 17 patients, 6/9 events captés → VPP @ 24 mo = <strong>51 %</strong></li>
+<li><strong>V230.2 r12 ≥ 15 %</strong> : 15 patients, 6/9 events captés → VPP @ 24 mo = <strong>49 %</strong></li>
+<li>V230.2 r12 ≥ 18 % (plus restrictif) : 11 patients, 5/9 events → VPP @ 24 mo = 58 % (gain marginal au prix d'1 event manqué)</li>
 </ul>
-→ <strong>Recommandation clinique</strong> : interpréter le r12 V230.2 en complément, pas en remplacement, du Deauville interim chez Hodgkin classique. Le Deauv 4-5 reste l'indicateur le plus actionnable pour la rechute tardive Hodgkin.
+<strong>Verdict honnête</strong> : <em>équivalence pratique</em> — les deux stratégies sélectionnent quasiment les mêmes patients à haut risque (concordance élevée). Avec 9 events seulement, on n'a pas la puissance statistique pour démontrer un gain du ctDNA au-delà du Deauv chez Hodgkin (test slope §XII.4 inconclusif, IC95% [−0.21 ; +2.84]). Cohérent avec la biologie : faible shedding Reed-Sternberg → la MRD plasmatique sature vite.<br>
+→ <strong>Recommandation clinique</strong> : chez Hodgkin classique, le <strong>Deauv reste le marqueur dominant</strong>. V230.2 fournit un score continu utile pour les cas intermédiaires (Deauv 2-3 douteux) mais ne doit pas être utilisé seul pour escalader. En revanche, V230.2 conserve toute sa valeur ajoutée chez les Non-Hodgkin (ΔC = +0.18 vs TEP seul).
 </div>
 
 <div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
