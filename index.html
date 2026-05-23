@@ -939,8 +939,9 @@ function calculate(doScroll) {
             + m.coefs.v5 * v5A_gated
             + tep_term;
   // V230.2 : LP_offset stratifié par histo (HODGKIN ou DLBCL)
-  const _histo_strat = ((typeof _isHodgkin_pt !== 'undefined' && _isHodgkin_pt) || (mapHisto(document.getElementById('histo_label').value) === 'HODGKIN')) ? 'HODGKIN' : 'DLBCL';
-  const _lpoff = (typeof m.LP_offset === 'object') ? (m.LP_offset[_histo_strat] || 0) : (m.LP_offset || 0);
+  // FIX TDZ : on lit histo_label directement ici (pas via _isHodgkin_pt qui est déclaré plus bas)
+  const _histo_strat = (mapHisto(histo_label) === 'HODGKIN') ? 'HODGKIN' : 'DLBCL';
+  const _lpoff = (m.LP_offset && typeof m.LP_offset === 'object') ? (m.LP_offset[_histo_strat] || 0) : (m.LP_offset || 0);
   const lp = lp_uncentered - _lpoff;  // ← V230.2 LP_offset[histo]
 
   // Risque à t mois via S0^exp(LP)
