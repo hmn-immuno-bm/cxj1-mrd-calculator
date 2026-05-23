@@ -1937,6 +1937,23 @@ DeltaSUV continu (modèle C) et Deauville linéaire (modèle A) captent la même
 <li><strong>Panel PLUS seul</strong> (sans changer la strata) : ΔAIC = −2.8 — apport marginal (β_v5A légèrement augmenté grâce à STAT6/SOCS1 chez les Hodgkin avec signal driver).</li>
 </ul>
 
+<h4>Bootstrap V230.2 optimism-corrected (B=500, V15.381)</h4>
+<p>Refit complet 6 variantes V230.2 (IDES+PV stackées avec strata pipe+histo) avec resampling Harrell B=500 :</p>
+<table style="font-size:13px;">
+<thead style="background:#1E40AF; color:white;">
+<tr><th>Variante</th><th>N (events)</th><th>C apparent</th><th>Optimism</th><th>C corrected</th><th>IC95 % (percentile train)</th></tr>
+</thead>
+<tbody>
+<tr style="background:#FFFBEB;"><td><strong>M2_hEq Deauv</strong> ⭐</td><td>230 (42)</td><td>0.861</td><td>+0.0072</td><td><strong>0.854</strong></td><td>[0.797, 0.915]</td></tr>
+<tr><td>M2_hEq Delta</td><td>200 (40)</td><td>0.857</td><td>+0.0097</td><td>0.847</td><td>[0.800, 0.917]</td></tr>
+<tr><td>M1_hEq (sans TEP)</td><td>273 (53)</td><td>0.831</td><td>+0.0043</td><td>0.827</td><td>[0.777, 0.889]</td></tr>
+<tr><td>M2_VAF Deauv</td><td>230 (42)</td><td>0.818</td><td>+0.0098</td><td>0.808</td><td>[0.751, 0.893]</td></tr>
+<tr><td>M2_VAF Delta</td><td>200 (40)</td><td>0.826</td><td>+0.0116</td><td>0.814</td><td>[0.747, 0.903]</td></tr>
+<tr><td>M1_VAF (sans TEP)</td><td>273 (53)</td><td>0.788</td><td>+0.0074</td><td>0.781</td><td>[0.724, 0.858]</td></tr>
+</tbody>
+</table>
+<p class="muted"><strong>Optimism très faible</strong> (max +0.0116, médiane +0.0086) — meilleure généralisation que V230.1 (max +0.027). Le strata h0 par (pipeline, histo) régularise sans coût en complexité. Bootstrap stacked sur la cohorte unifiée IDES+PV avec partial pooling B′ refitté à chaque tirage. Données : <code>output/V15_381_bootstrap_V230_2.json</code>.</p>
+
 <div class="warn" style="margin:14px 0; padding:12px 16px; background:#FEF3C7; border-left:5px solid #B45309; border-radius:4px; color:#78350F;">
 <strong>⚠ Nuance importante chez Hodgkin (V15.380)</strong><br>
 Bien que V230.2 améliore globalement le C-index Hodgkin (0.849 vs 0.759 pour Deauv_bin seul, ΔC = +0.09), le <strong>Deauville binaire 1-3 vs 4-5</strong> reste un <strong>excellent stratificateur à long terme</strong> chez Hodgkin classique :
@@ -1956,7 +1973,7 @@ V230.2 = V230.1 + 2 modifications minimales (panel D11+STAT6+SOCS1 + strata pipe
 
 <div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
 <strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Battery de tests internes V230.x confirmant la robustesse : bootstrap optimism faible (max +0.027 V230.1), PH respectée (p > 0.18), linéarité validée (martingale lowess plat, splines NS), calibration globale + sous-groupes OK, DCA net benefit positif, indépendance vs IPI/Hasenclever sur 6/6 variantes, MICE confirme robustesse MNAR. <strong>V230.2 mise en production</strong> avec strata h0 par (pipeline, histo) et panel v5A élargi à 13 gènes — ΔAIC −42.6, VPP zone Élevé Hodgkin +13 points. Validation externe sur cohorte indépendante en cours.
+Battery de tests internes V230.x confirmant la robustesse : <strong>bootstrap V230.2 optimism médian +0.0086 (max +0.0116)</strong> — meilleure généralisation que V230.1 (max +0.027). PH respectée (p > 0.18), linéarité validée (martingale lowess plat, splines NS), calibration globale + sous-groupes OK, DCA net benefit positif, indépendance vs IPI/Hasenclever sur 6/6 variantes, MICE confirme robustesse MNAR. <strong>V230.2 mise en production</strong> avec strata h0 par (pipeline, histo) et panel v5A élargi à 13 gènes — ΔAIC −42.6, VPP zone Élevé Hodgkin +13 points, C corrected M2_hEq Deauv = 0.854 [IC95 % 0.80-0.92]. Validation externe sur cohorte indépendante en cours.
 </div>
 </div>
 
