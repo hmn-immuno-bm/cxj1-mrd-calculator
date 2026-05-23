@@ -11,7 +11,7 @@ The calculator predicts post-CXJ1 EFS risk from four covariates measured around 
 
 1. **Kinetic score** — Gaussian log-likelihood distance between observed and predicted ctDNA decay ratios under "good responder" vs "bad responder" mono-exponential trajectories (fitted per histology × responder strata).
 2. **Baseline tumor burden** — log(1 + ctDNA at diagnosis) where ctDNA = VAF × cfDNA in hEq mode, or log(1 + VAF at diagnosis) in VAF mode.
-3. **Driver gene signal (v5A_gated)** — residual NGS signal on the 11 oncogenic drivers (D11: BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53) at CXJ1, gated by a pipeline-specific quality filter.
+3. **Driver gene signal (v5A_gated)** — residual NGS signal on the 13 oncogenic drivers panel (V230.2: D11 + STAT6 + SOCS1 — BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53, STAT6, SOCS1) at CXJ1, gated by a pipeline-specific quality filter. STAT6 and SOCS1 are documented Hodgkin classical drivers (JAK-STAT pathway, Spina Blood 2018 / Wienand Blood Adv 2019).
 4. **Interim FDG-PET** — Deauville score (linear, 1-5) at end of cycle 2, with **ΔSUVmax% fallback** if Deauville unavailable.
 
 **Endpoint**: EFS (Event-Free Survival = relapse OR progression). Non-lymphoma deaths are censored (3 patients : 2 COVID, 1 hemorrhagic ulcer under transfusion contraindication). Justification in methodology §XI.10.
@@ -29,7 +29,7 @@ The calculator switches automatically between 6 variants based on data availabil
 | M2_VAF Delta | VAF % only | ΔSUVmax% (fallback) | 120 (25) | 0.81 | 80 (15) | 0.83 |
 | M1_VAF | VAF % only | — absent | 164 (32) | 0.77 | 109 (21) | 0.79 |
 
-⭐ = optimal configuration when all data is available. C-index optimism-corrected (bootstrap V230.1 B=500, Harrell).
+⭐ = optimal configuration when all data is available. C-index optimism-corrected (bootstrap V230.1 B=500, Harrell). **V230.2 update** : panel v5A enlarged (D11+STAT6+SOCS1, 13 genes) + h0 stratified by (pipeline × histo) → 4 baselines per variant. ΔAIC = −42.6 vs V230.1, ΔC ≈ 0 globally, VPP zone 10% Hodgkin improved 16% → 29%.
 
 **Measured impact of missing data** (Δ C-index, M2_hEq Deauv ⭐ vs alternatives):
 
@@ -56,7 +56,7 @@ The PV cohort is **strictly nested in the IDES cohort** (PV ⊂ IDES, 92/138 in 
 
 ## Model specification
 
-For each variant, the Cox model is fitted with **partial pooling B′** stratified by pipeline (`cluster=NOM`, L2 penalizer = 0.05):
+For each variant, the Cox model is fitted with **partial pooling B′** stratified by `(pipeline × histology)` since V230.2 (4 baselines h0 per variant: IDES×Hodgkin, IDES×Non-Hodgkin, PV×Hodgkin, PV×Non-Hodgkin; `cluster=NOM`, L2 penalizer = 0.05):
 
 - `β_score`, `β_burden`, `β_TEP` are **shared** between IDES and PV (LR test against fully separated model : p > 0.97).
 - `β_v5A` is **pipeline-specific** (Reads_alt scale for IDES vs UMI scale for PV — LR test rejects pooling p < 0.01).
@@ -147,7 +147,19 @@ PV's real advantages on the same cohort :
 
 → PV is more parsimonious (9 vs 17 patients in the High zone) but each flag is certified by an EFS event. See methodology §VI.bis.
 
-## Validation (V230.1, May 2026)
+## Validation (V230.2, May 2026)
+
+**V230.2** — minimal architectural update over V230.1, preserving all coefficients and adding only :
+1. **Enlarged v5A panel** : D11 (11 genes) → D11 + STAT6 + SOCS1 (13 genes, +2 Hodgkin-specific JAK-STAT drivers)
+2. **Strata h0 by `(pipeline × histo)`** : 4 baselines per variant instead of 2
+
+Performance vs V230.1 (cohort M2_hEq Deauv stacked N=230, 42 events):
+- ΔAIC = −42.6 (large fit gain from histo-stratified baseline)
+- ΔC_all ≈ 0 (neutral discrimination)
+- VPP zone Élevé Hodgkin (r12 ≥ 10%) : **16% → 29%** (clinical gain)
+- All coefficients remain significant (β_score p=0.046, β_burden p=0.017, β_v5A_IDES p<0.001, β_v5A_PV p<0.001, β_Deauv p=0.006)
+
+
 
 - **Bootstrap optimism-corrected C-index** (Harrell B=500): M2_hEq Deauv IDES ⭐ apparent 0.845 → corrected **0.835** (optimism = +0.010, IC95% percentile [0.76 – 0.92]) ; PV apparent 0.893 → corrected **0.873** (optimism = +0.020, IC95% [0.80 – 0.97]). Max optimism across 12 fits = +0.027, median +0.015.
 - **Linearity**: martingale residual lowess amplitude = 0.13 (< 0.3 threshold); Grambsch-Therneau PH test p > 0.18 for all covariates; LR test for adding RCS splines on log_burden p = 0.80 NS.
