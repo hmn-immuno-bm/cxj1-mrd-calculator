@@ -1543,33 +1543,43 @@ les deux groupes histologiques ont des slopes de calibration <strong>très diff�
 </tr></thead>
 <tbody>
 <tr style="background:#F5F3FF;">
-  <td style="padding:8px 12px; color:#7C3AED; font-weight:600;">Hodgkin classique</td>
+  <td style="padding:8px 12px; color:#7C3AED; font-weight:600;">Hodgkin classique (V230.4)</td>
   <td style="padding:8px 12px; text-align:center;">110 (9)</td>
-  <td style="padding:8px 12px; text-align:center; color:#B45309; font-weight:700;">0.70</td>
+  <td style="padding:8px 12px; text-align:center; color:#B45309; font-weight:700;">+2.14</td>
+  <td style="padding:8px 12px; text-align:center;">[+1.25 ; +4.47]</td>
+  <td style="padding:8px 12px; text-align:center;">−0.011</td>
+  <td style="padding:8px 12px; text-align:center;">χ² = 4.6 (df=2), p = 0.10 NS</td>
+</tr>
+<tr style="background:#FFF7ED;">
+  <td style="padding:8px 12px; color:#B45309; font-weight:600;">B agressifs + indolents (V230.4)</td>
+  <td style="padding:8px 12px; text-align:center;">120 (33)</td>
+  <td style="padding:8px 12px; text-align:center; color:#15803d; font-weight:700;">+1.13</td>
+  <td style="padding:8px 12px; text-align:center;">[+0.92 ; +1.43]</td>
+  <td style="padding:8px 12px; text-align:center;">+0.012</td>
+  <td style="padding:8px 12px; text-align:center;">χ² = 5.5 (df=2), p = 0.06 NS</td>
+</tr>
+<tr style="background:#F5F3FF; opacity:0.6;">
+  <td style="padding:8px 12px; color:#7C3AED;">Hodgkin V230.2 (archivé)</td>
+  <td style="padding:8px 12px; text-align:center;">110 (9)</td>
+  <td style="padding:8px 12px; text-align:center; color:#B45309;">+0.70</td>
   <td style="padding:8px 12px; text-align:center;">[−0.21 ; +2.84]</td>
   <td style="padding:8px 12px; text-align:center;">−0.003</td>
   <td style="padding:8px 12px; text-align:center;">χ² = 3.4 (df=3), p = 0.34 NS</td>
-</tr>
-<tr style="background:#FFF7ED;">
-  <td style="padding:8px 12px; color:#B45309; font-weight:600;">B agressifs + indolents</td>
-  <td style="padding:8px 12px; text-align:center;">120 (33)</td>
-  <td style="padding:8px 12px; text-align:center; color:#15803d; font-weight:700;">1.04</td>
-  <td style="padding:8px 12px; text-align:center;">[+0.83 ; +1.23]</td>
-  <td style="padding:8px 12px; text-align:center;">+0.013</td>
-  <td style="padding:8px 12px; text-align:center;">χ² = 9.0 (df=3), p = 0.029 *</td>
 </tr>
 </tbody>
 </table>
 </div>
 
 <div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
-<strong style="color:#15803d;">🔬 Observations clés (calibration globale + stratifiée)</strong>
+<strong style="color:#15803d;">🔬 Observations clés V230.4 (calibration globale + stratifiée)</strong>
 <ul style="margin:6px 0 0 18px;">
-<li>Calibration <strong>globale</strong> OK sur 5 bins équi-effectifs (bissectrice respectée). Slope global M2_hEq Deauv ≈ 1.4 IDES vs 1.1 PV : PV plus proche de la calibration idéale.</li>
-<li><strong>Point estimate slope Hodgkin = 0.70</strong> (vs 1.04 Non-Hodgkin) — tendance claire de <strong>sur-prédiction systématique chez Hodgkin</strong> aux scores élevés. Tous les bins r12 > 5 % ont O/E &lt; 1 chez Hodgkin.</li>
-<li>MAIS <strong>IC95 % bootstrap Hodgkin = [−0.21 ; +2.84]</strong> — extrêmement large (inclut 1) à cause des 9 events seulement. <strong>Statistiquement non concluant</strong>.</li>
-<li>Hosmer-Lemeshow Hodgkin p=0.34 NS (puissance insuffisante). Non-Hodgkin slope 1.04 [0.83 ; 1.23] : calibration ~parfaite ; HL p=0.029 reflète un petit mismatch local sur les bins intermédiaires sans biais directionnel.</li>
-<li>Conséquence clinique : justifie le passage à <strong>cutoff unique 5 % chez Hodgkin</strong> (zone Faible/Indéterminé, V15.345 production) plutôt qu'à 3 zones, car la zone Élevé n'est pas robuste.</li>
+<li><strong>Calibration globale</strong> OK sur 5 bins équi-effectifs. C-index optimism-corrected M2_hEq Deauv = 0.862 (bootstrap B=500, V15.397).</li>
+<li><strong>Slope V230.4 Hodgkin = +2.14 [+1.25 ; +4.47]</strong> — <strong>SOUS-prédiction</strong> systématique (β &gt; 1 = effet réel &gt; effet prédit). Inversion de direction vs V230.2 (slope 0.70 = sur-prédiction).</li>
+<li><strong>Pourquoi cette inversion ?</strong> Le panel histo-spécifique V230.4 amplifie le signal v5A chez Hodgkin → r12 prédit plus haut, MAIS la cohorte n'a que 9 events tardifs → observé reste bas → slope &gt; 1.</li>
+<li><strong>Non-Hodgkin slope V230.4 = +1.13 [+0.92 ; +1.43]</strong> — calibration proche de l'idéal (IC95% inclut 1.0). Pas de problème de sous/sur-prédiction.</li>
+<li>Hosmer-Lemeshow Hodgkin V230.4 χ²=4.6 p=0.10 NS (puissance insuffisante avec 9 events). Non-Hodgkin χ²=5.5 p=0.06 NS.</li>
+<li><strong>Conséquence pour le calculateur</strong> : la note "sur-prédiction Hodgkin" est INVERSE en V230.4 (sous-prédiction). On a choisi de garder un cutoff unique <strong>15 %</strong> chez Hodgkin (binaire Faible/Élevé) qui compense partiellement la sous-prédiction (= alerte à partir de r12 prédit 15 % ≈ 7-8 % observé après correction théorique slope=2.14).</li>
+<li>Aucune recalibration shrinkage automatique appliquée (V15.405 testé puis retiré) car l'IC95% est trop large pour fiabiliser un facteur de calibration unique avec seulement 9 events.</li>
 </ul>
 </div>
 
@@ -2037,6 +2047,53 @@ V230.4 = V230.2 + 1 modification (panels v5A séparés H/NH). Gain net en C-inde
 </div>
 </div>
 
+<!-- ════════════ XII.20 — INTERACTIONS + PH + BENCHMARK ════════════ -->
+<div class="card">
+<h3 id="sec-v230-4-validation">XII.20 V230.4 — validation architecture (interactions × histo, PH, benchmarks alternatifs)</h3>
+
+<p>Battery de tests confirmant que l'architecture V230.4 (Cox stratifié + panels histo-spé) est optimale et n'est pas dominée par des alternatives plus complexes.</p>
+
+<h4>Tests d'interactions covariable × histo (V15.404)</h4>
+<p>Pour valider l'absence d'interactions résiduelles entre les covariables principales et l'histologie (après stratification h₀ et panels v5A histo-spé), on teste formellement chaque interaction via LR test sur le modèle base V230.4 (M2_hEq Deauv stacked N=230, 42 events) :</p>
+<table>
+<tr><th>Interaction testée</th><th>LR χ²</th><th>p-value</th><th>β interaction</th><th>Verdict</th></tr>
+<tr><td><code>score_kin × histo</code></td><td>0.35</td><td>0.56</td><td>+0.006</td><td>NS ✓</td></tr>
+<tr><td><code>log_burden × histo</code></td><td>0.00</td><td>0.99</td><td>−0.000</td><td>NS ✓</td></tr>
+<tr><td><code>Deauville_num × histo</code></td><td>1.44</td><td>0.23</td><td>+0.216</td><td>NS ✓</td></tr>
+<tr><td><code>v5_IDES × histo</code></td><td>3.73</td><td>0.053</td><td>+1.15</td><td>borderline</td></tr>
+<tr><td><code>v5_PV × histo</code></td><td>4.80</td><td>0.029 *</td><td>+2.69</td><td>SIG brut, <strong>NS après Bonferroni</strong> (α=0.01)</td></tr>
+</table>
+<p class="muted">Après <strong>correction Bonferroni</strong> (5 tests, α = 0.01), aucune interaction n'atteint la significativité. Les interactions borderline (v5×histo) reflètent l'absorption non-totale du panel histo-spé sur les coefficients v5A, mais ne justifient pas une stratification additionnelle des β (= V230.5 candidate rejetée).</p>
+
+<h4>Test de proportionnalité des hasards (Grambsch-Therneau)</h4>
+<table>
+<tr><th>Covariable</th><th>Test statistic</th><th>p-value</th><th>PH respectée ?</th></tr>
+<tr><td>score_kin_hEq</td><td>1.009</td><td>0.315</td><td>✓</td></tr>
+<tr><td>log_burden_hEq</td><td>0.162</td><td>0.688</td><td>✓</td></tr>
+<tr><td>Deauville_num</td><td>0.511</td><td>0.475</td><td>✓</td></tr>
+<tr><td>v5_IDES</td><td>0.095</td><td>0.758</td><td>✓</td></tr>
+<tr><td>v5_PV</td><td>0.484</td><td>0.487</td><td>✓</td></tr>
+</table>
+<p class="muted">Toutes les covariables respectent l'hypothèse PH (p &gt; 0.31). Cox standard (= non time-varying) parfaitement adapté. Pas besoin de modèle Cox étendu ou de splines time-dependent.</p>
+
+<h4>Benchmark vs Random Survival Forest + Gradient Boosting Survival (V15.406)</h4>
+<table>
+<tr><th>Modèle</th><th>C apparent</th><th>C 5-fold CV (honnête)</th><th>Δ vs Cox CV</th></tr>
+<tr><td><strong>Cox V230.4 (référence)</strong></td><td>0.869</td><td><strong>0.850</strong></td><td>—</td></tr>
+<tr><td>Random Survival Forest (500 trees)</td><td>0.924</td><td>0.850</td><td>+0.000</td></tr>
+<tr><td>Gradient Boosting Survival</td><td>0.936</td><td>0.848</td><td>−0.002</td></tr>
+</table>
+<p class="muted">Les méthodes non-paramétriques (RSF, GBM) montrent un gros C apparent (overfit visible : Δ +0.05 à +0.07 vs CV) mais sont <strong>équivalentes à Cox en validation croisée</strong> (Δ &lt; 0.002). <strong>Cox V230.4 = bon choix méthodologique</strong> : pas de gain à attendre d'algorithmes plus complexes. Données : <code>output/V15_406_RSF_GBM_benchmark.json</code>.</p>
+
+<div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Conclusion validation V230.4</strong><br>
+(1) <strong>Aucune interaction × histo</strong> robuste (après Bonferroni) — partial pooling B′ + strata h₀ + panels v5A histo-spé suffit, pas besoin d'interactions multiplicatives.<br>
+(2) <strong>PH respectée</strong> sur 5/5 covariables (Cox standard OK).<br>
+(3) <strong>RSF et GBM = Cox</strong> en C 5-fold CV (overfit visible des non-paramétriques en apparent).<br>
+(4) Architecture V230.4 = parsimonieuse, défensable et optimale pour la cohorte actuelle.
+</div>
+</div>
+
 <!-- ════════════ SECTION 12 : COHORTE D'ENTRAÎNEMENT ════════════ -->
 <div class="card">
 <h2 id="sec-techniques">XIII. Notes techniques</h2>
@@ -2087,7 +2144,7 @@ Le modèle suit la checklist TRIPOD+AI 2024 (Collins et al., BMJ 2024) pour le r
 <p><strong>Le calculateur est un prototype de recherche.</strong> Il n'est pas validé pour la prise en charge clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante d'un médecin hématologue qualifié.</p>
 <p><strong>Cohorte d'entraînement mono-centrique</strong> (224 patients GHU Mondor 2020-2026). Effectif events limité (26-32 par variante) → bootstrap optimism faible (+0.01-0.03) mais IC95% larges aux extrêmes.</p>
 <p>La <strong>calibration aux extrêmes de risque</strong> (r12 &gt; 75% ou ctDNA_diag &lt; 500 hEq/mL) est limitée par la taille de la cohorte de développement. Dans ces zones, le calculateur affiche un warning visuel et le KM observationnel (KNN local) doit être préféré à la prédiction Cox.</p>
-<p><strong>Sous-groupe Hodgkin spécifiquement limité</strong> (cf. <a href="#sec-calib">§XII.4</a>) : calibration slope point estimate 0.70 (IC95% [−0.21 ; +2.84]) suggérant une sur-prédiction aux scores élevés, et VPP plafonnant à ~50 % quel que soit le cutoff. Production V15.345 dégrade volontairement le calculateur à un cutoff unique 5 % (zones Faible / Indéterminé) chez Hodgkin classique — la zone Élevé n'est pas robuste pour ce sous-groupe.</p>
+<p><strong>Sous-groupe Hodgkin spécifiquement limité</strong> (cf. <a href="#sec-calib">§XII.4</a>) : calibration slope V230.4 = +2.14 [IC95% +1.25 ; +4.47] (inversion vs V230.2 qui était 0.70 = sur-prédiction). Avec 9 events seulement, l'IC est très large. Le calculateur V230.4 utilise un cutoff unique <strong>15 %</strong> chez Hodgkin (binaire Faible/Élevé) qui compense partiellement la sous-prédiction sans appliquer de shrinkage automatique (trop incertain).</p>
 <p><strong>Hypothèse mono-exponentielle partiellement contredite par les bi-tp</strong> — Le <code>score_kin</code> suppose une décroissance mono-exponentielle du ratio ctDNA. Or sur la sous-cohorte des 26 patients ayant <strong>2 timepoints CXJ1</strong> (C2J1 + C3J1), on observe ~50 % de <strong>rebonds biologiques C2→C3</strong> (le ratio remonte au lieu de continuer à décroître ; cf. <a href="#sec-c2c3">§XII.11</a>). Cette cohorte bi-tp est probablement biaisée vers les cas suspects (clinicien a redemandé un C3 quand le C2 était inquiétant), donc la fréquence des rebonds dans la population générale est sans doute inférieure. Mais cela reste une limite structurelle du score cinétique : la formule mono-exp est une approximation qui casse dans une fraction non négligeable des patients où on peut tester l'hypothèse. Une modélisation bi-exp ou time-varying serait pertinente sur une cohorte avec plus de bi-tp non sélectionnés.</p>
 <p><strong>Validation externe sur cohorte indépendante en cours.</strong> Les chiffres de C-index et calibration reportés ici sont des estimations <em>internes</em> avec optimism-correction par bootstrap Harrell, mais ne garantissent pas la performance sur une cohorte externe.</p>
 </div>
