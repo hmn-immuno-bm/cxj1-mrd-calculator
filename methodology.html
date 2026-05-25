@@ -1579,7 +1579,7 @@ les deux groupes histologiques ont des slopes de calibration <strong>très diff�
 <li><strong>Non-Hodgkin slope V230.4 = +1.13 [+0.92 ; +1.43]</strong> — calibration proche de l'idéal (IC95% inclut 1.0). Pas de problème de sous/sur-prédiction.</li>
 <li>Hosmer-Lemeshow Hodgkin V230.4 χ²=4.6 p=0.10 NS (puissance insuffisante avec 9 events). Non-Hodgkin χ²=5.5 p=0.06 NS.</li>
 <li><strong>Conséquence pour le calculateur</strong> : la note "sur-prédiction Hodgkin" est INVERSE en V230.4 (sous-prédiction). On a choisi de garder un cutoff unique <strong>15 %</strong> chez Hodgkin (binaire Faible/Élevé) qui compense partiellement la sous-prédiction (= alerte à partir de r12 prédit 15 % ≈ 7-8 % observé après correction théorique slope=2.14).</li>
-<li>Recalibration Bayesian conservative appliquée (V15.407) : <code>cal_factor[HODGKIN] = 1.25</code> (= borne inférieure de l'IC95% bootstrap [1.25-4.47]). Le calculateur applique <code>LP_calib = (LP_raw − LP_offset) × cal_factor[histo]</code> avant le calcul de r(t). Justification : la borne inf de l'IC est la correction MINIMALE supportée par les données (95% des resamples bootstrap donnent slope ≥ 1.25). Plus conservative qu'un shrinkage Bayesian classique avec prior subjectif. Effet : Hodgkin LP élevé r12 augmente modestement (≈ +3 pt sur exemples typiques), Hodgkin LP bas r12 quasi-inchangé. NH non corrigé (slope 1.13 IC inclut 1).</li>
+<li><strong>Pas de recalibration shrinkage automatique appliquée (option γ — modèle Cox pur)</strong>. V15.407 a testé un shrinkage Hodgkin <code>cal_factor=1.25</code> (= borne inf IC95% bootstrap) puis a été REVERTÉ (V15.407b) pour éviter une <strong>asymétrie de traitement</strong> entre Hodgkin (corrigé ×1.25) et Non-Hodgkin (non corrigé car IC inclut 1.0). Décision finale : garder un modèle Cox sans recalibration post-hoc (= TRIPOD-recommended) et documenter honnêtement la slope Hodgkin imparfaite. La sous-prédiction Hodgkin est partiellement compensée par le <strong>cutoff calculateur 15%</strong> (vs 5% NH) qui est plus conservatif (alerte à partir de r12 prédit 15% ≈ 7% observé après hypothétique correction theorique slope=2.14). Validation externe sur cohorte indépendante = la seule façon fiable d'évaluer si la calibration Hodgkin nécessite vraiment correction.</li>
 </ul>
 </div>
 
@@ -2091,6 +2091,52 @@ V230.4 = V230.2 + 1 modification (panels v5A séparés H/NH). Gain net en C-inde
 (2) <strong>PH respectée</strong> sur 5/5 covariables (Cox standard OK).<br>
 (3) <strong>RSF et GBM = Cox</strong> en C 5-fold CV (overfit visible des non-paramétriques en apparent).<br>
 (4) Architecture V230.4 = parsimonieuse, défensable et optimale pour la cohorte actuelle.
+</div>
+</div>
+
+<!-- ════════════ XII.21 — VALIDATION POST-DÉPLOIEMENT V230.4 ════════════ -->
+<div class="card">
+<h3 id="sec-v230-4-post-deploy">XII.21 V230.4 — validation post-déploiement (NRI/IDI, MICE, bi-tp)</h3>
+
+<p>3 analyses additionnelles confirmant les caractéristiques cliniques et statistiques de V230.4 post-déploiement.</p>
+
+<h4>NRI / IDI V230.4 vs Deauville-only (V15.408)</h4>
+<p>Comparaison formelle de la reclassification entre V230.4 (Cox stratifié + panels histo-spé) et un Cox univarié <code>T ~ Deauville_num</code> seul (= baseline TEP-only). Cohorte stacked IDES+PV, N=230, 42 events EFS. Bootstrap B=500.</p>
+<table>
+<tr><th>Métrique</th><th>Point estimate</th><th>IC95% bootstrap</th><th>p-value</th></tr>
+<tr><td>ΔC apparent (V230.4 vs Deauv-only)</td><td><strong>+0.198</strong></td><td>—</td><td>—</td></tr>
+<tr><td>NRI continu (Pencina)</td><td><strong>+0.522</strong></td><td>[+0.120 ; +1.002]</td><td><strong>0.008</strong></td></tr>
+<tr><td>NRI catégoriel (seuils 5% / 20%)</td><td><strong>+0.383</strong></td><td>[+0.016 ; +0.626]</td><td><strong>0.040</strong></td></tr>
+<tr><td>IDI continu</td><td><strong>+0.238</strong></td><td>[+0.137 ; +0.351]</td><td><strong>0.002</strong></td></tr>
+</table>
+<p class="muted"><strong>3/3 métriques significatives</strong> à p &lt; 0.05. V230.4 apporte un gain pronostique additionnel ROBUSTE vs Deauville seul (+19.8 pt de C-index apparent, ≈40% de reclassification catégorielle nette correcte, gain de spécificité majeur). Données : <code>output/V15_408_NRI_IDI_V230_4.json</code>.</p>
+
+<h4>MICE imputation Deauville manquants (V15.409)</h4>
+<p>Test si l'imputation MICE (Multiple Imputation by Chained Equations) du Deauville chez les 26 patients IDES (+17 PV) sans TEP interprété permet d'utiliser la cohorte M1 enrichie au lieu de retomber sur la variante M1 (sans Deauville).</p>
+<table>
+<tr><th>Référence</th><th>N stack</th><th>events</th><th>C-index pooled</th><th>SD entre 5 imputations</th></tr>
+<tr><td>V230.4 référence (Deauv NaN drop)</td><td>230</td><td>42</td><td>0.869</td><td>—</td></tr>
+<tr><td>MICE-enlarged (Rubin pool, 5 imp.)</td><td>273</td><td>53</td><td><strong>0.852</strong> (Δ <strong>−0.017</strong>)</td><td>0.0044</td></tr>
+</table>
+<p class="muted"><strong>MICE n'apporte pas de bénéfice net</strong>. Le Deauville imputé est moins discriminant (β passe de 0.340 à 0.283), ce qui dilue la signature pronostique des 230 patients du cœur de cohorte. Le gain en puissance (+11 events) ne compense pas la perte d'info sur la covariable la plus pronostique chez Non-Hodgkin. <strong>Recommandation : ne pas déployer MICE en production.</strong> La stratégie « auto-switch entre variantes M1/M2/Delta » est meilleure qu'une imputation forcée. FMI Deauville = 0.167 LOW = imputations stables, donc cette conclusion n'est pas un artefact d'instabilité numérique. Données : <code>output/V15_409_MICE_imputation.json</code>.</p>
+
+<h4>Bi-temporal v5A C2J1 + C3J1 (V15.410)</h4>
+<p>Test si l'utilisation des 2 timepoints CXJ1 disponibles chez ~16 patients bi-tp apporte un signal pronostique additionnel via la <strong>slope v5A C2→C3</strong> (= vitesse de clairance MRD à l'échelle individuelle).</p>
+<ul>
+<li><strong>N bi-tp identifiés</strong> : 16 patients avec ≥3 variants à C2J1 ET à C3J1 (13 DLBCL + 5 Hodgkin, 7 events EFS / 18 records après merge avec doublons NOM).</li>
+<li><strong>v5A_slope distribution</strong> : médiane −0.006/jour (clairance), range [−0.107 ; +0.013]. 10 patients avec v5A &gt; 0 aux 2 timepoints, 5 polished-neg aux 2 tp, 3 patients avec clairance complète C2→C3.</li>
+<li><strong>Univariate Cox v5A_slope</strong> : HR = 0.002, p = <strong>0.55 NS</strong>.</li>
+<li><strong>LR test multivariate</strong> (vs V230.4 base, M2_hEq Deauv) : χ² = 0.83, p = <strong>0.36 NS</strong>. Idem M1 (sans TEP) : p = 0.46 NS.</li>
+<li><strong>v5A_C2 et v5A_C3 séparément</strong> : tous deux hautement significatifs en univariate (p &lt; 0.012) mais redondants entre eux dans le multivariate — l'information dynamique est déjà capturée par <code>v5A_gated</code> du timepoint principal + le score_kin trajectoriel.</li>
+</ul>
+<p class="muted"><strong>Pas de V230.5 candidate bi-tp</strong>. Puissance trop faible (7 events sur 15-22 patients) et redondance des features bi-tp avec le score_kin existant. Si une cohorte externe avec bi-tp systématique devenait disponible (≥80 patients, ≥20 events bi-tp), refaire cette analyse. Données : <code>output/V15_410_bi_tp_v5A.json</code>.</p>
+
+<div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Conclusion validation post-déploiement V230.4</strong><br>
+(1) <strong>NRI/IDI confirment</strong> que V230.4 apporte un gain pronostique massif vs Deauville seul (3/3 métriques sig, p &lt; 0.05).<br>
+(2) <strong>MICE imputation Deauville → NE PAS déployer</strong>. La stratégie auto-switch variantes M1/M2/Delta est meilleure.<br>
+(3) <strong>Bi-temporal v5A → pas de V230.5</strong>. Puissance insuffisante (16 bi-tp, 7 events) et redondance avec score_kin.<br>
+(4) <strong>V230.4 confirmée comme production optimale</strong> pour la cohorte actuelle. Validation externe = prochaine étape critique.
 </div>
 </div>
 
