@@ -644,8 +644,11 @@ function updateRankBasedVPN(pipe, patient_r12) {
   const isHodgkinPatient = (mapHisto(histo_label) === 'HODGKIN') ? 1 : 0;
   const histo_name = isHodgkinPatient ? 'Hodgkin classique' : 'B agressifs + indolents';
 
-  // Compute prevalence at 12mo within patient's histology subset (KM-based)
-  const histo_subset = cohort.filter(p => (p[4] || 0) === isHodgkinPatient)
+  // V230.4 — Prévalence rr12 = caractéristique POPULATIONNELLE (indépendante du pipeline)
+  // → on utilise toujours la cohorte IDES comme référence (PV ⊂ IDES). Évite les cas dégénérés
+  // comme PV Hodgkin (N=41, 0 events @12 → Wilson IC [0, 8.6%] → zone Faible inaccessible).
+  const _cohort_ref_rk = pickCohort()['IDES'].cohort;
+  const histo_subset = _cohort_ref_rk.filter(p => (p[4] || 0) === isHodgkinPatient)
                               .map(p => ({lp:p[0], r12:p[1], t:p[2], e:p[3]}));
   const km_histo = histo_subset.length >= 3 ? km(histo_subset) : {S12: NaN, N: histo_subset.length, n_events: 0};
   const prevalence12 = isNaN(km_histo.S12) ? NaN : (1 - km_histo.S12);
@@ -1032,7 +1035,12 @@ function calculate(doScroll) {
   const _isHodgkin_pt = (mapHisto(histo_label) === 'HODGKIN');
   const _isHodgkin = _isHodgkin_pt ? 1 : 0;
   const _histoName = _isHodgkin ? 'Hodgkin classique' : 'DLBCL & co. (B agressifs + indolents)';
-  const _histo_subset = pickCohort()[pipe].cohort.filter(p => (p[4] || 0) === _isHodgkin);
+  // V230.4 — La PRÉVALENCE rr12 est une caractéristique POPULATIONNELLE (clinique),
+  // INDÉPENDANTE du pipeline de séquençage utilisé. On utilise toujours la cohorte IDES
+  // comme référence (PV ⊂ IDES + IDES est la cohorte "complète"). Évite les cas dégénérés
+  // type PV Hodgkin N=41, 0 ev @12mo → Wilson IC [0, 8.6%] → zone Faible inaccessible.
+  const _cohort_ref = pickCohort()['IDES'].cohort;  // référence prévalence = IDES (toutes histos)
+  const _histo_subset = _cohort_ref.filter(p => (p[4] || 0) === _isHodgkin);
   const _histo_pts = _histo_subset.map(p => ({t:p[2], e:p[3]}));
   const _km_histo = _histo_pts.length >= 3 ? km(_histo_pts) : {S12: NaN, N: _histo_pts.length, n_events: 0};
   const _prev12 = isNaN(_km_histo.S12) ? NaN : (1 - _km_histo.S12);
