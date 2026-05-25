@@ -1,0 +1,58 @@
+cff-version: 1.2.0
+title: "MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V230.4)"
+message: "If you use this software or methodology, please cite it as below."
+type: software
+authors:
+  - given-names: "Alexis"
+    family-names: "Caulier"
+    affiliation: "Laboratoire d'immunologie biologique, GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), AP-HP, Créteil, France"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"  # à remplir
+  - name: "hmn-immuno-bm team"
+    affiliation: "GHU Mondor, AP-HP, Créteil, France"
+repository-code: "https://github.com/hmn-immuno-bm/cxj1-mrd-calculator"
+url: "https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/"
+abstract: >
+  Public web calculator implementing Cox proportional hazards models for prediction of
+  Event-Free Survival (EFS = relapse OR progression) at 12 and 24 months after the
+  mid-treatment timepoint (CXJ1), using circulating tumor DNA (ctDNA) minimal residual
+  disease (MRD) markers in adult B-cell lymphomas and classical Hodgkin lymphoma.
+
+  V230.4 (May 2026) introduces histology-specific v5A driver panels (Hodgkin 16
+  genes / Non-Hodgkin 16 genes) selected by exhaustive backward elimination, after
+  blacklisting genes with HR<1 or p>0.5 univariate per histology and excluding Ig
+  V(D)J genes. The model combines four covariates per pipeline variant (kinetic
+  score, log baseline tumor burden, panel signal, Deauville interim PET) and uses
+  partial pooling between IDES (MOABI hybrid-capture) and PV (phased-variant UMI)
+  pipelines with strata histology × pipeline. Bootstrap optimism-corrected C-index
+  on the optimal stacked variant (M2 hEq Deauv, N=230, 42 events): 0.862.
+keywords:
+  - "MRD"
+  - "ctDNA"
+  - "lymphoma"
+  - "Hodgkin"
+  - "DLBCL"
+  - "prognostic model"
+  - "Cox proportional hazards"
+  - "TRIPOD"
+  - "EFS"
+  - "FDG-PET"
+  - "Deauville"
+  - "MOABI"
+  - "phased variants"
+license: MIT
+version: "V230.4"
+date-released: "2026-05-25"
+# doi: "10.5281/zenodo.XXXXXXX"  # remplir après archivage Zenodo
+preferred-citation:
+  type: software
+  title: "MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V230.4)"
+  authors:
+    - given-names: "Alexis"
+      family-names: "Caulier"
+      affiliation: "GHU Mondor — secteur biologie moléculaire, AP-HP, Créteil, France"
+  year: 2026
+  url: "https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/"
+  notes: >
+    Methodology page :
+    https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/methodology.html.
+    Pipeline source : https://github.com/alessiocg/cxj1-mrd-lymphoma-pipeline.

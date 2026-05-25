@@ -1,9 +1,17 @@
 # MRD ctDNA Calculator — Adult Lymphomas (CXJ1)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version V230.4](https://img.shields.io/badge/version-V230.4-blue.svg)](https://github.com/hmn-immuno-bm/cxj1-mrd-calculator/releases)
+[![DOI (Zenodo)](https://img.shields.io/badge/DOI-pending%20(Zenodo)-lightgrey.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
+[![Cite this software](https://img.shields.io/badge/cite-CITATION.cff-blueviolet.svg)](./CITATION.cff)
+
 Web calculator implementing **Cox proportional hazards models** for prediction of **Event-Free Survival (EFS = relapse OR progression)** at 12 and 24 months after the mid-treatment timepoint (CXJ1), using circulating tumor DNA (ctDNA) minimal residual disease (MRD) markers in adult B-cell lymphomas and classical Hodgkin.
 
 🔬 **Live calculator** : <https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/>
 📚 **Methodology** : <https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/methodology.html>
+🛠️ **Pipeline source** : <https://github.com/alessiocg/cxj1-mrd-lymphoma-pipeline>
+📜 **TRIPOD+AI checklist** : [TRIPOD_AI_checklist.md](./TRIPOD_AI_checklist.md)
+📑 **Citation file** : [CITATION.cff](./CITATION.cff)
 
 ## Overview
 
@@ -191,7 +199,37 @@ All computations run client-side in the browser. No patient data is transmitted 
 
 ## Citation
 
-> Calculateur MRD CXJ1 — Cox proportional hazards models for ctDNA MRD in adult B-cell and Hodgkin lymphomas after the mid-treatment timepoint. Partial pooling across IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines, with mono-exponential decay trajectories per histology × responder strata and integrated baseline tumor burden. Endpoint EFS (relapse OR progression). Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), 2026.
+If you use this calculator, methodology, or any derived artifact (code, JSON parameters, panel definitions), please cite it via the [CITATION.cff](./CITATION.cff) file (GitHub displays a "Cite this repository" button in the right sidebar that exports BibTeX / APA / etc.).
+
+**Bibtex (placeholder — replace DOI once Zenodo archive is set up)** :
+
+```bibtex
+@software{cxj1_mrd_calculator_v230_4,
+  author       = {Caulier, Alexis and {hmn-immuno-bm team}},
+  title        = {{MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V230.4)}},
+  year         = 2026,
+  publisher    = {Zenodo},
+  version      = {V230.4},
+  doi          = {10.5281/zenodo.XXXXXXX},
+  url          = {https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/},
+  note         = {Methodology: https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/methodology.html}
+}
+```
+
+**Plain-text** :
+
+> Caulier A, hmn-immuno-bm team. MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V230.4): Cox proportional hazards models for ctDNA MRD in adult B-cell and Hodgkin lymphomas after the mid-treatment timepoint. Partial pooling across IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines, mono-exponential decay trajectories per histology × responder strata, and integrated baseline tumor burden. Endpoint EFS (relapse OR progression). Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), AP-HP, Créteil, France ; 2026. Available from: https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/. DOI: 10.5281/zenodo.XXXXXXX.
+
+## Data availability (FAIR)
+
+This project follows the **FAIR principles** (Findable, Accessible, Interoperable, Reusable):
+
+- **Findable** : DOI (Zenodo, pending), GitHub repository indexed by Google Scholar / OpenAlex / ORCID claims, semantic title and abstract.
+- **Accessible** : code MIT-licensed, web calculator publicly hosted (HTTPS), CITATION.cff machine-readable, methodology HTML5 standards-compliant.
+- **Interoperable** : model parameters in JSON (`_calculator_data_v2.json`, `_calculator_data_v2_VAF_variants.json`) with documented schema in methodology §XII.1 and §XII.20.
+- **Reusable** : MIT license, full Python pipeline (135+ scripts `_v15_*.py`) under [alessiocg/cxj1-mrd-lymphoma-pipeline](https://github.com/alessiocg/cxj1-mrd-lymphoma-pipeline), TRIPOD+AI checklist provided, version-tagged releases on GitHub.
+
+**Patient-level data**: not shareable due to GDPR (single-center retrospective cohort of identifiable lymphoma patients). **Aggregated, de-identified cohort arrays** (predicted r12, observed T/E, predicted LP) embedded in the production JSONs enable external reproduction of all reported C-index, calibration, NRI/IDI, and DCA computations. **External validation kits** (anonymized cohort arrays + reference scripts) available upon reasonable request to hmn-immuno-bm.
 
 ## License
 
