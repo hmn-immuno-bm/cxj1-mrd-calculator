@@ -302,11 +302,17 @@ svg { width: 100%; height: 100%; overflow: visible; }
         Cible 12 mois car la dynamique précoce du ctDNA n'a pas été validée pour prédire les rechutes tardives.
       </p>
 
-      <!-- Cutoff prévalence (V15.359 : prévalence affichée dans l'encart principal ci-haut, non répétée ici) -->
+      <!-- V230.4 : 3-zones basé sur IC95 % Wilson de la prévalence rr12 (apple-to-apple) -->
       <p style="font-size:11.5px; color:#64748b; font-style:italic; margin:8px 0 14px;">
-        Cutoff utilisé pour les indicateurs : la <strong>prévalence baseline R/R @ 12 mo</strong> de votre catégorie histologique (rappelée dans l'encart principal).
-        Si <code>r12 &lt; prévalence</code> → on affiche <strong>VPN + LR−</strong> (informatif vers le bas).
-        Si <code>r12 ≥ prévalence</code> → on affiche <strong>VPP + LR+</strong> (informatif vers le haut).
+        Logique : on compare le <strong>r12 prédit</strong> à l'<strong>IC95% Wilson de la prévalence rr12</strong>
+        dans votre sous-cohorte histologique (apples-to-apples : r12 et prévalence sont tous deux des proportions
+        d'événements EFS à 12 mois).
+        <br>
+        <strong>Zone FAIBLE</strong> (<code>r12 &lt; borne_inf IC95%</code>) → <strong>VPN + LR−</strong> seuls (test rassure)
+        <br>
+        <strong>Zone MODÉRÉ</strong> (<code>r12 ∈ IC95% prévalence</code>) → <strong>VPP ET VPN</strong> (zone d'incertitude — test ≈ population)
+        <br>
+        <strong>Zone ÉLEVÉ</strong> (<code>r12 &gt; borne_sup IC95%</code>) → <strong>VPP + LR+</strong> seuls (test alerte)
       </p>
 
       <div class="summary-grid" id="vpv_grid" style="grid-template-columns: 1fr 1fr; gap:14px;">
@@ -694,9 +700,13 @@ function updateRankBasedVPN(pipe, patient_r12) {
   document.getElementById('grp_ge_n_inline').textContent   = km_ge.N.toString();
   document.getElementById('grp_ge_v12_inline').textContent = fmt_p(vpp);
 
-  // Prevalence display
+  // Prevalence display avec IC95 % Wilson
+  const _prev_n_ev_disp = Math.round(km_histo.N * (1 - km_histo.S12));
+  const [_pdlo, _pdhi] = isNaN(prevalence12) ? [NaN, NaN] : wilsonCI(_prev_n_ev_disp, km_histo.N);
   const prevEl = document.getElementById('prev_histo');
   if (prevEl) prevEl.innerHTML = fmt_p(prevalence12) +
+    ' <span style="font-weight:400; font-size:12px; color:#64748b;">[IC95% '
+    + (_pdlo*100).toFixed(1) + '–' + (_pdhi*100).toFixed(1) + '%]</span>' +
     ' <span style="font-size:11px; color:#64748b;">(' + histo_name + ', cohorte ' + km_histo.N + ' pts, ' + km_histo.n_events + ' ev)</span>';
 
   // LR+ / LR- display
@@ -706,12 +716,13 @@ function updateRankBasedVPN(pipe, patient_r12) {
   if (lrPlusEl)  lrPlusEl.textContent  = fmt_lr(LR_plus);
   if (lrMinusEl) lrMinusEl.textContent = fmt_lr(LR_minus);
 
-  // V15.355 : Conditional VPN/VPP/LR display — PREVALENCE-BASED (not Tern-based).
-  //   r12 <  prévalence baseline histo  → VPN + LR−  (informatif vers le bas)
-  //   r12 ≥  prévalence baseline histo  → VPP + LR+  (informatif vers le haut)
-  //   La prévalence est calculée par KM @12mo sur la sous-cohorte histo de la
-  //   variante active. Le seuil Tern (5 / 45) reste utilisé uniquement pour la
-  //   coloration de la jauge (cf. banner), pas pour l'affichage des indicateurs.
+  // V230.4 — Affichage 3-zones basé sur IC95% Wilson de la prévalence rr12.
+  //   r12 <  borne_inf IC95%  → VPN + LR−    (test rassure, prédit < pop)
+  //   r12 >  borne_sup IC95%  → VPP + LR+    (test alerte, prédit > pop)
+  //   r12 ∈ [lo, hi]          → VPP ET VPN  (zone d'incertitude, test ≈ pop)
+  //   Cohérent avec le thermomètre Tern (zones identiques).
+  const _prev_n_events = Math.round(km_histo.N * (1 - km_histo.S12));
+  const [prev_lo, prev_hi] = isNaN(prevalence12) ? [NaN, NaN] : wilsonCI(_prev_n_events, km_histo.N);
   const vpnCard      = document.getElementById('vpn_card');
   const vppCard      = document.getElementById('vpp_card');
   const lrPlusCard   = document.getElementById('lr_plus_card');
@@ -737,8 +748,8 @@ function updateRankBasedVPN(pipe, patient_r12) {
     _setVisible(vpvInterpEl, false);
     _setVisible(vpvUnavail, true);
     if (vpvZoneLbl) vpvZoneLbl.textContent = 'cohorte histo insuffisante pour calculer la prévalence';
-  } else if (patient_r12 < prevalence12) {
-    // r12 < prévalence → VPN + LR−
+  } else if (patient_r12 < prev_lo) {
+    // Zone FAIBLE : r12 < borne_inf IC95% → VPN + LR− (test rassure)
     _setVisible(vpnCard, true);    _setVisible(vppCard, false);
     _setVisible(lrMinusCard, true); _setVisible(lrPlusCard, false);
     _gridLayout(vpvGrid, true, false);
@@ -748,8 +759,11 @@ function updateRankBasedVPN(pipe, patient_r12) {
     if (vpnInterp)  vpnInterp.style.display  = '';
     if (vppInterp)  vppInterp.style.display  = 'none';
     _setVisible(vpvUnavail, false);
-  } else {
-    // r12 ≥ prévalence → VPP + LR+
+    if (vpvZoneLbl) vpvZoneLbl.textContent =
+      'Zone FAIBLE — r12 (' + (patient_r12*100).toFixed(1) + ' %) < borne inf. IC95% prévalence ('
+      + (prev_lo*100).toFixed(1) + ' %) — test rassure.';
+  } else if (patient_r12 > prev_hi) {
+    // Zone ÉLEVÉ : r12 > borne_sup IC95% → VPP + LR+ (test alerte)
     _setVisible(vpnCard, false);   _setVisible(vppCard, true);
     _setVisible(lrMinusCard, false); _setVisible(lrPlusCard, true);
     _gridLayout(vpvGrid, false, true);
@@ -759,6 +773,23 @@ function updateRankBasedVPN(pipe, patient_r12) {
     if (vpnInterp)  vpnInterp.style.display  = 'none';
     if (vppInterp)  vppInterp.style.display  = '';
     _setVisible(vpvUnavail, false);
+    if (vpvZoneLbl) vpvZoneLbl.textContent =
+      'Zone ÉLEVÉ — r12 (' + (patient_r12*100).toFixed(1) + ' %) > borne sup. IC95% prévalence ('
+      + (prev_hi*100).toFixed(1) + ' %) — test alerte.';
+  } else {
+    // Zone MODÉRÉ : r12 ∈ [borne_inf, borne_sup] → VPP ET VPN (ambiguë, test ≈ pop)
+    _setVisible(vpnCard, true);    _setVisible(vppCard, true);
+    _setVisible(lrMinusCard, true); _setVisible(lrPlusCard, true);
+    _gridLayout(vpvGrid, true, true);
+    _gridLayout(lrGrid,  true, true);
+    _setVisible(lrLegend, true);
+    _setVisible(vpvInterpEl, true);
+    if (vpnInterp)  vpnInterp.style.display  = '';
+    if (vppInterp)  vppInterp.style.display  = '';
+    _setVisible(vpvUnavail, false);
+    if (vpvZoneLbl) vpvZoneLbl.textContent =
+      'Zone MODÉRÉ — r12 (' + (patient_r12*100).toFixed(1) + ' %) dans l\'IC95% prévalence ['
+      + (prev_lo*100).toFixed(1) + '–' + (prev_hi*100).toFixed(1) + ' %] — test ne diffère pas significativement du risque populationnel. VPP ET VPN affichés.';
   }
 
   // (V15.343 : VPP/VPN curves block removed from UI — call dropped)
@@ -991,54 +1022,54 @@ function calculate(doScroll) {
   }
   const r12 = risk(12), r24 = risk(24);
 
-  // V15.345 — Classification par histo
-  //   Hodgkin classique     : SEUL cutoff LO = 5 % (binaire : Faible / Indéterminé)
-  //                           Le modèle MRD ctDNA n'a PAS de pouvoir prédictif positif
-  //                           robuste chez Hodgkin (VPP plafonne ~40-50 % avec faible N).
-  //                           Apport clinique = VPN excellente pour identifier les très-bas-risque.
-  //   B agressifs + indolents : Tern 5 / 45 → Faible / Modéré / Élevé
-  //                           VPP zone Élevé ≈ 87 %, LR+ ≈ 9, VPN zone Faible ≈ 96 %, LR− ≈ 0.05.
+  // V230.4 — Stratification UNIFIÉE Hodgkin/DLBCL basée sur IC95% de la prévalence
+  //   Zones : Faible (r12 < lo) / Modéré (lo ≤ r12 ≤ hi) / Élevé (r12 > hi)
+  //   où [lo, hi] = IC95% Wilson de la prévalence (1 - KM_S12) dans la sous-cohorte histo
+  //   Logique : le test n'apporte d'info que si r12 est SIGNIFICATIVEMENT diff de la prévalence
+  //   → r12 < lo  : test rassure (VPN + LR− affichés)
+  //   → r12 > hi  : test alerte (VPP + LR+ affichés)
+  //   → r12 ∈ [lo, hi] : info ambiguë (les 2 affichés, zone modérée)
   const _isHodgkin_pt = (mapHisto(histo_label) === 'HODGKIN');
-  const TERN_LO = 0.05;  // commun aux 2 histos
-  const TERN_HI = _isHodgkin_pt ? 1.01 : 0.45;  // 1.01 = pas de zone Élevé chez Hodgkin
-  const _ternLabel = _isHodgkin_pt ? 'Hodgkin (cutoff unique 5 %)' : 'B agressifs (5 / 45)';
-
-  // V15.357 — Précompute prevalence baseline AVANT la logique de zone, pour que le
-  // banner Hodgkin r12 ≥ prévalence soit gris (cohérent avec la jauge).
   const _isHodgkin = _isHodgkin_pt ? 1 : 0;
   const _histoName = _isHodgkin ? 'Hodgkin classique' : 'DLBCL & co. (B agressifs + indolents)';
   const _histo_subset = pickCohort()[pipe].cohort.filter(p => (p[4] || 0) === _isHodgkin);
   const _histo_pts = _histo_subset.map(p => ({t:p[2], e:p[3]}));
   const _km_histo = _histo_pts.length >= 3 ? km(_histo_pts) : {S12: NaN, N: _histo_pts.length, n_events: 0};
   const _prev12 = isNaN(_km_histo.S12) ? NaN : (1 - _km_histo.S12);
-  const _prev_str = isNaN(_prev12) ? '—' : (_prev12*100).toFixed(1) + ' %';
+  // IC95 % Wilson sur la prévalence (rr12) → cutoffs adaptatifs Tern
+  const _n_events_h = Math.round(_km_histo.N * (isNaN(_km_histo.S12) ? 0 : (1 - _km_histo.S12)));
+  const _prev_ci = isNaN(_prev12) ? [NaN, NaN] : wilsonCI(_n_events_h, _km_histo.N);
+  const _prev_lo = _prev_ci[0];   // borne basse rr12 (utilisée pour Tern LO)
+  const _prev_hi = _prev_ci[1];   // borne haute rr12 (utilisée pour Tern HI)
+  const _prev_str = isNaN(_prev12) ? '—' :
+    (_prev12*100).toFixed(1) + ' % <span style="font-weight:400; font-size:12px; color:#64748b;">[IC95% '
+    + (_prev_lo*100).toFixed(1) + '–' + (_prev_hi*100).toFixed(1) + '%]</span>';
+  // Cutoffs Tern = bornes de l'IC95% prévalence (unifié Hodgkin / DLBCL depuis V230.4)
+  const TERN_LO = isNaN(_prev_lo) ? 0.05 : _prev_lo;
+  const TERN_HI = isNaN(_prev_hi) ? 0.45 : _prev_hi;
+  const _ternLabel = _histoName + ' · IC95% prévalence [' +
+    (TERN_LO*100).toFixed(1) + '–' + (TERN_HI*100).toFixed(1) + '%]';
 
   let zone, zoneLabel, zoneCSS, action;
   let zoneStats;
-  if (r12 <= TERN_LO) {
+  if (r12 < TERN_LO) {
     zone = 'low';  zoneLabel = 'FAIBLE'; zoneCSS = 'low';
-    action = _isHodgkin_pt
-      ? 'Très bas risque confirmé — discussion désintensification envisageable.'
-      : 'Surveillance standard.';
-    zoneStats = _isHodgkin_pt
-      ? 'Hodgkin · cutoff 5 % : 59 patients Faible, 1 rechute → VPN = 98.3 % @12mo (M2_hEq Deauv agrégé IDES+PV, N=110, 9 ev).'
-      : 'B agressifs · Tern 5/45 : 26 patients Faible, 1 rechute → VPN = 96.2 % @12mo, LR− = 0.05 (M2_hEq Deauv agrégé N=120, 33 ev).';
-  } else if (_isHodgkin_pt) {
-    // Hodgkin r12 > 5 % : zone INDÉTERMINÉE — le modèle MRD ne stratifie pas le haut-risque chez Hodgkin
-    // V15.357 : banner orange si 5 % < r12 < prévalence (zone orange de la jauge),
-    //           banner gris si r12 ≥ prévalence (zone gris de la jauge, modèle non actionnable).
-    zone = 'indeterminate'; zoneLabel = 'INDÉTERMINÉ';
-    zoneCSS = (!isNaN(_prev12) && r12 >= _prev12) ? 'gray' : 'mid';
-    action = 'Le modèle MRD ctDNA n\'a pas de valeur prédictive positive robuste chez Hodgkin classique au-dessus de ce seuil.';
-    zoneStats = 'Hodgkin · r12 > 5 % : 51 patients agrégés, 8 rechutes. R/R observé ≈ 16 % mais sans pouvoir distinguer haut vs bas risque par MRD ctDNA seul (VPP plafonne ~40 % avec IC très large).';
+    action = 'Risque prédit significativement inférieur à la prévalence baseline ('
+      + (_prev12*100).toFixed(1) + ' %) — le test rassure.';
+    zoneStats = 'Patient en dessous de la borne inférieure IC95% de la prévalence rr12 ('
+      + (TERN_LO*100).toFixed(1) + ' %) — VPN + LR− affichés.';
   } else if (r12 <= TERN_HI) {
     zone = 'mid';  zoneLabel = 'MODÉRÉ'; zoneCSS = 'mid';
-    action = 'Surveillance rapprochée recommandée (TEP supplémentaire, MRD régulière).';
-    zoneStats = 'B agressifs · Tern 5/45 : 71 patients Modéré, 11 rechutes → R/R @12mo ≈ 15 %. Zone intermédiaire nécessitant un suivi rapproché.';
+    action = 'Risque prédit dans l\'IC95% de la prévalence baseline ('
+      + (TERN_LO*100).toFixed(1) + '–' + (TERN_HI*100).toFixed(1) + ' %) — '
+      + 'le test ne diffère pas significativement du risque populationnel.';
+    zoneStats = 'Patient dans l\'IC95% de la prévalence rr12 — VPP ET VPN affichés (zone d\'incertitude).';
   } else {
     zone = 'high'; zoneLabel = 'ÉLEVÉ'; zoneCSS = 'high';
-    action = 'Discussion RCP impérative pour thérapie additionnelle (consolidation, CAR-T, essai).';
-    zoneStats = 'B agressifs · Tern 5/45 : 23 patients Élevé, 21 rechutes → VPP = 87 % @12mo, LR+ = 8.9 (très informatif). Justifie intensification.';
+    action = 'Risque prédit significativement supérieur à la prévalence baseline ('
+      + (_prev12*100).toFixed(1) + ' %) — le test alerte sur un sur-risque.';
+    zoneStats = 'Patient au-dessus de la borne supérieure IC95% de la prévalence rr12 ('
+      + (TERN_HI*100).toFixed(1) + ' %) — VPP + LR+ affichés.';
   }
 
   // (groupe binaire conservé pour référence)
@@ -1098,8 +1129,8 @@ function calculate(doScroll) {
     `<div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px; padding:10px 14px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:6px; font-size:12.5px;">` +
       `<div>` +
         `<div style="opacity:0.72; text-transform:uppercase; font-size:10px; letter-spacing:0.6px; margin-bottom:4px;">Référence histologique</div>` +
-        `<div>Risque baseline <strong>${_histoName}</strong>  :  <strong style="font-size:15px;">${_prev_str}</strong></div>` +
-        `<div style="opacity:0.65; font-size:11px; margin-top:2px;">(cohorte d'entraînement : N=${_km_histo.N}, ${_km_histo.n_events} ev — KM @ 12 mo)</div>` +
+        `<div>Prévalence rr12 <strong>${_histoName}</strong>  :  <strong style="font-size:15px;">${_prev_str}</strong></div>` +
+        `<div style="opacity:0.65; font-size:11px; margin-top:2px;">(cohorte d'entraînement : N=${_km_histo.N}, ${_km_histo.n_events} events @ 12 mo — KM ; IC95% Wilson)</div>` +
       `</div>` +
       `<div>` +
         `<div style="opacity:0.72; text-transform:uppercase; font-size:10px; letter-spacing:0.6px; margin-bottom:4px;">Données d'entrée — diminutions</div>` +
@@ -1121,37 +1152,25 @@ function calculate(doScroll) {
     `</div>` +
     `<div style="font-size:14px; margin-bottom:10px;">${action}</div>` +
     (function() {
-      // V15.354 : gauge gradient adaptatif par histo.
-      //   Hodgkin     = TRICOLORE (vert 0→5 % · orange 5 %→prévalence baseline · gris >prévalence).
-      //                 La valeur numérique de la prévalence n'est PAS affichée sur la jauge (visuel
-      //                 uniquement). Vert = zone Faible (VPN excellente). Orange = zone de risque
-      //                 baseline (modèle ≈ population). Gris = zone non actionnable (sur-prédiction
-      //                 slope 0.70, VPP plafonne ~50 %) — voir §XII.4.
-      //   Non-Hodgkin = tricolore (vert ≤5 %, orange 5-45 %, rouge >45 %) — V15.345.
-      const lo_pct = (TERN_LO*100).toFixed(0);
-      const hi_pct = (TERN_HI*100).toFixed(0);
-      let gradient;
-      let lo_label = '';
-      let hi_label = '';
-      if (_isHodgkin_pt) {
-        // Hodgkin : vert 0→5 %, orange 5 %→prévalence, gris >prévalence.
-        // Prévalence dynamique (_prev12, KM @12mo). Si NaN, fallback à 7 % (~baseline observée).
-        const _prev_pct_raw = isNaN(_prev12) ? 7 : _prev12*100;
-        // Garantir prévalence > Tern LO (sinon la zone orange disparaît).
-        const _prev_pct = Math.max(parseFloat(lo_pct) + 0.5, Math.min(99, _prev_pct_raw));
-        gradient = `linear-gradient(to right, ` +
-                   `#22c55e 0%, #22c55e ${lo_pct}%, ` +
-                   `#f59e0b ${lo_pct}%, #f59e0b ${_prev_pct.toFixed(1)}%, ` +
-                   `#94a3b8 ${_prev_pct.toFixed(1)}%, #94a3b8 100%)`;
-        // Label du Tern LO conservé (frontière vert↔orange). Pas de label numérique pour la prévalence.
-        lo_label = `<span style="position:absolute; left:${lo_pct}%; transform:translateX(-50%);">${lo_pct}%</span>`;
-      } else {
-        gradient = `linear-gradient(to right, #22c55e 0%, #22c55e ${lo_pct}%, #f59e0b ${lo_pct}%, #f59e0b ${hi_pct}%, #ef4444 ${hi_pct}%, #ef4444 100%)`;
-        lo_label = `<span style="position:absolute; left:${lo_pct}%; transform:translateX(-50%);">${lo_pct}%</span>`;
-        hi_label = `<span style="position:absolute; left:${hi_pct}%; transform:translateX(-50%);">${hi_pct}%</span>`;
-      }
+      // V230.4 — Thermomètre UNIFIÉ Hodgkin / DLBCL basé sur IC95 % de la prévalence rr12.
+      //   Vert 0→borne_inf · Orange borne_inf→borne_sup · Rouge borne_sup→100
+      //   Labels = bornes IC95 % de la prévalence dans la cohorte histo correspondante.
+      //   Adaptatif : zone orange large chez Hodgkin (peu d'events → IC large), zone orange étroite chez Non-Hodgkin (33 events → IC plus fin).
+      const lo_pct = (TERN_LO*100).toFixed(1);
+      const hi_pct = (TERN_HI*100).toFixed(1);
+      const gradient = `linear-gradient(to right, ` +
+                       `#22c55e 0%, #22c55e ${lo_pct}%, ` +
+                       `#f59e0b ${lo_pct}%, #f59e0b ${hi_pct}%, ` +
+                       `#ef4444 ${hi_pct}%, #ef4444 100%)`;
+      const lo_label = `<span style="position:absolute; left:${lo_pct}%; transform:translateX(-50%);">${lo_pct}%</span>`;
+      const hi_label = `<span style="position:absolute; left:${hi_pct}%; transform:translateX(-50%);">${hi_pct}%</span>`;
+      // Marqueur prévalence (point central)
+      const _prev_pct = isNaN(_prev12) ? null : (_prev12*100).toFixed(1);
+      const prev_marker = _prev_pct !== null ?
+        `<div style="position:absolute; left:${_prev_pct}%; top:-4px; transform:translateX(-50%); font-size:9px; color:#64748b;" title="Prévalence rr12">▼</div>` : '';
       return `<div class="risk-gauge">` +
-        `<div class="risk-gauge-track" style="background:${gradient};">` +
+        `<div class="risk-gauge-track" style="background:${gradient}; position:relative;">` +
+          prev_marker +
           `<div class="risk-gauge-marker" style="left:${gaugeLeft}%" data-val="${(r12*100).toFixed(1)}%"></div>` +
         `</div>` +
         `<div class="risk-gauge-labels">` +
@@ -1159,6 +1178,10 @@ function calculate(doScroll) {
           lo_label +
           hi_label +
           `<span>100%</span>` +
+        `</div>` +
+        `<div style="font-size:11px; color:#64748b; margin-top:4px; text-align:center;">` +
+          `Bornes = IC95% Wilson de la prévalence rr12 ` +
+          (_prev_pct !== null ? `(▼ = ${_prev_pct}% prévalence ${_histoName})` : '') +
         `</div>` +
       `</div>`;
     })() +
@@ -1393,27 +1416,11 @@ function drawKM(pipe, lp) {
       `La calibration locale doit être interprétée avec prudence car la biologie des rechutes peut différer entre les deux groupes.` +
       `</div>`;
   }
-  // Note Hodgkin-spécifique : uniquement si r12_pt ≥ prévalence Hodgkin (dynamique).
-  // En dessous de la prévalence, la calibration Hodgkin est OK (VPN excellente) →
-  // pas d'alerte nécessaire. Au-dessus, le modèle sur-prédit (slope 0.70) → warn.
-  // V15.356 : prévalence dynamique (KM @12mo, sous-cohorte Hodgkin de la variante active),
-  //           pas un seuil fixe 5 %.
-  const _hstrat_n = (mapHisto(document.getElementById('histo_label').value) === 'HODGKIN') ? 'HODGKIN' : 'DLBCL';
-  const _s0_n = (typeof m.baseline_S0[_hstrat_n] === 'object') ? m.baseline_S0[_hstrat_n] : m.baseline_S0;
-  const r12_pt = 1 - Math.pow(_s0_n[12], expLP);
-  const _hodg_subset = pickCohort()[pipe].cohort.filter(p => (p[4] || 0) === 1)
-                                                .map(p => ({t:p[2], e:p[3]}));
-  const _km_hodg = _hodg_subset.length >= 3 ? km(_hodg_subset) : {S12: NaN};
-  const HODGKIN_PREVALENCE = isNaN(_km_hodg.S12) ? 0.05 : (1 - _km_hodg.S12);
+  // V230.4 — Hodgkin n'est plus un cas à part : panels v5A histo-spécifiques + thermomètre
+  // unifié basé sur IC95% de la prévalence (cf. §XII.19 méthodologie). Note Hodgkin spécifique
+  // retirée car le modèle est désormais calibré séparément H et NH. La zone "Modéré" du
+  // thermomètre couvre déjà la zone d'incertitude (r12 ∈ IC95% prévalence).
   let hodgkinNote = '';
-  if (isHodgkin_pt_v && r12_pt >= HODGKIN_PREVALENCE) {
-    const _prev_str = (HODGKIN_PREVALENCE*100).toFixed(1);
-    hodgkinNote =
-      `<div style="margin-top:8px; padding:8px 10px; background:#F5F3FF; border-left:3px solid #7C3AED; border-radius:3px; font-size:11.5px; color:#5b21b6;">` +
-      `ℹ <strong>Patient Hodgkin classique</strong> — la calibration du modèle Cox V230.1 est moins fiable chez Hodgkin aux scores supérieurs à la prévalence (sur-prédiction systématique, slope = 0.70 vs 1.04 pour les B agressifs). ` +
-      `Voir <a href="methodology.html#sec-calib" style="color:#7C3AED;font-weight:600;text-decoration:underline;">§XII.4</a> et la <a href="methodology.html#sec-vpp-vpn-curves" style="color:#7C3AED;font-weight:600;text-decoration:underline;">courbe VPP(c)</a>. Au-dessus de la prévalence (~${_prev_str} %), la VPP plafonne ~50 % → impossible d'isoler un groupe à haut risque pur.` +
-      `</div>`;
-  }
 
   document.getElementById('localCalibStats').innerHTML =
     `<strong>Calibration locale</strong> — KNN adaptatif (radius=1.0, K_min=8, K_max=40) : <strong>${K} voisins</strong> (LP ${lp_min.toFixed(2)} à ${lp_max.toFixed(2)}, vous=${lp.toFixed(2)}). ` +
