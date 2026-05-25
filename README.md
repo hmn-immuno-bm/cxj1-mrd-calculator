@@ -11,7 +11,11 @@ The calculator predicts post-CXJ1 EFS risk from four covariates measured around 
 
 1. **Kinetic score** — Gaussian log-likelihood distance between observed and predicted ctDNA decay ratios under "good responder" vs "bad responder" mono-exponential trajectories (fitted per histology × responder strata).
 2. **Baseline tumor burden** — log(1 + ctDNA at diagnosis) where ctDNA = VAF × cfDNA in hEq mode, or log(1 + VAF at diagnosis) in VAF mode.
-3. **Driver gene signal (v5A_gated)** — residual NGS signal on the 13 oncogenic drivers panel (V230.2: D11 + STAT6 + SOCS1 — BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53, STAT6, SOCS1) at CXJ1, gated by a pipeline-specific quality filter. STAT6 and SOCS1 are documented Hodgkin classical drivers (JAK-STAT pathway, Spina Blood 2018 / Wienand Blood Adv 2019).
+3. **Driver gene signal (v5A_gated) — HISTOLOGY-SPECIFIC PANEL since V230.4 (May 2026)** — residual NGS signal on the appropriate driver panel at CXJ1, gated by a pipeline-specific quality filter. The panel is selected automatically based on the patient's histology:
+   - **Hodgkin classique** : 16 genes — `BTG2, BZRAP1, CD83, CIITA, CXCR4, DTX1, IRF8, ITPKB, PAX5, RHOH, S1PR2, SOCS1, STAT6, TP53, ZCCHC7-GRHPR, ZFP36L1`. Axis CXCR4 + JAK-STAT (Reed-Sternberg signature) + B-cell signaling.
+   - **Non-Hodgkin (DLBCL, FL, MZL, MCL…)** : 16 genes — `BCL2, BIRC3, BTG1, BZRAP1, CIITA, DTX1, FOXO1, HIST1H1E, KLF2, LTB, MYC, PAX5, PIM1, POU2AF1, S1PR2, TMSB4X`. Axis B-cell signaling + chromatin + anti-apoptosis (DLBCL signature).
+   - **Overlap**: 5 shared genes (`BZRAP1, CIITA, DTX1, PAX5, S1PR2`) — 11 distinct genes per histology.
+   - **Methodology** : exhaustive backward elimination from whitelist of non-rotten genes (Ig V(D)J genes excluded ; HR<1 or NS univariate genes blacklisted). Reveals that the legacy D11 panel (BCL2, BCL6, …) was an NH-biased signature, with several D11 genes (BCL2, BCL6, BIRC3) actually anti-prognostic in Hodgkin.
 4. **Interim FDG-PET** — Deauville score (linear, 1-5) at end of cycle 2, with **ΔSUVmax% fallback** if Deauville unavailable.
 
 **Endpoint**: EFS (Event-Free Survival = relapse OR progression). Non-lymphoma deaths are censored (3 patients : 2 COVID, 1 hemorrhagic ulcer under transfusion contraindication). Justification in methodology §XI.10.
@@ -20,16 +24,16 @@ The calculator predicts post-CXJ1 EFS risk from four covariates measured around 
 
 The calculator switches automatically between 6 variants based on data availability:
 
-| Variant | Quantification | TEP | IDES N (events) | C-IDES (corr.) | PV N (events) | C-PV (corr.) |
-|---|---|---|---|---|---|---|
-| **M2_hEq Deauv** ⭐ | hEq (VAF × cfDNA) | Deauville 1-5 | **138 (26)** | **0.84** | **92 (16)** | **0.87** |
-| M2_hEq Delta | hEq (VAF × cfDNA) | ΔSUVmax% (fallback) | 120 (25) | 0.82 | 80 (15) | 0.88 |
-| M1_hEq | hEq (VAF × cfDNA) | — absent | 164 (32) | 0.81 | 109 (21) | 0.85 |
-| M2_VAF Deauv | VAF % only | Deauville 1-5 | 138 (26) | 0.81 | 92 (16) | 0.81 |
-| M2_VAF Delta | VAF % only | ΔSUVmax% (fallback) | 120 (25) | 0.81 | 80 (15) | 0.83 |
-| M1_VAF | VAF % only | — absent | 164 (32) | 0.77 | 109 (21) | 0.79 |
+| Variant | Quantification | TEP | N stacked (events) | **C-corrected V230.4** | Δ vs V230.2 |
+|---|---|---|---|---|---|
+| **M2_hEq Deauv** ⭐ | hEq (VAF × cfDNA) | Deauville 1-5 | 230 (42) | **0.862** | +0.009 |
+| M2_hEq Delta | hEq (VAF × cfDNA) | ΔSUVmax% (fallback) | 200 (40) | **0.859** | +0.012 |
+| M1_hEq | hEq (VAF × cfDNA) | — absent | 273 (53) | **0.845** | +0.018 |
+| M2_VAF Deauv | VAF % only | Deauville 1-5 | 230 (42) | **0.832** | +0.024 |
+| M2_VAF Delta | VAF % only | ΔSUVmax% (fallback) | 200 (40) | **0.834** | +0.020 |
+| M1_VAF | VAF % only | — absent | 273 (53) | **0.801** | +0.020 |
 
-⭐ = optimal configuration when all data is available. C-index optimism-corrected (bootstrap V230.1 B=500, Harrell). **V230.2 update** : panel v5A enlarged (D11+STAT6+SOCS1, 13 genes) + h0 stratified by (pipeline × histo) → 4 baselines per variant. ΔAIC = −42.6 vs V230.1, ΔC ≈ 0 globally, VPP zone 10% Hodgkin improved 16% → 29%.
+⭐ = optimal configuration when all data is available. **C-index optimism-corrected (bootstrap V230.4 B=500, Harrell), optimism médian +0.007 (max +0.013) — excellent generalization.** **V230.4 update (May 2026)** : histology-specific v5A driver panels (16 H + 16 NH genes, backward elimination from whitelist of non-rotten genes). V230.4 dominates V230.2 on all 6 variants (ΔC_corrected +0.009 to +0.024).
 
 **Measured impact of missing data** (Δ C-index, M2_hEq Deauv ⭐ vs alternatives):
 

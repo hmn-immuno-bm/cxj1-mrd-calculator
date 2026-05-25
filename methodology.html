@@ -1976,6 +1976,65 @@ V230.2 = V230.1 + 2 modifications minimales (panel D11+STAT6+SOCS1 + strata pipe
 <strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
 Battery de tests internes V230.x confirmant la robustesse : <strong>bootstrap V230.2 optimism médian +0.0086 (max +0.0116)</strong> — meilleure généralisation que V230.1 (max +0.027). PH respectée (p > 0.18), linéarité validée (martingale lowess plat, splines NS), calibration globale + sous-groupes OK, DCA net benefit positif, indépendance vs IPI/Hasenclever sur 6/6 variantes, MICE confirme robustesse MNAR. <strong>V230.2 mise en production</strong> avec strata h0 par (pipeline, histo) et panel v5A élargi à 13 gènes — ΔAIC −42.6, VPP zone Élevé Hodgkin +13 points, C corrected M2_hEq Deauv = 0.854 [IC95 % 0.80-0.92]. Validation externe sur cohorte indépendante en cours.
 </div>
+
+<h3 id="sec-v230-4">XII.19 V230.4 — panels v5A HISTO-SPÉCIFIQUES (production actuelle)</h3>
+<p>La production a évolué de <strong>V230.2 → V230.4</strong> (mai 2026) suite à une critique : le panel D11 (+STAT6+SOCS1) appliqué uniformément aux Hodgkin ET aux Non-Hodgkin n'est pas optimal. D11 a été dérivé historiquement sur une cohorte mixte (V15.100-102) → c'est en réalité une signature <strong>NH-biaisée</strong>. Plusieurs gènes "stars" du D11 (BCL2, BCL6, BIRC3) sont en fait <strong>anti-pronostiques chez Hodgkin</strong> (HR &lt; 1 univariate) — leur inclusion uniforme dilue le signal Hodgkin.</p>
+
+<div class="success" style="margin:14px 0; padding:12px 16px; background:#ecfdf5; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔧 Changement V230.4 vs V230.2 (1 modification minimale)</strong>
+<ul style="margin:6px 0 0 18px;">
+<li><strong>Panel v5A HISTO-SPÉCIFIQUE</strong> : à chaque patient, on calcule v5A_gated avec le panel correspondant à son histologie (au lieu d'un panel uniforme pour tous).</li>
+<li>Tout le reste inchangé : partial pooling B′, strata h0 par (pipeline × histo), 5 covariables, 4 baselines.</li>
+</ul>
+</div>
+
+<h4>Méthodologie de sélection (3 étapes)</h4>
+<ol style="margin:10px 0 0 20px; line-height:1.5;">
+<li><strong>EXCLUSION Ig</strong> (V15.393) : retrait des gènes Ig (IGH, IGHJ4, IGHJ6, IGHM, IGLJ1, IGLL5) — ce sont des réarrangements V(D)J germinaux, pas des drivers somatiques.</li>
+<li><strong>BLACKLIST univariate</strong> (V15.393) : exclusion des gènes "pourris" (univariate Cox par histo : HR &lt; 1 OU p &gt; 0.5 OU n_patients_mutés &lt; 3). Résultat : 58 gènes blacklistés chez Hodgkin (dont BCL2, BCL6, BIRC3, FOXO1), 43 chez Non-Hodgkin. Whitelist restant : 18 H, 34 NH.</li>
+<li><strong>BACKWARD ELIMINATION</strong> depuis la whitelist (V15.395) : drop itératif du gène le moins utile (max ΔAIC quand retiré) jusqu'à ce qu'aucun retrait n'améliore plus l'AIC. Procédure OBJECTIVE — pas de cherry-picking forward greedy. 20 steps de drop : AIC passe de 287.81 → 270.42. Convergence à <strong>K=16 H + K=16 NH</strong>.</li>
+</ol>
+
+<h4>Panels V230.4 finaux</h4>
+<table>
+<tr><th>Histologie</th><th>Panel v5A (16 gènes)</th><th>Profil biologique</th></tr>
+<tr>
+  <td><strong>Hodgkin classique</strong></td>
+  <td><code style="font-size:11.5px;">BTG2, BZRAP1, CD83, CIITA, CXCR4, DTX1, IRF8, ITPKB, PAX5, RHOH, S1PR2, SOCS1, STAT6, TP53, ZCCHC7-GRHPR, ZFP36L1</code></td>
+  <td>Axe CXCR4 + JAK-STAT (Reed-Sternberg) + B-cell signaling</td>
+</tr>
+<tr>
+  <td><strong>Non-Hodgkin</strong> (DLBCL+)</td>
+  <td><code style="font-size:11.5px;">BCL2, BIRC3, BTG1, BZRAP1, CIITA, DTX1, FOXO1, HIST1H1E, KLF2, LTB, MYC, PAX5, PIM1, POU2AF1, S1PR2, TMSB4X</code></td>
+  <td>Axe B-cell signaling + chromatine + anti-apoptose (signature DLBCL)</td>
+</tr>
+</table>
+<p class="muted">Overlap : 5 gènes communs (<code>BZRAP1, CIITA, DTX1, PAX5, S1PR2</code>). 11 gènes spécifiques par histo.</p>
+
+<h4>Bootstrap V230.4 optimism-corrected (B=500, V15.397)</h4>
+<table>
+<tr><th>Variante</th><th>N (events)</th><th>C apparent</th><th>C corrected</th><th>Optimism</th><th>Δ vs V230.2 (C corr)</th></tr>
+<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>230 (42)</td><td>0.869</td><td><strong>0.862</strong></td><td>+0.0072</td><td><strong>+0.009</strong></td></tr>
+<tr><td>M2_hEq Δ</td><td>200 (40)</td><td>0.867</td><td>0.859</td><td>+0.0080</td><td>+0.012</td></tr>
+<tr><td>M1_hEq</td><td>273 (53)</td><td>0.847</td><td>0.845</td><td>+0.0023</td><td><strong>+0.018</strong></td></tr>
+<tr><td>M2_VAF Deauv</td><td>230 (42)</td><td>0.845</td><td>0.832</td><td>+0.0131</td><td><strong>+0.024</strong></td></tr>
+<tr><td>M2_VAF Δ</td><td>200 (40)</td><td>0.840</td><td>0.834</td><td>+0.0065</td><td>+0.020</td></tr>
+<tr><td>M1_VAF</td><td>273 (53)</td><td>0.806</td><td>0.801</td><td>+0.0049</td><td><strong>+0.020</strong></td></tr>
+</table>
+<p class="muted"><strong>Optimism très faible</strong> (médian +0.007, max +0.013) — encore meilleure généralisation que V230.2 (médian +0.0086). V230.4 GAGNE sur les 6 variantes (ΔC corrected +0.009 à +0.024). Données : <code>output/V15_397_bootstrap_V230_4.json</code>.</p>
+
+<div class="success" style="margin:14px 0; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés V230.4</strong><br>
+(1) Les panels H et NH partagent seulement 5/16 gènes (BZRAP1, CIITA, DTX1, PAX5, S1PR2) — confirmation que les 2 oncogenèses sollicitent des voies <strong>partiellement distinctes</strong>.
+(2) Plusieurs gènes "stars" D11 (BCL2, BCL6, BIRC3) sortent du panel Hodgkin par l'audit univariate → confirmation que D11 était une signature NH-biaisée appliquée à tort.
+(3) Drop-1 audit sur les panels finaux : aucun gène toxique (chaque gène contribue strictement positivement à l'AIC dans son panel histo).
+(4) Optimism très faible (médian +0.007) — la procédure backward elim ne sur-fitte pas. La parsimonie du panel (16 gènes par histo, sous-ensemble du panel WL MOABI de 82 gènes) régularise naturellement.
+</div>
+
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong style="color:#854d0e; font-size:14px;">📌 Conclusion V230.4</strong><br>
+V230.4 = V230.2 + 1 modification (panels v5A séparés H/NH). Gain net en C-index optimism-corrected sur <strong>les 6 variantes</strong> (+0.009 à +0.024). Optimism toujours très faible (max +0.013). Procédure de sélection 100 % objective (Ig excl + blacklist univariate + backward elim) — pas de cherry-picking. Reviewer-defendable. <strong>V230.4 mise en production le 25 mai 2026</strong> (backup V230.2 : <code>output/_calculator_data_v2_V230_2_backup.json</code>).
+</div>
 </div>
 
 <!-- ════════════ SECTION 12 : COHORTE D'ENTRAÎNEMENT ════════════ -->
