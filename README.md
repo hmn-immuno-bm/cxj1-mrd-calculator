@@ -1,7 +1,7 @@
 # MRD ctDNA Calculator — Adult Lymphomas (CXJ1)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version V230.4](https://img.shields.io/badge/version-V230.4-blue.svg)](https://github.com/hmn-immuno-bm/cxj1-mrd-calculator/releases)
+[![Version V230.5b](https://img.shields.io/badge/version-V230.5b-blue.svg)](https://github.com/hmn-immuno-bm/cxj1-mrd-calculator/releases)
 [![DOI (Zenodo)](https://img.shields.io/badge/DOI-pending%20(Zenodo)-lightgrey.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
 [![Cite this software](https://img.shields.io/badge/cite-CITATION.cff-blueviolet.svg)](./CITATION.cff)
 
@@ -19,11 +19,11 @@ The calculator predicts post-CXJ1 EFS risk from four covariates measured around 
 
 1. **Kinetic score** — Gaussian log-likelihood distance between observed and predicted ctDNA decay ratios under "good responder" vs "bad responder" mono-exponential trajectories (fitted per histology × responder strata).
 2. **Baseline tumor burden** — log(1 + ctDNA at diagnosis) where ctDNA = VAF × cfDNA in hEq mode, or log(1 + VAF at diagnosis) in VAF mode.
-3. **Driver gene signal (v5A_gated) — HISTOLOGY-SPECIFIC PANEL since V230.4 (May 2026)** — residual NGS signal on the appropriate driver panel at CXJ1, gated by a pipeline-specific quality filter. The panel is selected automatically based on the patient's histology:
-   - **Hodgkin classique** : 16 genes — `BTG2, BZRAP1, CD83, CIITA, CXCR4, DTX1, IRF8, ITPKB, PAX5, RHOH, S1PR2, SOCS1, STAT6, TP53, ZCCHC7-GRHPR, ZFP36L1`. Axis CXCR4 + JAK-STAT (Reed-Sternberg signature) + B-cell signaling.
-   - **Non-Hodgkin (DLBCL, FL, MZL, MCL…)** : 16 genes — `BCL2, BIRC3, BTG1, BZRAP1, CIITA, DTX1, FOXO1, HIST1H1E, KLF2, LTB, MYC, PAX5, PIM1, POU2AF1, S1PR2, TMSB4X`. Axis B-cell signaling + chromatin + anti-apoptosis (DLBCL signature).
-   - **Overlap**: 5 shared genes (`BZRAP1, CIITA, DTX1, PAX5, S1PR2`) — 11 distinct genes per histology.
-   - **Methodology** : exhaustive backward elimination from whitelist of non-rotten genes (Ig V(D)J genes excluded ; HR<1 or NS univariate genes blacklisted). Reveals that the legacy D11 panel (BCL2, BCL6, …) was an NH-biased signature, with several D11 genes (BCL2, BCL6, BIRC3) actually anti-prognostic in Hodgkin.
+3. **Driver gene signal (v5A_gated) — HISTOLOGY-SPECIFIC PANEL since V230.5b (May 2026)** — residual NGS signal on the appropriate driver panel at CXJ1, gated by a pipeline-specific quality filter. The panel is selected automatically based on the patient's histology:
+   - **Hodgkin classique** : 16 genes — `BTG2, BZRAP1, CD83, CIITA, CXCR4, DTX1, IRF8, ITPKB, LTB, PAX5, RHOH, S1PR2, SOCS1, STAT6, TP53, ZFP36L1`. Axis CXCR4 + JAK-STAT (Reed-Sternberg signature) + B-cell signaling. V230.5b swap : LTB added, ZCCHC7-GRHPR removed.
+   - **Non-Hodgkin (DLBCL, FL, MZL, MCL…)** : 16 genes — `BCL2, BIRC3, BTG1, BZRAP1, CIITA, DTX1, FOXO1, HIST1H1E, KLF2, LTB, MYC, PAX5, PIM1, POU2AF1, S1PR2, TMSB4X`. Axis B-cell signaling + chromatin + anti-apoptosis (DLBCL signature). Unchanged vs V230.4.
+   - **Overlap**: 6 shared genes (`BZRAP1, CIITA, DTX1, LTB, PAX5, S1PR2`) — 10 distinct genes per histology.
+   - **Methodology** : exhaustive backward elimination from whitelist of non-rotten genes (Ig V(D)J genes excluded ; HR<1 or NS univariate genes blacklisted). V230.5b refines the gene counting (`per-GENE`, not per-variant), the cross-timepoint fusion (PRIO C2J1, clinical convention), and the quality-gate denominator (Ig excluded from `n_total_pos`). Reveals that the legacy D11 panel (BCL2, BCL6, …) was an NH-biased signature, with several D11 genes (BCL2, BCL6, BIRC3) actually anti-prognostic in Hodgkin.
 4. **Interim FDG-PET** — Deauville score (linear, 1-5) at end of cycle 2, with **ΔSUVmax% fallback** if Deauville unavailable.
 
 **Endpoint**: EFS (Event-Free Survival = relapse OR progression). Non-lymphoma deaths are censored (3 patients : 2 COVID, 1 hemorrhagic ulcer under transfusion contraindication). Justification in methodology §XI.10.
@@ -32,16 +32,16 @@ The calculator predicts post-CXJ1 EFS risk from four covariates measured around 
 
 The calculator switches automatically between 6 variants based on data availability:
 
-| Variant | Quantification | TEP | N stacked (events) | **C-corrected V230.4** | Δ vs V230.2 |
+| Variant | Quantification | TEP | N stacked (events) | **C V230.5b (stacked)** | Notes |
 |---|---|---|---|---|---|
-| **M2_hEq Deauv** ⭐ | hEq (VAF × cfDNA) | Deauville 1-5 | 230 (42) | **0.862** | +0.009 |
-| M2_hEq Delta | hEq (VAF × cfDNA) | ΔSUVmax% (fallback) | 200 (40) | **0.859** | +0.012 |
-| M1_hEq | hEq (VAF × cfDNA) | — absent | 273 (53) | **0.845** | +0.018 |
-| M2_VAF Deauv | VAF % only | Deauville 1-5 | 230 (42) | **0.832** | +0.024 |
-| M2_VAF Delta | VAF % only | ΔSUVmax% (fallback) | 200 (40) | **0.834** | +0.020 |
-| M1_VAF | VAF % only | — absent | 273 (53) | **0.801** | +0.020 |
+| **M2_hEq Deauv** ⭐ | hEq (VAF × cfDNA) | Deauville 1-5 | 230 (42) | **0.853** | C_IDES 0.839 / C_PV 0.890 |
+| M2_hEq Delta | hEq (VAF × cfDNA) | ΔSUVmax% (fallback) | 200 (40) | — | inherits V230.5b panels + counting |
+| M1_hEq | hEq (VAF × cfDNA) | — absent | 273 (53) | — | inherits V230.5b panels + counting |
+| M2_VAF Deauv | VAF % only | Deauville 1-5 | 230 (42) | — | inherits V230.5b panels + counting |
+| M2_VAF Delta | VAF % only | ΔSUVmax% (fallback) | 200 (40) | — | inherits V230.5b panels + counting |
+| M1_VAF | VAF % only | — absent | 273 (53) | — | inherits V230.5b panels + counting |
 
-⭐ = optimal configuration when all data is available. **C-index optimism-corrected (bootstrap V230.4 B=500, Harrell), optimism médian +0.007 (max +0.013) — excellent generalization.** **V230.4 update (May 2026)** : histology-specific v5A driver panels (16 H + 16 NH genes, backward elimination from whitelist of non-rotten genes). V230.4 dominates V230.2 on all 6 variants (ΔC_corrected +0.009 to +0.024).
+⭐ = optimal configuration when all data is available. **V230.5b update (May 2026)** : 3 methodological v5A corrections + panel H swap (LTB ↔ ZCCHC7-GRHPR). **Calibration slope Hodgkin dramatically improved** : +2.14 [1.25;4.47] (V230.4) → **+1.19 [0.73;2.06]** (V230.5b), IC95% now includes 1.0 ✓. C-index essentially preserved (C_all 0.853 vs 0.853, C_IDES −0.005, C_PV identical). Bootstrap optimism-corrected C-index for V230.4 (B=500, Harrell) remains a valid reference for the inherited variants (median optimism +0.007, max +0.013).
 
 **Measured impact of missing data** (Δ C-index, M2_hEq Deauv ⭐ vs alternatives):
 
@@ -159,9 +159,11 @@ PV's real advantages on the same cohort :
 
 → PV is more parsimonious (9 vs 17 patients in the High zone) but each flag is certified by an EFS event. See methodology §VI.bis.
 
-## Validation (V230.2, May 2026)
+## Validation (V230.5b, May 2026)
 
-**V230.2** — minimal architectural update over V230.1, preserving all coefficients and adding only :
+**V230.5b** — 3 methodological corrections on v5A computation (per-GENE counting instead of per-variant, cross-timepoint fusion PRIO C2J1, Ig genes excluded from `n_total_pos` denominator) + panel H swap (LTB ↔ ZCCHC7-GRHPR). Calibration slope Hodgkin : **+2.14 [1.25;4.47] (V230.4) → +1.19 [0.73;2.06] (V230.5b)**, IC95% now includes 1.0. Discrimination essentially preserved (C_all 0.853 unchanged, C_IDES −0.005, C_PV identical). All previous V230.x architectural choices conserved (partial pooling B′, strata pipeline × histo, mono-exponential trajectories per histology × responder, etc.).
+
+**V230.2** (archived) — minimal architectural update over V230.1, preserving all coefficients and adding only :
 1. **Enlarged v5A panel** : D11 (11 genes) → D11 + STAT6 + SOCS1 (13 genes, +2 Hodgkin-specific JAK-STAT drivers)
 2. **Strata h0 by `(pipeline × histo)`** : 4 baselines per variant instead of 2
 
@@ -204,12 +206,12 @@ If you use this calculator, methodology, or any derived artifact (code, JSON par
 **Bibtex (placeholder — replace DOI once Zenodo archive is set up)** :
 
 ```bibtex
-@software{cxj1_mrd_calculator_v230_4,
+@software{cxj1_mrd_calculator_v230_5b,
   author       = {Caulier, Alexis and {hmn-immuno-bm team}},
-  title        = {{MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V230.4)}},
+  title        = {{MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V230.5b)}},
   year         = 2026,
   publisher    = {Zenodo},
-  version      = {V230.4},
+  version      = {V230.5b},
   doi          = {10.5281/zenodo.XXXXXXX},
   url          = {https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/},
   note         = {Methodology: https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/methodology.html}
@@ -218,7 +220,7 @@ If you use this calculator, methodology, or any derived artifact (code, JSON par
 
 **Plain-text** :
 
-> Caulier A, hmn-immuno-bm team. MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V230.4): Cox proportional hazards models for ctDNA MRD in adult B-cell and Hodgkin lymphomas after the mid-treatment timepoint. Partial pooling across IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines, mono-exponential decay trajectories per histology × responder strata, and integrated baseline tumor burden. Endpoint EFS (relapse OR progression). Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), AP-HP, Créteil, France ; 2026. Available from: https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/. DOI: 10.5281/zenodo.XXXXXXX.
+> Caulier A, hmn-immuno-bm team. MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V230.5b): Cox proportional hazards models for ctDNA MRD in adult B-cell and Hodgkin lymphomas after the mid-treatment timepoint. Partial pooling across IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines, mono-exponential decay trajectories per histology × responder strata, integrated baseline tumor burden, and histology-specific v5A driver panels (16 H + 16 NH genes, per-gene counting). Endpoint EFS (relapse OR progression). Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), AP-HP, Créteil, France ; 2026. Available from: https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/. DOI: 10.5281/zenodo.XXXXXXX.
 
 ## Data availability (FAIR)
 

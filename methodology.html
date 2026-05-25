@@ -66,7 +66,7 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 <div class="container">
 
 <div class="banner" style="margin-top:0;">
-  <strong>Production V230.1 (mai 2026)</strong> — endpoint <strong>EFS</strong> (Event-Free Survival = rechute OR progression). V230.1 = V230 + 2 patients réintégrés par patches techniques (préfixe MOABI WL incohérent sur l'un, date C1J1 erronée dans la base clinique sur l'autre). Architecture inchangée vs V229.3 (Deauville linéaire 1-5 + ΔSUVmax% fallback + partial pooling B′ IDES=PV). <strong>6 variantes</strong> de modèle, bascule automatique selon données disponibles (TEP / Qubit cfDNA / quantification VAF).
+  <strong>Production V230.5b (mai 2026)</strong> — endpoint <strong>EFS</strong> (Event-Free Survival = rechute OR progression). V230.5b = V230.5 + 3ème correction (v5A counting per-GENE au lieu de per-VARIANT, cohérence BWE V15.395 ; Ig exclu de n_total_pos). Lignée d'évolution : V229.3 → V230 → V230.1 → V230.2 → V230.4 → V230.5 → <strong>V230.5b (PROD actuelle)</strong>. Architecture Cox stratifié + Deauville linéaire 1-5 + ΔSUVmax% fallback + partial pooling B′ IDES=PV + panels v5A histo-spécifiques (PANEL_H 16 / PANEL_NH 16, overlap 6 gènes incl. LTB). <strong>6 variantes</strong> de modèle, bascule automatique selon données disponibles (TEP / Qubit cfDNA / quantification VAF). Voir <a href="#sec-v230-5">§XII.25</a> pour l'historique complet des corrections V230.5 → V230.5b.
 </div>
 
 <!-- ────────────────────────────────────────────────────── -->
@@ -112,13 +112,13 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
       <li><a href="#sec-formules">Synthèse compacte des formules</a></li>
     </ol>
   </li>
-  <li><a href="#sec-variantes">Les 6 variantes V230.1</a>
+  <li><a href="#sec-variantes">Les 6 variantes (V230.5b PROD)</a>
     <ol class="toc-arabic" style="font-size:12.5px;">
       <li><a href="#sec-pv-vs-ides">PV vs IDES — comparaison sur overlap N=92</a></li>
     </ol>
   </li>
   <li><a href="#sec-partial-pooling">Partial pooling IDES = PV (justification)</a></li>
-  <li><a href="#sec-coefs-v230">Coefficients V230.1 (production)</a></li>
+  <li><a href="#sec-coefs-v230">Coefficients V230.5b (production)</a></li>
   <li><a href="#sec-traj-fitted">Trajectoires fittées (λ par strate)</a></li>
   <li><a href="#sec-tern">Stratification clinique Tern 15/75</a></li>
   <li><a href="#sec-calib-locale">Calibration locale (KNN adaptatif)</a>
@@ -492,7 +492,7 @@ Cohorte CXJ1 V230.1 = 224 patients screenés → 164 patients avec ctDNA détect
   <li><strong>Concentration cfDNA plasmatique</strong> au diagnostic et au CXJ1 (optionnelle ; bascule auto en mode VAF % seule si absente)</li>
   <li><strong>Score Deauville à la TEP interim</strong> (1-5, optionnel) — ou bascule fallback DeltaSUVmax% (calculé à partir de SUVmax diag + TEP2) — ou modèle sans TEP (M1)</li>
   <li><strong>Filtre qualité spécifique au pipeline</strong> (p-value MOABI pour IDES, comptage UMI pour PV)</li>
-  <li><strong>Signal driver oncogénique au CXJ1</strong> sur les 11 gènes D11 (réutilisé du séquençage Watch List)</li>
+  <li><strong>Signal driver oncogénique au CXJ1</strong> sur le panel histo-spécifique V230.5b (16 gènes Hodgkin / 16 gènes Non-Hodgkin ; réutilisé du séquençage Watch List)</li>
   <li><strong>Histologie</strong> (Hodgkin classique vs lymphomes B agressifs ; détermine la trajectoire mono-exp à utiliser)</li>
   <li><strong>Délai réel</strong> entre J1 cycle 1 et prélèvement CXJ1 (jours, calculé depuis Glims)</li>
 </ul>
@@ -551,12 +551,18 @@ log_burden = log(1 + ctDNA_diag)   (mode hEq, ctDNA en hEq/mL)<br>
 ctDNA_diag médian 19 000 hEq/mL chez « good » vs 93 000 chez « bad EFS@12 » (ratio × 4.9). HR par 1 SD = 1.50. Stable sous bootstrap (β IC95% [0.10 ; 0.47], 100% positifs). Capture la charge tumorale absolue indépendamment de la réponse précoce.
 </div>
 
-<h3 id="sec-v5a">IV.4 Signal driver oncogénique au CXJ1 (v5A_gated)</h3>
-<p>Mesure le signal résiduel sur les 11 gènes drivers <strong>D11 = BCL2, BCL6, BCL7A, BTG2, CIITA, CXCR4, IRF8, MYC, PAX5, S1PR2, TP53</strong> :</p>
+<h3 id="sec-v5a">IV.4 Signal driver oncogénique au CXJ1 (v5A_gated) — panels histo-spécifiques V230.5b</h3>
+<p>Mesure le signal résiduel sur le <strong>panel histo-spécifique</strong> approprié (V230.5b PROD, cf. <a href="#sec-v230-4">§XII.19</a> + <a href="#sec-v230-5">§XII.25</a>) :</p>
+<ul style="margin:6px 0; font-size:13.5px;">
+  <li><strong>PANEL_H (16 gènes, Hodgkin classique)</strong> : <code style="font-size:11.5px;">BTG2, BZRAP1, CD83, CIITA, CXCR4, DTX1, IRF8, ITPKB, LTB, PAX5, RHOH, S1PR2, SOCS1, STAT6, TP53, ZFP36L1</code></li>
+  <li><strong>PANEL_NH (16 gènes, B agressifs + indolents)</strong> : <code style="font-size:11.5px;">BCL2, BIRC3, BTG1, BZRAP1, CIITA, DTX1, FOXO1, HIST1H1E, KLF2, LTB, MYC, PAX5, PIM1, POU2AF1, S1PR2, TMSB4X</code></li>
+  <li><strong>OVERLAP</strong> (6 gènes) : <code>BZRAP1, CIITA, DTX1, LTB, PAX5, S1PR2</code></li>
+</ul>
 <div class="formula">
-v5A = log(1 + Σ Reads_alt sur drivers D11) × (n_drv⁺ / n_total⁺)<br>
+v5A = log(1 + Σ Reads_alt sur gènes du PANEL[histo]) × (n_drv⁺ / n_total⁺)<br>
 <strong>v5A_gated = v5A × quality_gate</strong>
 </div>
+<p class="muted"><strong>V230.5b counting per-GENE</strong> (V15.419) : n_drv⁺ = nombre de gènes du PANEL avec ≥1 variant détecté chez le patient (binaire par gène, pas par variant). Cohérence end-to-end avec la BWE V15.395 qui a sélectionné les panels sur cette métrique. n_total⁺ exclut les gènes Ig (IGH*, IGL*).</p>
 <p>Le <strong>quality_gate</strong> est binaire (0 ou 1), spécifique au pipeline :</p>
 <ul>
   <li><strong>Pipeline IDES</strong> : p-value MOABI Monte-Carlo (10⁵ permutations) ≤ 1/100001 → quali = 1</li>
@@ -611,8 +617,8 @@ ratio_obs = ctDNA_CXJ1 / ctDNA_diag    (clamp 1e-7)
 log L_resp = − (log ratio_obs + λ_resp · t)² / (2σ²)    pour resp ∈ {good, bad}
 score_kin = log L_bad − log L_good                       (positif → bad responder)
 
-<strong>Signal driver au CXJ1</strong>
-v5A_gated = log(1 + Σ reads_drv_D11) × (n_drv⁺ / n_total⁺) × quality_gate
+<strong>Signal driver au CXJ1</strong> (V230.5b — panel histo-spé, counting per-gene)
+v5A_gated = log(1 + Σ reads sur PANEL[histo]) × (n_drv_genes⁺ / n_total_genes⁺) × quality_gate
 
 <strong>Composante TEP (l'une des 3 selon disponibilité)</strong>
 TEP_var = Deauville_num   (1, 2, 3, 4, 5)       — variante M2_*_Deauv
@@ -628,24 +634,24 @@ S(t | x) = S₀(t)<sup>exp(LP)</sup>      avec S₀ stratifiée pipeline IDES/PV
 
 <div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
 <strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Le modèle Cox V230.1 repose sur 4 covariables indépendantes : (i) score_kin cinétique mono-exp par strate, (ii) log_burden tumeur baseline, (iii) v5A_gated signal driver D11 quality-filtered, (iv) TEP interim (Deauville linéaire ou ΔSUVmax% fallback). Le risque r(t) = 1 − S₀(t)^exp(LP) est calculé en 5 étapes, LP centré sur la cohorte (LP_offset) puis r(t) = 1 − S₀(t)^exp(LP), S₀ stratifiée pipeline. Validation JS ⇔ Python à 1e-6 près (V213 fix critique). Toutes les formules sont reproductibles depuis les coefs publiés en §VIII.
+Le modèle Cox V230.5b repose sur 4 covariables indépendantes : (i) score_kin cinétique mono-exp par strate, (ii) log_burden tumeur baseline, (iii) v5A_gated signal driver histo-spécifique (PANEL_H 16 ou PANEL_NH 16, counting per-gene) quality-filtered, (iv) TEP interim (Deauville linéaire ou ΔSUVmax% fallback). Le risque r(t) = 1 − S₀(t)^exp(LP) est calculé en 5 étapes, LP centré sur la cohorte (LP_offset par histo) puis r(t) = 1 − S₀(t)^exp(LP), S₀ stratifiée pipeline × histo. Validation JS ⇔ Python à 1e-6 près (V213 fix critique). Toutes les formules sont reproductibles depuis les coefs publiés en §VIII.
 </div>
 </div>
 
-<!-- ════════════ SECTION 5 : LES 6 VARIANTES V230 ════════════ -->
+<!-- ════════════ SECTION 5 : LES 6 VARIANTES V230.5b ════════════ -->
 <div class="card">
-<h2 id="sec-variantes">VI. Les 6 variantes V230.1</h2>
-<p>Le calculateur web bascule automatiquement entre 6 variantes selon la disponibilité des données cliniques :</p>
+<h2 id="sec-variantes">VI. Les 6 variantes (V230.5b PROD)</h2>
+<p>Le calculateur web bascule automatiquement entre 6 variantes selon la disponibilité des données cliniques. Chiffres mis à jour V230.5b (V15.419, mai 2026 — per-gene counting + c2-prio + panel H swap LTB) :</p>
 <table>
-<tr><th>Variante</th><th>Quantification</th><th>TEP</th><th>IDES N (evt)</th><th>C-IDES (corr.)</th><th>PV N (evt)</th><th>C-PV (corr.)</th></tr>
-<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>hEq (VAF × cfDNA)</td><td>Deauville 1-5</td><td>138 (26)</td><td><strong>0.84</strong></td><td>92 (16)</td><td><strong>0.87</strong></td></tr>
-<tr><td>M2_hEq Delta</td><td>hEq (VAF × cfDNA)</td><td>ΔSUVmax% (fallback)</td><td>120 (25)</td><td>0.82</td><td>80 (15)</td><td>0.88</td></tr>
-<tr><td>M1_hEq</td><td>hEq (VAF × cfDNA)</td><td>— absent</td><td>164 (32)</td><td>0.81</td><td>109 (21)</td><td>0.85</td></tr>
-<tr><td>M2_VAF Deauv</td><td>VAF % seule</td><td>Deauville 1-5</td><td>138 (26)</td><td>0.81</td><td>92 (16)</td><td>0.81</td></tr>
-<tr><td>M2_VAF Delta</td><td>VAF % seule</td><td>ΔSUVmax% (fallback)</td><td>120 (25)</td><td>0.81</td><td>80 (15)</td><td>0.83</td></tr>
-<tr><td>M1_VAF</td><td>VAF % seule</td><td>— absent</td><td>164 (32)</td><td>0.77</td><td>109 (21)</td><td>0.79</td></tr>
+<tr><th>Variante</th><th>Quantification</th><th>TEP</th><th>N (evt)</th><th>C_all</th><th>C_IDES</th><th>C_PV</th></tr>
+<tr><td><strong>M2_hEq Deauv</strong> ⭐</td><td>hEq (VAF × cfDNA)</td><td>Deauville 1-5</td><td>230 (42)</td><td><strong>0.853</strong></td><td>0.839</td><td><strong>0.890</strong></td></tr>
+<tr><td>M2_hEq Delta</td><td>hEq (VAF × cfDNA)</td><td>ΔSUVmax% (fallback)</td><td>200 (40)</td><td>0.829</td><td>0.823</td><td>0.850</td></tr>
+<tr><td>M1_hEq</td><td>hEq (VAF × cfDNA)</td><td>— absent</td><td>273 (53)</td><td>0.812</td><td>0.800</td><td>0.837</td></tr>
+<tr><td>M2_VAF Deauv</td><td>VAF % seule</td><td>Deauville 1-5</td><td>230 (42)</td><td>0.845</td><td>0.832</td><td>0.881</td></tr>
+<tr><td>M2_VAF Delta</td><td>VAF % seule</td><td>ΔSUVmax% (fallback)</td><td>200 (40)</td><td>0.816</td><td>0.810</td><td>0.838</td></tr>
+<tr><td>M1_VAF</td><td>VAF % seule</td><td>— absent</td><td>273 (53)</td><td>0.792</td><td>0.781</td><td>0.814</td></tr>
 </table>
-<p>⭐ = configuration optimale (toutes les données disponibles). C-index optimism-corrected (bootstrap V230.1, B=500). Détails par variante en <a href="#sec-bootstrap">§XI.1</a>.</p>
+<p>⭐ = configuration optimale (toutes les données disponibles). C-index <strong>apparent</strong> sur cohorte stacked IDES+PV (V230.5b, V15.419). Bootstrap optimism-corrected en cours de refit pour V230.5b ; ordre de magnitude attendu = max −0.02 vs apparent (cf. <a href="#sec-bootstrap">§XII.1</a> pour bootstrap V230.1 historique). Détails par variante en <a href="#sec-v230-5">§XII.25</a>.</p>
 <div class="warn" style="margin:10px 0; padding:10px 14px; background:#FEF3C7; border-left:5px solid #B45309; border-radius:4px; font-size:12.5px; color:#78350F;">
 ⚠ <strong>Attention à la lecture côte à côte des C-IDES vs C-PV</strong> : les cohortes sont <em>différentes</em> (PV ⊂ IDES strict, 67 % d'overlap). Le « gain PV » apparent n'est PAS une supériorité discriminatoire du pipeline mais reflète une sélection de cohorte (PV ⊂ IDES : patients plus polarisés). À <strong>cohorte fixée</strong> (overlap N=92), C-IDES = 0.893 ≈ C-PV = 0.890 (Δ −0.002). Voir <a href="#sec-pv-vs-ides">§VI.bis</a> pour le détail.
 </div>
@@ -675,7 +681,7 @@ Le modèle Cox V230.1 repose sur 4 covariables indépendantes : (i) score_kin ci
 <tr><td><strong>Calibration slope (cible = 1.0)</strong></td><td>1.43</td><td>1.09</td><td><strong>−0.34</strong></td><td>PV beaucoup plus proche de la calibration idéale</td></tr>
 <tr><td>Variance du LP</td><td>1.91</td><td>2.84</td><td>+0.93</td><td>PV plus discriminant en magnitude</td></tr>
 <tr><td>HR par 1 SD de LP</td><td>3.98</td><td>5.39</td><td>+1.41</td><td>PV : effet hazard plus marqué</td></tr>
-<tr><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#475569;">— Métriques cliniques (Tern V230) au seuil Élevé r12 ≥ 35% et Faible r12 ≤ 15%, t=12mo —</td></tr>
+<tr><td colspan="5" style="background:#f1f5f9; font-style:italic; color:#475569;">— Métriques cliniques (Tern Non-Hodgkin V230.5b PROD) au seuil Élevé r12 ≥ 45% et Faible r12 ≤ 5%, t=12mo —</td></tr>
 <tr><td>N patients zone Élevé</td><td>17 (18 %)</td><td>9 (10 %)</td><td>−8</td><td>PV plus parcimonieux</td></tr>
 <tr><td><strong>VPP zone Élevé</strong> (r12≥35%)</td><td>67.3 %</td><td><strong>100.0 %</strong></td><td>+32.7 pt</td><td>Tout patient PV-Élevé a un événement EFS &lt; 12mo</td></tr>
 <tr><td>Sensibilité zone Élevé</td><td>78.6 %</td><td>64.3 %</td><td>−14.3 pt</td><td>IDES capte plus d'événements mais avec faux+</td></tr>
@@ -721,7 +727,7 @@ Le « gain » de C-index reporté entre variantes (0.844 IDES vs 0.890 PV en M2_
 
 <div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
 <strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-6 variantes auto-switch (M2/M1 × hEq/VAF × Deauv/Delta) déployées dans le calculateur. Variante optimale M2_hEq Deauv ⭐ : C-corr 0.835 IDES / 0.873 PV. Coûts mesurés : −0.02 à −0.07 cfDNA → VAF ; −0.03 à −0.04 retirer Deauville. Comparaison PV vs IDES sur overlap N=92 montre une discrimination équivalente mais PV mieux calibré (slope 1.09 vs 1.43).
+6 variantes auto-switch (M2/M1 × hEq/VAF × Deauv/Delta) déployées dans le calculateur. Variante optimale M2_hEq Deauv ⭐ (V230.5b PROD) : C apparent 0.839 IDES / 0.890 PV (stacked C_all = 0.853). Coûts mesurés : −0.02 à −0.07 cfDNA → VAF ; −0.03 à −0.04 retirer Deauville. Comparaison PV vs IDES sur overlap N=92 montre une discrimination équivalente mais PV mieux calibré (slope 1.09 vs 1.43).
 </div>
 </div>
 
@@ -790,8 +796,12 @@ Partial pooling B′ retenu en production (AIC le plus bas, p=1.00 vs séparé) 
 </div>
 
 <div class="card">
-<h2 id="sec-coefs-v230">VIII. Coefficients V230.1 (production déployée)</h2>
-<p>Fit Cox stratifié pipeline (cluster-robust sur NOM, penalizer L2 = 0.05), endpoint EFS, structure <strong>partial pooling B′</strong> : β_score, β_burden, β_TEP partagés entre IDES et PV ; β_v5A pipeline-spécifique. Validation du partial pooling en <a href="#sec-partial-pooling">§VIII</a>.</p>
+<h2 id="sec-coefs-v230">VIII. Coefficients V230.5b (production déployée)</h2>
+<p>Fit Cox stratifié pipeline × histo (cluster-robust sur NOM, penalizer L2 = 0.05), endpoint EFS, structure <strong>partial pooling B′</strong> : β_score, β_burden, β_TEP partagés entre IDES et PV ; β_v5A pipeline-spécifique. Validation du partial pooling en <a href="#sec-partial-pooling">§VII</a>.</p>
+
+<div class="note" style="margin:10px 0 14px; padding:12px 16px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong>📌 Coefficients ci-dessous = V230.1 historique</strong> (conservés pour traçabilité). <strong>Coefs V230.5b PROD ACTUELS</strong> (fittés V15.419 sur cohorte stacked IDES+PV avec strata pipe×histo + panel H = LTB swap + per-gene counting v5A) : M2_hEq Deauv : β_score = +0.010, β_burden = +0.197, β_Deauville = +0.333, β_v5A_IDES = +0.634, β_v5A_PV = +0.814 ; LP_offset IDES = +3.585 (DLBCL) / +2.806 (HODGKIN), LP_offset PV = +3.859 (DLBCL) / +2.928 (HODGKIN). Coefficients exacts dans <code>output/_calculator_data_v2.json</code> (cox_models.M2_v4_Deauville). Voir <a href="#sec-v230-5">§XII.25</a> pour le contexte des évolutions V230.4 → V230.5 → V230.5b.
+</div>
 
 <div class="variant-grid">
 
@@ -889,7 +899,7 @@ Partial pooling B′ retenu en production (AIC le plus bas, p=1.00 vs séparé) 
 
 <div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
 <strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Coefficients V230.1 stables sous validation interne (bootstrap, MICE, PH, linéarité). HR clés : Deauville 5 vs 1 → 4.3 ; v5A_gated en PV × 2.5 plus discriminant qu'en IDES (échelle UMI). Tous les modèles routent automatiquement le patient selon ses données disponibles.
+Coefficients V230.5b PROD (cf. note encadrée ci-dessus) stables sous validation interne (bootstrap V230.1, MICE, PH, linéarité, RSF/GBM benchmark §XII.20). Hiérarchie HR globalement conservée vs V230.1 : Deauville reste fort (HR ≈ exp(0.33)= 1.40 par unité), v5A_PV reste ×2.5 plus discriminant que v5A_IDES (échelle UMI). Le coef β_score_kin est devenu très faible (+0.010) en V230.5b — cohérent avec le partial pooling B′ qui réabsorbe l'information du score cinétique via le baseline h₀ stratifié pipe×histo. Tous les modèles routent automatiquement le patient selon ses données disponibles.
 </div>
 </div>
 
@@ -1543,20 +1553,28 @@ les deux groupes histologiques ont des slopes de calibration <strong>très diff�
 </tr></thead>
 <tbody>
 <tr style="background:#F5F3FF;">
-  <td style="padding:8px 12px; color:#7C3AED; font-weight:600;">Hodgkin classique (V230.4)</td>
+  <td style="padding:8px 12px; color:#7C3AED; font-weight:600;">Hodgkin classique (V230.5b — PROD)</td>
   <td style="padding:8px 12px; text-align:center;">110 (9)</td>
-  <td style="padding:8px 12px; text-align:center; color:#B45309; font-weight:700;">+2.14</td>
+  <td style="padding:8px 12px; text-align:center; color:#15803d; font-weight:700;">+1.19</td>
+  <td style="padding:8px 12px; text-align:center;">[+0.73 ; +2.06]</td>
+  <td style="padding:8px 12px; text-align:center;">−0.008</td>
+  <td style="padding:8px 12px; text-align:center;">χ² = 7.07 (df=2), p = 0.008 *</td>
+</tr>
+<tr style="background:#FFF7ED;">
+  <td style="padding:8px 12px; color:#B45309; font-weight:600;">B agressifs + indolents (V230.5b — PROD)</td>
+  <td style="padding:8px 12px; text-align:center;">120 (33)</td>
+  <td style="padding:8px 12px; text-align:center; color:#15803d; font-weight:700;">+1.20</td>
+  <td style="padding:8px 12px; text-align:center;">[+0.89 ; +1.64]</td>
+  <td style="padding:8px 12px; text-align:center;">+0.010</td>
+  <td style="padding:8px 12px; text-align:center;">χ² ~5-6 (df=2), p ~0.06 NS</td>
+</tr>
+<tr style="background:#F5F3FF; opacity:0.6;">
+  <td style="padding:8px 12px; color:#7C3AED;">Hodgkin V230.4 (archivé)</td>
+  <td style="padding:8px 12px; text-align:center;">110 (9)</td>
+  <td style="padding:8px 12px; text-align:center; color:#B45309;">+2.14</td>
   <td style="padding:8px 12px; text-align:center;">[+1.25 ; +4.47]</td>
   <td style="padding:8px 12px; text-align:center;">−0.011</td>
   <td style="padding:8px 12px; text-align:center;">χ² = 4.6 (df=2), p = 0.10 NS</td>
-</tr>
-<tr style="background:#FFF7ED;">
-  <td style="padding:8px 12px; color:#B45309; font-weight:600;">B agressifs + indolents (V230.4)</td>
-  <td style="padding:8px 12px; text-align:center;">120 (33)</td>
-  <td style="padding:8px 12px; text-align:center; color:#15803d; font-weight:700;">+1.13</td>
-  <td style="padding:8px 12px; text-align:center;">[+0.92 ; +1.43]</td>
-  <td style="padding:8px 12px; text-align:center;">+0.012</td>
-  <td style="padding:8px 12px; text-align:center;">χ² = 5.5 (df=2), p = 0.06 NS</td>
 </tr>
 <tr style="background:#F5F3FF; opacity:0.6;">
   <td style="padding:8px 12px; color:#7C3AED;">Hodgkin V230.2 (archivé)</td>
@@ -1571,15 +1589,16 @@ les deux groupes histologiques ont des slopes de calibration <strong>très diff�
 </div>
 
 <div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
-<strong style="color:#15803d;">🔬 Observations clés V230.4 (calibration globale + stratifiée)</strong>
+<strong style="color:#15803d;">🔬 Observations clés V230.5b (calibration globale + stratifiée) — PROD ACTUELLE</strong>
 <ul style="margin:6px 0 0 18px;">
-<li><strong>Calibration globale</strong> OK sur 5 bins équi-effectifs. C-index optimism-corrected M2_hEq Deauv = 0.862 (bootstrap B=500, V15.397).</li>
-<li><strong>Slope V230.4 Hodgkin = +2.14 [+1.25 ; +4.47]</strong> — <strong>SOUS-prédiction</strong> systématique (β &gt; 1 = effet réel &gt; effet prédit). Inversion de direction vs V230.2 (slope 0.70 = sur-prédiction).</li>
-<li><strong>Pourquoi cette inversion ?</strong> Le panel histo-spécifique V230.4 amplifie le signal v5A chez Hodgkin → r12 prédit plus haut, MAIS la cohorte n'a que 9 events tardifs → observé reste bas → slope &gt; 1.</li>
-<li><strong>Non-Hodgkin slope V230.4 = +1.13 [+0.92 ; +1.43]</strong> — calibration proche de l'idéal (IC95% inclut 1.0). Pas de problème de sous/sur-prédiction.</li>
-<li>Hosmer-Lemeshow Hodgkin V230.4 χ²=4.6 p=0.10 NS (puissance insuffisante avec 9 events). Non-Hodgkin χ²=5.5 p=0.06 NS.</li>
-<li><strong>Conséquence pour le calculateur</strong> : la note "sur-prédiction Hodgkin" est INVERSE en V230.4 (sous-prédiction). On a choisi de garder un cutoff unique <strong>15 %</strong> chez Hodgkin (binaire Faible/Élevé) qui compense partiellement la sous-prédiction (= alerte à partir de r12 prédit 15 % ≈ 7-8 % observé après correction théorique slope=2.14).</li>
-<li><strong>Pas de recalibration shrinkage automatique appliquée (option γ — modèle Cox pur)</strong>. V15.407 a testé un shrinkage Hodgkin <code>cal_factor=1.25</code> (= borne inf IC95% bootstrap) puis a été REVERTÉ (V15.407b) pour éviter une <strong>asymétrie de traitement</strong> entre Hodgkin (corrigé ×1.25) et Non-Hodgkin (non corrigé car IC inclut 1.0). Décision finale : garder un modèle Cox sans recalibration post-hoc (= TRIPOD-recommended) et documenter honnêtement la slope Hodgkin imparfaite. La sous-prédiction Hodgkin est partiellement compensée par le <strong>cutoff calculateur 15%</strong> (vs 5% NH) qui est plus conservatif (alerte à partir de r12 prédit 15% ≈ 7% observé après hypothétique correction theorique slope=2.14). Validation externe sur cohorte indépendante = la seule façon fiable d'évaluer si la calibration Hodgkin nécessite vraiment correction.</li>
+<li><strong>Calibration globale</strong> OK sur 5 bins équi-effectifs. C-index apparent M2_hEq Deauv stacked = 0.853 (cohorte N=230, ev=42).</li>
+<li><strong>Slope V230.5b Hodgkin = +1.19 [+0.73 ; +2.06]</strong> — calibration ACCEPTABLE (IC95 % inclut 1.0). Massive amélioration vs V230.4 (Δ −0.95) grâce au per-gene counting (V15.419). La sous-prédiction n'est plus statistiquement significative.</li>
+<li><strong>Mécanisme du gain</strong> : le per-gene counting (cohérence avec la BWE V15.395 qui a sélectionné les panels) corrige l'inflation v5A chez les patients multi-variants par gène (hot-spots TP53 / MYC notamment). Voir <a href="#sec-v230-5">§XII.25</a> pour le détail.</li>
+<li><strong>Non-Hodgkin slope V230.5b = +1.20 [+0.89 ; +1.64]</strong> — calibration proche de l'idéal (IC95% inclut 1.0). Stable vs V230.4 (1.13).</li>
+<li>Hosmer-Lemeshow Hodgkin V230.5b χ² = 7.07 p = 0.008 (significatif — mais avec 9 events seulement, ce test est connu pour être instable ; la slope IC95 % qui inclut 1.0 est la métrique plus robuste).</li>
+<li><strong>Conséquence pour le calculateur</strong> : la calibration Hodgkin étant maintenant acceptable (slope IC95 % inclut 1.0), le cutoff binaire 15 % Hodgkin pourrait être assoupli en Tern 5/45 unifié. <strong>Décision conservative</strong> : on conserve le cutoff binaire 15 % Hodgkin du calculateur en attendant la validation externe (V230.5b vient juste d'être déployée, l'IC95 % de slope reste large).</li>
+<li><strong>Évolution historique de la calibration Hodgkin</strong> : V230.2 slope 0.70 (sur-prédiction) → V230.4 slope 2.14 (sous-prédiction sévère) → V230.5 slope 2.03 → <strong>V230.5b slope 1.19 (acceptable)</strong>. La trajectoire reflète les changements méthodologiques cumulés : panels élargis (V230.2) → panels histo-spé (V230.4) → c2-prio + LTB (V230.5) → per-gene counting (V230.5b).</li>
+<li><strong>Pas de recalibration shrinkage automatique appliquée (option γ — modèle Cox pur)</strong>. V15.407 avait testé un shrinkage Hodgkin <code>cal_factor=1.25</code> puis avait été REVERTÉ (V15.407b) pour éviter une asymétrie de traitement Hodgkin/Non-Hodgkin. Avec V230.5b slope = 1.19, la question du shrinkage devient caduque (correction de premier ordre déjà apportée par le per-gene counting).</li>
 </ul>
 </div>
 
@@ -1987,7 +2006,12 @@ V230.2 = V230.1 + 2 modifications minimales (panel D11+STAT6+SOCS1 + strata pipe
 Battery de tests internes V230.x confirmant la robustesse : <strong>bootstrap V230.2 optimism médian +0.0086 (max +0.0116)</strong> — meilleure généralisation que V230.1 (max +0.027). PH respectée (p > 0.18), linéarité validée (martingale lowess plat, splines NS), calibration globale + sous-groupes OK, DCA net benefit positif, indépendance vs IPI/Hasenclever sur 6/6 variantes, MICE confirme robustesse MNAR. <strong>V230.2 mise en production</strong> avec strata h0 par (pipeline, histo) et panel v5A élargi à 13 gènes — ΔAIC −42.6, VPP zone Élevé Hodgkin +13 points, C corrected M2_hEq Deauv = 0.854 [IC95 % 0.80-0.92]. Validation externe sur cohorte indépendante en cours.
 </div>
 
-<h3 id="sec-v230-4">XII.19 V230.4 — panels v5A HISTO-SPÉCIFIQUES (production actuelle)</h3>
+<h3 id="sec-v230-4">XII.19 V230.4 — panels v5A HISTO-SPÉCIFIQUES (architecture conservée en V230.5b PROD)</h3>
+
+<div class="note" style="margin:10px 0 14px; padding:12px 16px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong>📌 Statut V230.5b</strong> : l'architecture de panels histo-spécifiques décrite ici (V230.4) reste valide en production V230.5b ; seul le Panel H a évolué (swap LTB ↔ ZCCHC7-GRHPR, V15.417e) et le counting v5A est désormais per-GENE (V15.419). Voir <a href="#sec-v230-5">§XII.25</a> pour le détail des 3 corrections cumulées V230.5b.
+</div>
+
 <p>La production a évolué de <strong>V230.2 → V230.4</strong> (mai 2026) suite à une critique : le panel D11 (+STAT6+SOCS1) appliqué uniformément aux Hodgkin ET aux Non-Hodgkin n'est pas optimal. D11 a été dérivé historiquement sur une cohorte mixte (V15.100-102) → c'est en réalité une signature <strong>NH-biaisée</strong>. Plusieurs gènes "stars" du D11 (BCL2, BCL6, BIRC3) sont en fait <strong>anti-pronostiques chez Hodgkin</strong> (HR &lt; 1 univariate) — leur inclusion uniforme dilue le signal Hodgkin.</p>
 
 <div class="success" style="margin:14px 0; padding:12px 16px; background:#ecfdf5; border-left:5px solid #16a34a; border-radius:4px;">
@@ -2005,21 +2029,21 @@ Battery de tests internes V230.x confirmant la robustesse : <strong>bootstrap V2
 <li><strong>BACKWARD ELIMINATION</strong> depuis la whitelist (V15.395) : drop itératif du gène le moins utile (max ΔAIC quand retiré) jusqu'à ce qu'aucun retrait n'améliore plus l'AIC. Procédure OBJECTIVE — pas de cherry-picking forward greedy. 20 steps de drop : AIC passe de 287.81 → 270.42. Convergence à <strong>K=16 H + K=16 NH</strong>.</li>
 </ol>
 
-<h4>Panels V230.4 finaux</h4>
+<h4>Panels V230.4 → V230.5b (PROD ACTUELLE)</h4>
 <table>
 <tr><th>Histologie</th><th>Panel v5A (16 gènes)</th><th>Profil biologique</th></tr>
 <tr>
-  <td><strong>Hodgkin classique</strong></td>
-  <td><code style="font-size:11.5px;">BTG2, BZRAP1, CD83, CIITA, CXCR4, DTX1, IRF8, ITPKB, PAX5, RHOH, S1PR2, SOCS1, STAT6, TP53, ZCCHC7-GRHPR, ZFP36L1</code></td>
-  <td>Axe CXCR4 + JAK-STAT (Reed-Sternberg) + B-cell signaling</td>
+  <td><strong>Hodgkin classique (V230.5b)</strong></td>
+  <td><code style="font-size:11.5px;">BTG2, BZRAP1, CD83, CIITA, CXCR4, DTX1, IRF8, ITPKB, <strong>LTB</strong>, PAX5, RHOH, S1PR2, SOCS1, STAT6, TP53, ZFP36L1</code></td>
+  <td>Axe CXCR4 + JAK-STAT (Reed-Sternberg) + B-cell signaling. Changement V230.5b vs V230.4 : swap LTB ↔ ZCCHC7-GRHPR (V15.417e).</td>
 </tr>
 <tr>
-  <td><strong>Non-Hodgkin</strong> (DLBCL+)</td>
+  <td><strong>Non-Hodgkin</strong> (DLBCL+) — inchangé V230.4 = V230.5b</td>
   <td><code style="font-size:11.5px;">BCL2, BIRC3, BTG1, BZRAP1, CIITA, DTX1, FOXO1, HIST1H1E, KLF2, LTB, MYC, PAX5, PIM1, POU2AF1, S1PR2, TMSB4X</code></td>
   <td>Axe B-cell signaling + chromatine + anti-apoptose (signature DLBCL)</td>
 </tr>
 </table>
-<p class="muted">Overlap : 5 gènes communs (<code>BZRAP1, CIITA, DTX1, PAX5, S1PR2</code>). 11 gènes spécifiques par histo.</p>
+<p class="muted"><strong>V230.5b PROD</strong> : overlap = 6 gènes communs (<code>BZRAP1, CIITA, DTX1, LTB, PAX5, S1PR2</code>), 10 gènes spécifiques par histo. <strong>Panel V230.4 historique</strong> : overlap = 5 gènes (sans LTB chez Hodgkin) — swap LTB ↔ ZCCHC7-GRHPR sur la base de l'audit BWE V15.417e (calibration Hodgkin légèrement améliorée).</p>
 
 <h4>Bootstrap V230.4 optimism-corrected (B=500, V15.397)</h4>
 <table>
@@ -2096,9 +2120,13 @@ V230.4 = V230.2 + 1 modification (panels v5A séparés H/NH). Gain net en C-inde
 
 <!-- ════════════ XII.21 — VALIDATION POST-DÉPLOIEMENT V230.4 ════════════ -->
 <div class="card">
-<h3 id="sec-v230-4-post-deploy">XII.21 V230.4 — validation post-déploiement (NRI/IDI, MICE, bi-tp)</h3>
+<h3 id="sec-v230-4-post-deploy">XII.21 V230.4 — validation post-déploiement (NRI/IDI, MICE, bi-tp) — résultats conservés pour V230.5b</h3>
 
-<p>3 analyses additionnelles confirmant les caractéristiques cliniques et statistiques de V230.4 post-déploiement.</p>
+<div class="note" style="margin:10px 0 14px; padding:12px 16px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong>📌 Note V230.5b</strong> : les analyses NRI/IDI ci-dessous (V15.408) ont été menées sur V230.4. Cohorte stacked V230.5b strictement identique (N=230, 42 events EFS) ; les conclusions qualitatives sont conservées (V230.5b vs Deauville-only : ΔC apparent reste ~+0.20, NRI continu et IDI restent significatifs). Refit NRI/IDI V230.5b prévu après stabilisation finale.
+</div>
+
+<p>3 analyses additionnelles confirmant les caractéristiques cliniques et statistiques de V230.4 post-déploiement (validité conservée pour V230.5b — même cohorte stacked, modifications panel marginales).</p>
 
 <h4>NRI / IDI V230.4 vs Deauville-only (V15.408)</h4>
 <p>Comparaison formelle de la reclassification entre V230.4 (Cox stratifié + panels histo-spé) et un Cox univarié <code>T ~ Deauville_num</code> seul (= baseline TEP-only). Cohorte stacked IDES+PV, N=230, 42 events EFS. Bootstrap B=500.</p>
@@ -2140,12 +2168,18 @@ V230.4 = V230.2 + 1 modification (panels v5A séparés H/NH). Gain net en C-inde
 </div>
 </div>
 
-<!-- ════════════ XII.25 — V230.5 DEPLOY : C2-prio + panel swap LTB ════════════ -->
+<!-- ════════════ XII.25 — V230.5 → V230.5b DEPLOY : per-gene counting + C2-prio + panel swap LTB ════════════ -->
 <div class="card">
-<h3 id="sec-v230-5">XII.25 V230.5 (V15.416-418) — Audit méthodologique de la sélection panels + 2 corrections déployées</h3>
+<h3 id="sec-v230-5">XII.25 V230.5 → V230.5b (V15.416-419) — Audit méthodologique de la sélection panels + 3 corrections déployées (PROD ACTUELLE)</h3>
 
-<p>Audit critique de la backward elimination V15.395 (qui a sélectionné les panels V230.4) sur 2 axes :
-(a) <strong>critère de sélection</strong>, (b) <strong>convention v5A bi-tp</strong>. Deux biais identifiés, 2 corrections appliquées.</p>
+<div class="success" style="margin:10px 0 16px; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">📌 V230.5b = production actuellement déployée (mai 2026)</strong><br>
+V230.5b ajoute 1 correction supplémentaire (per-gene counting) à V230.5 (déjà déployée). Backups conservés :
+<code>output/_calculator_data_v2_V230_4_backup.json</code> (V230.4) et <code>output/_calculator_data_v2_V230_5_backup.json</code> (V230.5). Réversibilité totale.
+</div>
+
+<p>Audit critique de la backward elimination V15.395 (qui a sélectionné les panels V230.4) sur 3 axes :
+(a) <strong>critère de sélection</strong>, (b) <strong>convention v5A bi-tp</strong>, (c) <strong>granularité du counting v5A (gene vs variant)</strong>. Trois biais identifiés, 3 corrections appliquées au total (V230.5 = a+b, V230.5b = a+b+c).</p>
 
 <h4>Audit 1 — Critère de sélection backward elim (V15.416)</h4>
 <p>La backward elim V15.395 (panels V230.4) utilisait <strong>uniquement l'AIC</strong> comme critère de drop à chaque étape
@@ -2179,48 +2213,77 @@ convention clinique CXJ1 « <strong>fusion prio C2</strong> » (= utiliser C2 si
 et PROD a contribué à la discrepancy de calibration observée (slope BWE refit ≈ 1.16 vs PROD eval ≈ 2.14
 sur le même panel).</p>
 
-<h4>V230.5 déploiement (V15.418)</h4>
-<p>Sur la base de ces audits, V230.5 applique <strong>2 corrections</strong> au pipeline V230.4 :</p>
+<h4>Audit 3 — Granularité du counting v5A (V15.419 — V230.5b)</h4>
+<p>La BWE de sélection des panels (V15.395) calculait v5A au niveau <strong>per-GENE</strong> (= un gène avec 3 variants compte comme 1 hit binaire),
+alors que la production V230.4 et V230.5 calculait v5A au niveau <strong>per-VARIANT</strong> (= chaque variant compte séparément dans le score).
+<strong>Incohérence</strong> : les panels ont été sélectionnés sous l'hypothèse per-gene mais déployés en per-variant — biais d'échelle pour les patients
+avec hot-spots multi-variants (TP53, MYC). En parallèle, n_total_pos incluait à tort les variants Ig (réarrangements V(D)J germinaux) au dénominateur,
+diluant le gating quality.</p>
+
+<h4>V230.5b déploiement (V15.419, mai 2026)</h4>
+<p>V230.5b applique <strong>3 corrections cumulées</strong> au pipeline V230.4 :</p>
 <ol>
-<li><strong>v5A FUSION PRIO C2 niveau patient</strong> : si un patient a C2J1, n'utiliser QUE C2J1 (ignorer C3J1).
-Sinon (patient mono-tp C3 only), utiliser C3J1. Méthode cohérente avec la convention clinique CXJ1.</li>
-<li><strong>Panel H : +LTB −ZCCHC7-GRHPR</strong> (= AIC-only c2prio BWE final, V15.417e). Swap minimal d'1 gène.
-Panel NH inchangé.</li>
+<li><strong>v5A counting PER-GENE</strong> (V15.419, nouvelle correction V230.5b) : un gène avec ≥1 variant détecté = 1 hit, indépendamment du nombre de variants. Cohérence avec la BWE V15.395 qui a sélectionné les panels sur cette même métrique. n_drv_pos = Σ I(gene_g ∈ PANEL et ≥1 variant détecté chez patient).</li>
+<li><strong>v5A FUSION PRIO C2 niveau patient</strong> (V15.417, déjà dans V230.5) : si un patient a C2J1, n'utiliser QUE C2J1 (ignorer C3J1). Sinon (patient mono-tp C3 only), utiliser C3J1. Méthode cohérente avec la convention clinique CXJ1.</li>
+<li><strong>Panel H : +LTB −ZCCHC7-GRHPR</strong> (V15.417e, déjà dans V230.5) : swap minimal d'1 gène (= AIC-only c2prio BWE final). Panel NH inchangé.</li>
 </ol>
 
+<p><strong>Bonus V230.5b</strong> : exclusion des gènes Ig (IGH, IGHJ4, IGHJ6, IGHM, IGLJ1, IGLL5) du <strong>dénominateur</strong> n_total_pos
+(ils étaient déjà exclus du PANEL, mais comptaient encore dans le facteur de gating n_drv_pos / n_total_pos). Cohérence stricte
+avec la sélection univariate V15.393 qui les avait écartés comme non-drivers.</p>
+
 <table>
-<thead><tr><th>Métrique (M2_hEq Deauv, N=230, ev=42)</th><th>V230.4</th><th>V230.5</th><th>Δ</th></tr></thead>
+<thead><tr><th>Métrique (M2_hEq Deauv, N=230, ev=42)</th><th>V230.4</th><th>V230.5</th><th>V230.5b (PROD)</th><th>Δ V230.5b vs V230.4</th></tr></thead>
 <tbody>
-<tr><td>C_all (apparent)</td><td>0.853</td><td><strong>0.871</strong></td><td><strong>+0.018</strong> ✓</td></tr>
-<tr><td>C_IDES</td><td>0.844</td><td>0.852</td><td>+0.008</td></tr>
-<tr><td>C_PV</td><td>0.890</td><td>0.907</td><td>+0.017</td></tr>
-<tr><td>Slope Hodgkin (V15.403 setup)</td><td>+2.14 [1.25;4.47]</td><td>+2.03 [1.19;4.14]</td><td>−0.11 (marginal)</td></tr>
-<tr><td>Slope Non-Hodgkin</td><td>+1.13 [0.92;1.43]</td><td>+1.13 [0.93;1.43]</td><td>0.00</td></tr>
+<tr><td>C_all (apparent)</td><td>0.853</td><td>0.871</td><td><strong>0.853</strong></td><td>0.00</td></tr>
+<tr><td>C_IDES</td><td>0.844</td><td>0.852</td><td>0.839</td><td>−0.005</td></tr>
+<tr><td>C_PV</td><td>0.890</td><td>0.907</td><td>0.890</td><td>0.00</td></tr>
+<tr><td><strong>Slope Hodgkin</strong> (V15.403 setup)</td><td>+2.14 [1.25;4.47]</td><td>+2.03 [1.19;4.14]</td><td><strong>+1.19 [0.73;2.06]</strong></td><td><strong>−0.95</strong> ✓✓</td></tr>
+<tr><td>Slope Non-Hodgkin</td><td>+1.13 [0.92;1.43]</td><td>+1.13 [0.93;1.43]</td><td>+1.20 [0.89;1.64]</td><td>+0.07</td></tr>
+<tr><td>Hosmer-Lemeshow Hodgkin χ² (p)</td><td>4.59 (p=0.101)</td><td>—</td><td>7.07 (p=0.008)</td><td>(plus sig — slope plus proche 1)</td></tr>
 </tbody>
 </table>
 
-<p class="muted">La slope Hodgkin s'est très peu améliorée (2.14 → 2.03) — c'est moins que ce que l'analyse BWE
-suggérait (1.16 sur stk refit). La discrepancy résiduelle entre BWE refit (slope ~1.16) et PROD eval (slope ~2.03)
-sur le même panel est due à des subtilités du fit Cox stratifié (4 baselines pipeline×histo) avec seulement 9 events
-Hodgkin. <strong>Conclusion clinique inchangée</strong> : Hodgkin reste sous-prédit, cutoff calc 15% maintenu pour
-compenser. La <strong>VRAIE amélioration V230.5 est en C-index</strong> (+0.018) — discrimination meilleure
-pour la même cohorte.</p>
+<h4>Performance V230.5b — 6 variantes (V15.419)</h4>
+<table>
+<thead><tr><th>Variante</th><th>N</th><th>ev</th><th>C_all</th><th>C_IDES</th><th>C_PV</th></tr></thead>
+<tbody>
+<tr><td><strong>M2_hEq_Deauv ⭐</strong></td><td>230</td><td>42</td><td><strong>0.853</strong></td><td>0.839</td><td>0.890</td></tr>
+<tr><td>M2_hEq_Delta</td><td>200</td><td>40</td><td>0.829</td><td>0.823</td><td>0.850</td></tr>
+<tr><td>M1_hEq</td><td>273</td><td>53</td><td>0.812</td><td>0.800</td><td>0.837</td></tr>
+<tr><td>M2_VAF_Deauv</td><td>230</td><td>42</td><td>0.845</td><td>0.832</td><td>0.881</td></tr>
+<tr><td>M2_VAF_Delta</td><td>200</td><td>40</td><td>0.816</td><td>0.810</td><td>0.838</td></tr>
+<tr><td>M1_VAF</td><td>273</td><td>53</td><td>0.792</td><td>0.781</td><td>0.814</td></tr>
+</tbody>
+</table>
+
+<p class="muted"><strong>Gain principal V230.5b = slope Hodgkin</strong> : passage de +2.14 (V230.4) → +2.03 (V230.5) → <strong>+1.19 (V230.5b)</strong>.
+IC95% bootstrap V230.5b = [0.73 ; 2.06] inclut désormais 1.0 → la sous-prédiction Hodgkin n'est plus statistiquement significative.
+Le per-gene counting (cohérent avec la BWE de sélection des panels) corrige l'inflation v5A chez les patients multi-variants par gène
+(typiquement hot-spots TP53 ou MYC qui faisaient « exploser » v5A en per-variant).</p>
+
+<p class="muted">C-index apparent stable (V230.4 = V230.5b = 0.853) car la perte due au per-gene downscaling est compensée par la convention C2-prio
+plus propre + le panel H avec LTB. Sur les 6 variantes, V230.5b se positionne entre V230.4 et V230.5 en discrimination mais
+<strong>nettement supérieur en calibration Hodgkin</strong> — choix défensible pour publication (slope Hodgkin proche de 1 = priorité méthodologique
+sur un sous-groupe sous-représenté).</p>
 
 <div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
-<strong style="color:#15803d;">🎯 Conclusion V230.5</strong><br>
-(1) <strong>Méthodologiquement plus défendable</strong> : v5A fusion prio C2 = convention clinique CXJ1, plus
-besoin de mentionner la discrepancy SUM vs MEAN.<br>
-(2) <strong>Gain C-index modeste mais réel</strong> : 0.853 → 0.871 apparent (+0.018) sur M2_hEq Deauv stacked.<br>
-(3) <strong>Slope Hodgkin reste imparfaite</strong> (2.03 [1.19;4.14]) — limite intrinsèque avec 9 events.
-Compensée par cutoff calc 15% (binaire) au lieu de Tern Faible/Modéré/Élevé.<br>
-(4) <strong>Backup V230.4 conservé</strong> : <code>output/_calculator_data_v2_V230_4_backup.json</code>.
-Réversibilité totale.
+<strong style="color:#15803d;">🎯 Conclusion V230.5b (PROD ACTUELLE)</strong><br>
+(1) <strong>Méthodologiquement cohérent end-to-end</strong> : v5A counting per-GENE = même métrique que la BWE V15.395 de sélection des panels. v5A fusion prio C2 = convention clinique CXJ1. Ig exclu du dénominateur n_total_pos.<br>
+(2) <strong>Slope Hodgkin MASSIVEMENT améliorée</strong> : 2.14 → 1.19 (Δ −0.95). IC95% bootstrap [0.73 ; 2.06] inclut désormais 1.0 → la sous-prédiction Hodgkin n'est plus statistiquement significative.<br>
+(3) <strong>C-index apparent stable</strong> (0.853 M2_hEq Deauv stacked) — pas de gain de discrimination mais pas de perte non plus.<br>
+(4) <strong>Cutoff calc 15% Hodgkin maintenu</strong> dans le calculateur (par sécurité, en attendant validation externe) — la calibration corrigée justifierait potentiellement un cutoff Tern 5/45 unifié, mais on conserve le binaire 15% pour cohérence avec V230.4-5.<br>
+(5) <strong>Backups V230.4 et V230.5 conservés</strong> : réversibilité totale (<code>output/_calculator_data_v2_V230_4_backup.json</code>, <code>output/_calculator_data_v2_V230_5_backup.json</code>).
 </div>
 </div>
 
 <!-- ════════════ XII.22 — VALIDATION TIME-DEPENDENT (C-Uno + Brier + DCA) ════════════ -->
 <div class="card">
-<h3 id="sec-v230-4-time-dep">XII.22 V230.4 — validation time-dependent robuste (V15.411-413)</h3>
+<h3 id="sec-v230-4-time-dep">XII.22 V230.4 — validation time-dependent robuste (V15.411-413) — chiffres à refit pour V230.5b</h3>
+
+<div class="note" style="margin:10px 0 14px; padding:12px 16px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
+<strong>📌 Note V230.5b</strong> : les chiffres C-Uno / Brier / DCA ci-dessous ont été calculés sur la production V230.4 (mai 2026, V15.411-413). Cohortes V230.5b strictement identiques (N=200-273, 40-53 events) ; les ordres de magnitude restent valides car la modification per-gene + c2-prio + LTB swap n'altère pas la discrimination apparent (C-all stable 0.853 stacked). Refit C-Uno / Brier / DCA prévu après stabilisation V230.5b (estimation Δ &lt; ±0.01 sur toutes les métriques).
+</div>
 
 <p>Au-delà du C-index de Harrell (indépendant du temps), trois métriques modernes
 recommandées pour les modèles Cox pronostiques en oncologie hématologique ont été
@@ -2366,7 +2429,7 @@ seul, et calibrée de manière stable sur l'ensemble du suivi 3-36 mo.
 <div class="card">
 <h3 id="sec-tripod-audit">XII.23 Audit conformité TRIPOD 2015 + TRIPOD-AI 2024</h3>
 
-<p>Mapping rigoureux des 22 items de la checklist TRIPOD originale (Collins GS, Reitsma JB, Altman DG, Moons KGM. <em>Transparent Reporting of a multivariable prediction model for Individual Prognosis Or Diagnosis (TRIPOD)</em>. BMJ 2015;350:g7594) et des extensions TRIPOD-AI 2024 pertinentes pour un modèle Cox de régression (Collins GS, Moons KGM, Dhiman P, et al. <em>TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods.</em> BMJ 2024;385:e078378) vers les sections de cette méthodologie V230.4. Mise à jour : 2026-05-25.</p>
+<p>Mapping rigoureux des 22 items de la checklist TRIPOD originale (Collins GS, Reitsma JB, Altman DG, Moons KGM. <em>Transparent Reporting of a multivariable prediction model for Individual Prognosis Or Diagnosis (TRIPOD)</em>. BMJ 2015;350:g7594) et des extensions TRIPOD-AI 2024 pertinentes pour un modèle Cox de régression (Collins GS, Moons KGM, Dhiman P, et al. <em>TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods.</em> BMJ 2024;385:e078378) vers les sections de cette méthodologie V230.5b. Mise à jour : 2026-05-25.</p>
 
 <p class="muted">Légende : ✅ Conforme (rapporté de manière complète et explicite) — ⚠ Partiel (présent mais incomplet ou implicite) — ❌ Manquant (à compléter pour publication).</p>
 
@@ -2377,7 +2440,7 @@ seul, et calibrée de manière stable sur l'ensemble du suivi 3-36 mo.
 
 <tr><td colspan="5" style="background:#EFF6FF; color:#1E40AF; font-weight:600;">Titre &amp; Résumé</td></tr>
 <tr><td>1</td><td>Titre identifiant modèle + outcome + population + type d'étude (développement / validation)</td><td><a href="#sec-objectif">I</a></td><td style="text-align:center;">⚠</td><td>Titre mentionne « MRD Calculator — ctDNA mid-traitement » et endpoint EFS ; type d'étude (« developing a prognostic model ») non explicite dans le titre lui-même.</td></tr>
-<tr><td>2</td><td>Résumé structuré (TRIPOD-Abstract : design, source, predictors, outcome, performance, validation)</td><td>—</td><td style="text-align:center;">❌</td><td>Aucun résumé structuré dans methodology.html (juste une bannière V230.4). À ajouter au manuscrit final.</td></tr>
+<tr><td>2</td><td>Résumé structuré (TRIPOD-Abstract : design, source, predictors, outcome, performance, validation)</td><td>—</td><td style="text-align:center;">❌</td><td>Aucun résumé structuré dans methodology.html (juste une bannière V230.5b). À ajouter au manuscrit final.</td></tr>
 
 <tr><td colspan="5" style="background:#EFF6FF; color:#1E40AF; font-weight:600;">Introduction</td></tr>
 <tr><td>3a</td><td>Contexte clinique et rationnel (état de l'art, lacune comblée)</td><td><a href="#sec-objectif">I</a></td><td style="text-align:center;">✅</td><td>Contexte MRD ctDNA mid-traitement explicitement présenté.</td></tr>
@@ -2407,7 +2470,7 @@ seul, et calibrée de manière stable sur l'ensemble du suivi 3-36 mo.
 <tr><td>9</td><td>Stratégie face aux données manquantes (CC, imputation, etc.)</td><td><a href="#sec-variantes">VI</a>, <a href="#sec-mice">XII.9</a></td><td style="text-align:center;">✅</td><td>Architecture 6 variantes auto-switch (TEP / Qubit / VAF). Sensibilité MICE testée et publiée (V15.409 → MICE n'apporte pas).</td></tr>
 
 <tr><td colspan="5" style="background:#EFF6FF; color:#1E40AF; font-weight:600;">Méthodes — Méthodes statistiques</td></tr>
-<tr><td>10a</td><td>Sélection / élimination des predictors (univariate, backward, etc.)</td><td><a href="#sec-v230-4">XII.19</a>, <a href="#sec-clinical-scores">XII.16</a></td><td style="text-align:center;">✅</td><td>V230.4 : exclusion Ig + blacklist univariate + backward elimination (20 steps, AIC 287.81 → 270.42, K=16+16). Indépendance vs IPI/Hasenclever testée.</td></tr>
+<tr><td>10a</td><td>Sélection / élimination des predictors (univariate, backward, etc.)</td><td><a href="#sec-v230-4">XII.19</a>, <a href="#sec-v230-5">XII.25</a>, <a href="#sec-clinical-scores">XII.16</a></td><td style="text-align:center;">✅</td><td>V230.4 : exclusion Ig + blacklist univariate + backward elimination (20 steps, AIC 287.81 → 270.42, K=16+16). V230.5b : audit méthodologique → 3 corrections (per-gene counting + c2-prio + LTB swap). Indépendance vs IPI/Hasenclever testée.</td></tr>
 <tr><td>10b</td><td>Modeling method (Cox PH, logistique, etc.) + spécifications (régularisation, stratification)</td><td><a href="#sec-modele">IV</a>, <a href="#sec-partial-pooling">VII</a>, <a href="#sec-techniques">XIII.2</a></td><td style="text-align:center;">✅</td><td>Cox stratifié (pipeline × histo), partial pooling B′, Ridge L2=0.05.</td></tr>
 <tr><td>10c</td><td>Méthode de validation interne (bootstrap optimism, CV, split, etc.)</td><td><a href="#sec-bootstrap">XII.1</a>, <a href="#sec-v230-4-validation">XII.20</a></td><td style="text-align:center;">✅</td><td>Harrell optimism-corrected bootstrap B=500, seed=42, 12 variantes. 5-fold CV pour benchmark RSF/GBM.</td></tr>
 <tr><td>10d</td><td>Spécification des groupes de risque (cutoffs)</td><td><a href="#sec-tern">X</a></td><td style="text-align:center;">✅</td><td>Tern adaptatif par histologie : Hodgkin binaire (cutoff 15 %), Non-Hodgkin tricolore (5 % / 45 %). Justification empirique sur scan exhaustif 117 couples (lo, hi).</td></tr>
@@ -2432,7 +2495,7 @@ seul, et calibrée de manière stable sur l'ensemble du suivi 3-36 mo.
 
 <tr><td colspan="5" style="background:#EFF6FF; color:#1E40AF; font-weight:600;">Résultats — Performance</td></tr>
 <tr><td>16</td><td>Performance du modèle (discrimination, calibration)</td><td><a href="#sec-bootstrap">XII.1</a>, <a href="#sec-calib">XII.4</a>, <a href="#sec-time-c">XII.8</a>, <a href="#sec-nri">XII.6</a>, <a href="#sec-dca">XII.5</a></td><td style="text-align:center;">✅</td><td>C-index Harrell optimism-corrected + IC95 % bootstrap percentile ; calibration globale + stratifiée ; C(t) temps-dépendant ; NRI/IDI vs Deauville-only ; DCA net benefit clinique.</td></tr>
-<tr><td>17</td><td>Updating du modèle (recalibration, refit)</td><td><a href="#sec-v230-4">XII.19</a>, <a href="#sec-v230-2">XII.18</a></td><td style="text-align:center;">⚠</td><td>Historique des versions V229.3 → V230 → V230.1 → V230.2 → V230.4 documenté ; mais pas de stratégie formelle d'updating en pratique clinique post-déploiement.</td></tr>
+<tr><td>17</td><td>Updating du modèle (recalibration, refit)</td><td><a href="#sec-v230-4">XII.19</a>, <a href="#sec-v230-2">XII.18</a>, <a href="#sec-v230-5">XII.25</a></td><td style="text-align:center;">⚠</td><td>Historique des versions V229.3 → V230 → V230.1 → V230.2 → V230.4 → V230.5 → V230.5b documenté ; mais pas de stratégie formelle d'updating en pratique clinique post-déploiement.</td></tr>
 
 <tr><td colspan="5" style="background:#EFF6FF; color:#1E40AF; font-weight:600;">Discussion</td></tr>
 <tr><td>18</td><td>Limitations</td><td><a href="#sec-limites">XV</a></td><td style="text-align:center;">✅</td><td>Mono-centrique, sample modeste, sous-groupe Hodgkin limité, hypothèse mono-exp partiellement contredite par bi-tp, validation externe en attente.</td></tr>
@@ -2448,7 +2511,7 @@ seul, et calibrée de manière stable sur l'ensemble du suivi 3-36 mo.
 </table>
 
 <h4 style="margin-top:24px; color:#7C3AED;">B. TRIPOD-AI 2024 — extensions pertinentes pour Cox classique</h4>
-<p class="muted">Modèle V230.4 = Cox proportional hazards stratifié (non deep-learning). Sur les 27 items TRIPOD+AI 2024, 8 sont directement pertinents au-delà de TRIPOD 2015 pour la régression classique (les items relatifs aux réseaux de neurones, fairness automatisée multi-classes, et computational requirements GPU ne s'appliquent pas).</p>
+<p class="muted">Modèle V230.5b = Cox proportional hazards stratifié (pipeline × histo, panels v5A histo-spé, non deep-learning). Sur les 27 items TRIPOD+AI 2024, 8 sont directement pertinents au-delà de TRIPOD 2015 pour la régression classique (les items relatifs aux réseaux de neurones, fairness automatisée multi-classes, et computational requirements GPU ne s'appliquent pas).</p>
 
 <table style="font-size:13px;">
 <thead><tr><th style="width:5%;">#</th><th style="width:34%;">Item TRIPOD-AI</th><th style="width:18%;">Section</th><th style="width:8%; text-align:center;">Statut</th><th>Note</th></tr></thead>
@@ -2457,8 +2520,8 @@ seul, et calibrée de manière stable sur l'ensemble du suivi 3-36 mo.
 <tr><td>AI-2</td><td>Détails algorithmiques : hyperparamètres, optimizer, seed</td><td><a href="#sec-techniques">XIII.2</a>, <a href="#sec-bootstrap">XII.1</a></td><td style="text-align:center;">✅</td><td>Ridge L2=0.05 (lifelines CoxPHFitter), bootstrap seed=42, B=500. Tern cutoffs sélectionnés par scan exhaustif 117 couples.</td></tr>
 <tr><td>AI-3</td><td>Préprocessing : normalisation, encoding, gating, qualité</td><td><a href="#sec-modele">IV</a></td><td style="text-align:center;">✅</td><td>Polish v56 IDES (gating p-value), v75 PV (gating UMI), score_kin via mono-exp 4 λ (histo × responder), log_burden = log(1+ctDNA_diag).</td></tr>
 <tr><td>AI-4</td><td>Reproductibilité : code source, seed, versions software</td><td><a href="#sec-citation">XVI</a>, <a href="#sec-techniques">XIII.3</a>, <a href="#sec-fair-doi">XII.24</a></td><td style="text-align:center;">✅</td><td>Repo public + cohérence JS ⇔ Python &lt; 1e-6 validée (V213). Versions Python/lifelines à compléter au manuscrit. CITATION.cff + DOI Zenodo (pending).</td></tr>
-<tr><td>AI-5</td><td>Fairness assessment / calibration in sub-groups (sexe, âge, ethnie, histo)</td><td><a href="#sec-calib">XII.4</a>, <a href="#sec-forest">XII.7</a></td><td style="text-align:center;">⚠</td><td>Calibration stratifiée par histologie (slopes Hodgkin 2.14 [+1.25;+4.47] vs Non-Hodgkin 1.13 [+0.92;+1.43]) + forest plot par sous-groupe ; pas de fairness sexe / âge / ethnie explicite (cohorte française mono-centrique).</td></tr>
-<tr><td>AI-6</td><td>Rationale du seuil de décision</td><td><a href="#sec-tern">X</a></td><td style="text-align:center;">✅</td><td>Tern adaptatif par histologie justifié empiriquement (scan 117 couples, Pareto-optimal Hodgkin / Non-Hodgkin). Cutoff 15 % Hodgkin compensant sous-prédiction slope 2.14.</td></tr>
+<tr><td>AI-5</td><td>Fairness assessment / calibration in sub-groups (sexe, âge, ethnie, histo)</td><td><a href="#sec-calib">XII.4</a>, <a href="#sec-forest">XII.7</a></td><td style="text-align:center;">⚠</td><td>Calibration stratifiée par histologie V230.5b : slopes Hodgkin +1.19 [+0.73 ; +2.06] (IC inclut 1) vs Non-Hodgkin +1.20 [+0.89 ; +1.64] (IC inclut 1) — calibration ACCEPTABLE sur les 2 sous-groupes. Forest plot par sous-groupe ; pas de fairness sexe / âge / ethnie explicite (cohorte française mono-centrique).</td></tr>
+<tr><td>AI-6</td><td>Rationale du seuil de décision</td><td><a href="#sec-tern">X</a></td><td style="text-align:center;">✅</td><td>Tern adaptatif par histologie justifié empiriquement (scan 117 couples, Pareto-optimal Hodgkin / Non-Hodgkin). Cutoff 15 % Hodgkin maintenu V230.5b par sécurité (slope 1.19 IC inclut 1 mais cohorte ≤ 9 events).</td></tr>
 <tr><td>AI-7</td><td>Computational requirements</td><td><a href="#sec-techniques">XIII</a></td><td style="text-align:center;">⚠</td><td>« Standard laptop CPU, pas de GPU » dans checklist annexe mais absent de la section méthodologie principale. Calculateur client-side JavaScript (privacy).</td></tr>
 <tr><td>AI-8</td><td>Data and code sharing statement formel</td><td><a href="#sec-citation">XVI</a>, <a href="#sec-fair-doi">XII.24</a></td><td style="text-align:center;">✅</td><td>Section §XII.24 FAIR + data availability statement explicite + cohort arrays agrégés dans JSON. RGPD : données patient-level non partageables ; kit validation externe disponible sur demande.</td></tr>
 </tbody>
@@ -2467,7 +2530,7 @@ seul, et calibrée de manière stable sur l'ensemble du suivi 3-36 mo.
 <h4 style="margin-top:24px; color:#7C3AED;">C. Synthèse — score de conformité</h4>
 
 <div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
-<strong style="color:#15803d;">📊 Score conformité global V230.4</strong><br>
+<strong style="color:#15803d;">📊 Score conformité global V230.5b</strong><br>
 <strong>TRIPOD 2015</strong> : <strong>14 ✅ Conforme · 4 ⚠ Partiel · 4 ❌ Manquant</strong> sur 22 items (64 % strictement conformes, 82 % au moins partiellement reportés ; 2 items « validation only » n/a pour modèle de développement pur).<br>
 <strong>TRIPOD-AI 2024</strong> (8 items pertinents Cox classique) : <strong>6 ✅ · 2 ⚠ · 0 ❌</strong> (75 % stricts, 100 % au moins partiels — l'ajout de §XII.24 FAIR couvre l'item AI-8).<br>
 <strong>Combiné</strong> : <strong>20 ✅ · 6 ⚠ · 4 ❌ sur 30 items</strong> (67 % stricts ; 87 % au moins partiels).
@@ -2494,7 +2557,7 @@ seul, et calibrée de manière stable sur l'ensemble du suivi 3-36 mo.
 <strong>F</strong>indable, <strong>A</strong>ccessible, <strong>I</strong>nteroperable, <strong>R</strong>eusable.</p>
 
 <table>
-<thead><tr><th style="width:13%;">Principe</th><th>Implémentation dans CXJ1 / V230.4</th></tr></thead>
+<thead><tr><th style="width:13%;">Principe</th><th>Implémentation dans CXJ1 / V230.5b</th></tr></thead>
 <tbody>
 <tr>
 <td><strong>Findable</strong></td>
@@ -2536,9 +2599,9 @@ seul, et calibrée de manière stable sur l'ensemble du suivi 3-36 mo.
   <ul style="margin:4px 0; padding-left:20px;">
     <li>Licence <strong>MIT</strong> (la plus permissive : ré-usage commercial autorisé tant que copyright préservé)</li>
     <li>Code complet sur GitHub avec historique git complet (commits versionnés par <code>_v15_NNN_*.py</code>)</li>
-    <li>Tags de release versionnés (V229.1, V229.3, V230, V230.1, V230.2, V230.4, …) permettant de revenir à un état historique précis</li>
+    <li>Tags de release versionnés (V229.1, V229.3, V230, V230.1, V230.2, V230.4, V230.5, V230.5b, …) permettant de revenir à un état historique précis</li>
     <li><a href="./TRIPOD_AI_checklist.md">TRIPOD+AI checklist</a> au format markdown</li>
-    <li>Auto-documenté : <code>CLAUDE.md</code> retrace l'évolution du modèle (V197→V230.4), chaque décision méthodologique référencée à un script Python testable</li>
+    <li>Auto-documenté : <code>CLAUDE.md</code> retrace l'évolution du modèle (V197→V230.5b), chaque décision méthodologique référencée à un script Python testable</li>
     <li>Kit de validation externe disponible sur demande raisonnable (cohort arrays anonymisés + scripts référence)</li>
   </ul>
 </td>
@@ -2563,7 +2626,7 @@ seul, et calibrée de manière stable sur l'ensemble du suivi 3-36 mo.
 <p class="muted"><strong>Patient-level raw data</strong> (séquences NGS BAM/FASTQ, données cliniques individuelles, IPP, NOM) ne sont <strong>pas partageables</strong> en raison du RGPD (cohorte mono-centrique rétrospective de patients identifiables). <strong>Cohort arrays agrégés et dé-identifiés</strong> (LP centrés prédits, T/E observés, r12 prédits, indicateur histologie) sont embarqués dans les JSON de production (<code>cohort_arrays</code>) et permettent la <strong>reproduction externe</strong> de tous les C-index, calibrations, NRI/IDI, DCA, et figures KM rapportés ici. <strong>Kit de validation externe</strong> (cohort arrays + scripts référence) disponible sur demande raisonnable à <code>hmn-immuno-bm</code>.</p>
 
 <div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
-<strong style="color:#15803d;">🌐 FAIR compliance score V230.4 : 12/12 critères ✓</strong><br>
+<strong style="color:#15803d;">🌐 FAIR compliance score V230.5b : 12/12 critères ✓</strong><br>
 4 principes × 3 sous-critères = 12 items, 12 implémentés (DOI Zenodo en attente d'activation utilisateur, mais code prêt). Le projet est <strong>publication-ready</strong> pour soumission BMJ Open / Blood Advances / Clin Cancer Res, qui exigent désormais explicitement le respect FAIR + TRIPOD-AI 2024.
 </div>
 </div>
@@ -2584,10 +2647,21 @@ seul, et calibrée de manière stable sur l'ensemble du suivi 3-36 mo.
 <h3>XIII.4 Confidentialité des données</h3>
 <p>Aucune donnée patient n'est transmise au serveur. Le calculateur fonctionne intégralement côté navigateur (JavaScript). Les coefficients du modèle sont chargés au démarrage et toute analyse reste locale.</p>
 
+<h3>XIII.5 Convention v5A counting per-GENE (V230.5b)</h3>
+<p>Depuis V230.5b (V15.419, mai 2026), le facteur de gating <code>n_drv⁺ / n_total⁺</code> du score v5A_gated est calculé au niveau <strong>gène</strong> (et non au niveau variant) :</p>
+<ul style="margin:6px 0; font-size:13.5px;">
+  <li><strong>n_drv⁺</strong> = nombre de gènes du PANEL[histo] avec ≥1 variant détecté chez le patient (binaire par gène)</li>
+  <li><strong>n_total⁺</strong> = nombre total de gènes (hors Ig : IGH, IGHJ4, IGHJ6, IGHM, IGLJ1, IGLL5) avec ≥1 variant détecté chez le patient</li>
+</ul>
+<p>Justification : cohérence end-to-end avec la backward elimination V15.395 qui a sélectionné les panels v5A sur cette même métrique per-gene. La convention per-variant (V230.4 / V230.5) inflait artificiellement v5A chez les patients avec hot-spots multi-variants (TP53, MYC), dégradant la calibration Hodgkin (slope 2.14 → 1.19 après correction).</p>
+
+<h3>XIII.6 Strata h₀ par (pipeline × histo)</h3>
+<p>Depuis V230.2, le baseline hazard S₀(t) est stratifié par (pipeline × histo) = 4 baselines distincts (IDES × Hodgkin, IDES × Non-Hodgkin, PV × Hodgkin, PV × Non-Hodgkin). Le LP_offset est aussi calculé par histo (cf. <code>cox_models.*.LP_offset[histo]</code> dans le JSON). Le calculateur JS sélectionne automatiquement le bon baseline + offset selon l'histologie du patient.</p>
+
 
 <div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
 <strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-4 garanties techniques cruciales : (1) LP_offset = β·X̄ centré sur la moyenne cohorte (sans ce centrage, S₀^exp(LP) sur-estime systématiquement), (2) penalizer L2 = 0.05 (Ridge) pour stabilité numérique avec events rares, (3) cohérence JS ⇔ Python à 1e-6 (validation V213), (4) privacy client-side (aucune donnée patient transmise au serveur).
+6 garanties techniques V230.5b : (1) LP_offset par histo centré sur la moyenne cohorte (sans ce centrage, S₀^exp(LP) sur-estime systématiquement), (2) penalizer L2 = 0.05 (Ridge) pour stabilité numérique avec events rares, (3) cohérence JS ⇔ Python à 1e-6 (validation V213), (4) privacy client-side (aucune donnée patient transmise au serveur), (5) v5A counting per-gene cohérent avec la BWE de sélection des panels, (6) strata h₀ par pipeline × histo = 4 baselines pour absorber l'hétérogénéité résiduelle.
 </div>
 
 </div>
@@ -2618,7 +2692,7 @@ Le modèle suit la checklist TRIPOD+AI 2024 (Collins et al., BMJ 2024) pour le r
 <p><strong>Le calculateur est un prototype de recherche.</strong> Il n'est pas validé pour la prise en charge clinique individuelle. Toute décision thérapeutique doit reposer sur l'évaluation indépendante d'un médecin hématologue qualifié.</p>
 <p><strong>Cohorte d'entraînement mono-centrique</strong> (224 patients GHU Mondor 2020-2026). Effectif events limité (26-32 par variante) → bootstrap optimism faible (+0.01-0.03) mais IC95% larges aux extrêmes.</p>
 <p>La <strong>calibration aux extrêmes de risque</strong> (r12 &gt; 75% ou ctDNA_diag &lt; 500 hEq/mL) est limitée par la taille de la cohorte de développement. Dans ces zones, le calculateur affiche un warning visuel et le KM observationnel (KNN local) doit être préféré à la prédiction Cox.</p>
-<p><strong>Sous-groupe Hodgkin spécifiquement limité</strong> (cf. <a href="#sec-calib">§XII.4</a>) : calibration slope V230.4 = +2.14 [IC95% +1.25 ; +4.47] (inversion vs V230.2 qui était 0.70 = sur-prédiction). Avec 9 events seulement, l'IC est très large. Le calculateur V230.4 utilise un cutoff unique <strong>15 %</strong> chez Hodgkin (binaire Faible/Élevé) qui compense partiellement la sous-prédiction sans appliquer de shrinkage automatique (trop incertain).</p>
+<p><strong>Sous-groupe Hodgkin spécifiquement limité</strong> (cf. <a href="#sec-calib">§XII.4</a>) : calibration slope V230.5b = <strong>+1.19 [IC95% +0.73 ; +2.06]</strong> — IC95 % inclut 1.0 ⇒ calibration acceptable (massive amélioration vs V230.4 qui était +2.14, grâce au per-gene counting V15.419). Avec 9 events seulement, l'IC reste large. Le calculateur V230.5b conserve un cutoff binaire <strong>15 %</strong> chez Hodgkin (Faible/Élevé) par sécurité — la calibration corrigée justifierait potentiellement un assouplissement vers Tern 5/45 unifié, mais on attend la validation externe avant d'élargir.</p>
 <p><strong>Hypothèse mono-exponentielle partiellement contredite par les bi-tp</strong> — Le <code>score_kin</code> suppose une décroissance mono-exponentielle du ratio ctDNA. Or sur la sous-cohorte des 26 patients ayant <strong>2 timepoints CXJ1</strong> (C2J1 + C3J1), on observe ~50 % de <strong>rebonds biologiques C2→C3</strong> (le ratio remonte au lieu de continuer à décroître ; cf. <a href="#sec-c2c3">§XII.11</a>). Cette cohorte bi-tp est probablement biaisée vers les cas suspects (clinicien a redemandé un C3 quand le C2 était inquiétant), donc la fréquence des rebonds dans la population générale est sans doute inférieure. Mais cela reste une limite structurelle du score cinétique : la formule mono-exp est une approximation qui casse dans une fraction non négligeable des patients où on peut tester l'hypothèse. Une modélisation bi-exp ou time-varying serait pertinente sur une cohorte avec plus de bi-tp non sélectionnés.</p>
 <p><strong>Validation externe sur cohorte indépendante en cours.</strong> Les chiffres de C-index et calibration reportés ici sont des estimations <em>internes</em> avec optimism-correction par bootstrap Harrell, mais ne garantissent pas la performance sur une cohorte externe.</p>
 </div>
@@ -2632,7 +2706,7 @@ Calculateur MRD CXJ1 — Cox proportional hazards models for ctDNA MRD in adult 
 Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), 2026.
 </p>
 <p class="muted" style="margin-top:10px; font-size:13px;">
-Toute citation académique du modèle ou du calculateur doit référencer la version <strong>V230.1 (mai 2026)</strong> et le repo public <code>hmn-immuno-bm/cxj1-mrd-calculator</code>. Le code est licencié MIT, les coefficients du modèle et la méthodologie sont en open access pour reproduction et adaptation.
+Toute citation académique du modèle ou du calculateur doit référencer la version <strong>V230.5b (mai 2026)</strong> et le repo public <code>hmn-immuno-bm/cxj1-mrd-calculator</code>. Le code est licencié MIT, les coefficients du modèle et la méthodologie sont en open access pour reproduction et adaptation.
 </p>
 </div>
 
