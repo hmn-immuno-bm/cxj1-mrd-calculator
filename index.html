@@ -1426,8 +1426,10 @@ function drawKM(pipe, lp) {
   }
   // V230.4 — Hodgkin n'est plus un cas à part : panels v5A histo-spécifiques + thermomètre
   // unifié basé sur IC95% de la prévalence (cf. §XII.19 méthodologie). Note Hodgkin spécifique
-  // retirée car le modèle est désormais calibré séparément H et NH. La zone "Modéré" du
-  // thermomètre couvre déjà la zone d'incertitude (r12 ∈ IC95% prévalence).
+  // retirée car le modèle est désormais calibré séparément H et NH.
+  // Restaure _s0_n (baseline_S0 stratifié par histo du patient) pour le bloc Cox prédit.
+  const _hstrat_n_local = (mapHisto(document.getElementById('histo_label').value) === 'HODGKIN') ? 'HODGKIN' : 'DLBCL';
+  const _s0_n_local = (m.baseline_S0 && typeof m.baseline_S0[_hstrat_n_local] === 'object') ? m.baseline_S0[_hstrat_n_local] : m.baseline_S0;
   let hodgkinNote = '';
 
   document.getElementById('localCalibStats').innerHTML =
@@ -1442,8 +1444,8 @@ function drawKM(pipe, lp) {
     `<span style="color:#7c3aed;font-size:11px;">[IC95% ${(s12.lo*100).toFixed(0)}–${(s12.hi*100).toFixed(0)}%]</span>, ` +
     `<strong>S(24mo) = ${(s24.S*100).toFixed(1)}%</strong> ` +
     `<span style="color:#7c3aed;font-size:11px;">[IC95% ${(s24.lo*100).toFixed(0)}–${(s24.hi*100).toFixed(0)}%]</span><br>` +
-    `<em>Cox prédit : ${((1-Math.pow(_s0_n[12], expLP))*100).toFixed(1)}% à 12mo, ` +
-    `${((1-Math.pow(_s0_n[24], expLP))*100).toFixed(1)}% à 24mo.</em> ` +
+    `<em>Cox prédit : ${((1-Math.pow(_s0_n_local[12], expLP))*100).toFixed(1)}% à 12mo, ` +
+    `${((1-Math.pow(_s0_n_local[24], expLP))*100).toFixed(1)}% à 24mo.</em> ` +
     `L'<strong>IC95% Greenwood</strong> (entre crochets ci-dessus) reflète l'incertitude : plus l'intervalle est large, plus le risque réel est mal estimé pour des patients comme vous.` +
     compositionWarning + hodgkinNote;
 }
