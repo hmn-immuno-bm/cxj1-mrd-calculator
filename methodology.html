@@ -2135,8 +2135,86 @@ V230.4 = V230.2 + 1 modification (panels v5A séparés H/NH). Gain net en C-inde
 <strong style="color:#15803d;">🔬 Conclusion validation post-déploiement V230.4</strong><br>
 (1) <strong>NRI/IDI confirment</strong> que V230.4 apporte un gain pronostique massif vs Deauville seul (3/3 métriques sig, p &lt; 0.05).<br>
 (2) <strong>MICE imputation Deauville → NE PAS déployer</strong>. La stratégie auto-switch variantes M1/M2/Delta est meilleure.<br>
-(3) <strong>Bi-temporal v5A → pas de V230.5</strong>. Puissance insuffisante (16 bi-tp, 7 events) et redondance avec score_kin.<br>
-(4) <strong>V230.4 confirmée comme production optimale</strong> pour la cohorte actuelle. Validation externe = prochaine étape critique.
+(3) <strong>Bi-temporal v5A → pas de V230.5</strong> (initialement). Puissance insuffisante (16 bi-tp, 7 events) et redondance avec score_kin.<br>
+(4) <strong>V230.4 confirmée comme production optimale</strong> à ce stade. Validation externe = prochaine étape critique. <em>(Note : V230.5 déployée V15.418, voir §XII.25 ci-dessous.)</em>
+</div>
+</div>
+
+<!-- ════════════ XII.25 — V230.5 DEPLOY : C2-prio + panel swap LTB ════════════ -->
+<div class="card">
+<h3 id="sec-v230-5">XII.25 V230.5 (V15.416-418) — Audit méthodologique de la sélection panels + 2 corrections déployées</h3>
+
+<p>Audit critique de la backward elimination V15.395 (qui a sélectionné les panels V230.4) sur 2 axes :
+(a) <strong>critère de sélection</strong>, (b) <strong>convention v5A bi-tp</strong>. Deux biais identifiés, 2 corrections appliquées.</p>
+
+<h4>Audit 1 — Critère de sélection backward elim (V15.416)</h4>
+<p>La backward elim V15.395 (panels V230.4) utilisait <strong>uniquement l'AIC</strong> comme critère de drop à chaque étape
+(<code>if r['AIC'] &lt; best_aic: ...</code>). L'AIC mesure le fit + la parcimonie mais <strong>ne dit rien sur la calibration</strong>.
+Or la slope Hodgkin V230.4 = +2,14 (sous-prédiction) suggérait un panel sur-discriminant.</p>
+
+<p>V15.416 a refait la backward elim en TRACKANT slope_H et slope_NH à chaque step, avec un critère composite
+optionnel <code>score = AIC + λ × (|slope_H − 1|² + |slope_NH − 1|²)</code> pour λ ∈ {0, 50, 100, 200}.</p>
+
+<table>
+<thead><tr><th>Step</th><th>K_H+K_NH</th><th>AIC</th><th>C_all</th><th>slope_H</th><th>slope_NH</th></tr></thead>
+<tbody>
+<tr><td>0 (whitelist full)</td><td>18+34</td><td>287.81</td><td>0.846</td><td>+1.95</td><td>+1.09</td></tr>
+<tr><td>19 (= V230.4 + LTB chez H)</td><td><strong>17+16</strong></td><td>271.03</td><td>0.851</td><td><strong>+1.08</strong></td><td>+1.24</td></tr>
+<tr><td><strong>20 (= V230.4 PROD)</strong></td><td>16+16</td><td>270.42</td><td>0.853</td><td>+1.16</td><td>+1.22</td></tr>
+</tbody>
+</table>
+
+<p class="muted">L'image de trajectoire (figure ci-dessous) montre que le dernier drop AIC (ZCCHC7-GRHPR chez Hodgkin)
+dégrade marginalement la slope (1.08 → 1.16) pour gagner 0.6 d'AIC. Le panel V230.4 PROD est donc TRÈS PROCHE
+de l'optimum calibration-aware sur le setup BWE — l'ajout d'un critère composite ne change le panel que d'1 gène.</p>
+
+<img src="figs/V15_416_trajectory.png" alt="V15.416 trajectoire BWE" style="max-width:100%;">
+
+<h4>Audit 2 — Convention v5A bi-tp (V15.417b-d)</h4>
+<p>La V15.395 BWE sommait <code>reads_alt</code> across timepoints C2 + C3 (∑), alors que V15.396 PROD moyennait
+(<code>mean(C2, C3)</code>). <strong>Les deux conventions étaient incohérentes</strong> et aucune ne correspondait à la
+convention clinique CXJ1 « <strong>fusion prio C2</strong> » (= utiliser C2 si dispo, ignorer C3 chez bi-tp).</p>
+
+<p>20/103 patients sont bi-tp ; ratio v5A_SUM/v5A_MEAN ≈ 1.55 pour eux. Cette différence d'échelle entre BWE
+et PROD a contribué à la discrepancy de calibration observée (slope BWE refit ≈ 1.16 vs PROD eval ≈ 2.14
+sur le même panel).</p>
+
+<h4>V230.5 déploiement (V15.418)</h4>
+<p>Sur la base de ces audits, V230.5 applique <strong>2 corrections</strong> au pipeline V230.4 :</p>
+<ol>
+<li><strong>v5A FUSION PRIO C2 niveau patient</strong> : si un patient a C2J1, n'utiliser QUE C2J1 (ignorer C3J1).
+Sinon (patient mono-tp C3 only), utiliser C3J1. Méthode cohérente avec la convention clinique CXJ1.</li>
+<li><strong>Panel H : +LTB −ZCCHC7-GRHPR</strong> (= AIC-only c2prio BWE final, V15.417e). Swap minimal d'1 gène.
+Panel NH inchangé.</li>
+</ol>
+
+<table>
+<thead><tr><th>Métrique (M2_hEq Deauv, N=230, ev=42)</th><th>V230.4</th><th>V230.5</th><th>Δ</th></tr></thead>
+<tbody>
+<tr><td>C_all (apparent)</td><td>0.853</td><td><strong>0.871</strong></td><td><strong>+0.018</strong> ✓</td></tr>
+<tr><td>C_IDES</td><td>0.844</td><td>0.852</td><td>+0.008</td></tr>
+<tr><td>C_PV</td><td>0.890</td><td>0.907</td><td>+0.017</td></tr>
+<tr><td>Slope Hodgkin (V15.403 setup)</td><td>+2.14 [1.25;4.47]</td><td>+2.03 [1.19;4.14]</td><td>−0.11 (marginal)</td></tr>
+<tr><td>Slope Non-Hodgkin</td><td>+1.13 [0.92;1.43]</td><td>+1.13 [0.93;1.43]</td><td>0.00</td></tr>
+</tbody>
+</table>
+
+<p class="muted">La slope Hodgkin s'est très peu améliorée (2.14 → 2.03) — c'est moins que ce que l'analyse BWE
+suggérait (1.16 sur stk refit). La discrepancy résiduelle entre BWE refit (slope ~1.16) et PROD eval (slope ~2.03)
+sur le même panel est due à des subtilités du fit Cox stratifié (4 baselines pipeline×histo) avec seulement 9 events
+Hodgkin. <strong>Conclusion clinique inchangée</strong> : Hodgkin reste sous-prédit, cutoff calc 15% maintenu pour
+compenser. La <strong>VRAIE amélioration V230.5 est en C-index</strong> (+0.018) — discrimination meilleure
+pour la même cohorte.</p>
+
+<div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
+<strong style="color:#15803d;">🎯 Conclusion V230.5</strong><br>
+(1) <strong>Méthodologiquement plus défendable</strong> : v5A fusion prio C2 = convention clinique CXJ1, plus
+besoin de mentionner la discrepancy SUM vs MEAN.<br>
+(2) <strong>Gain C-index modeste mais réel</strong> : 0.853 → 0.871 apparent (+0.018) sur M2_hEq Deauv stacked.<br>
+(3) <strong>Slope Hodgkin reste imparfaite</strong> (2.03 [1.19;4.14]) — limite intrinsèque avec 9 events.
+Compensée par cutoff calc 15% (binaire) au lieu de Tern Faible/Modéré/Élevé.<br>
+(4) <strong>Backup V230.4 conservé</strong> : <code>output/_calculator_data_v2_V230_4_backup.json</code>.
+Réversibilité totale.
 </div>
 </div>
 
