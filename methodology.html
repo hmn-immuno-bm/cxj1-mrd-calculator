@@ -1579,7 +1579,7 @@ les deux groupes histologiques ont des slopes de calibration <strong>très diff�
 <li><strong>Non-Hodgkin slope V230.4 = +1.13 [+0.92 ; +1.43]</strong> — calibration proche de l'idéal (IC95% inclut 1.0). Pas de problème de sous/sur-prédiction.</li>
 <li>Hosmer-Lemeshow Hodgkin V230.4 χ²=4.6 p=0.10 NS (puissance insuffisante avec 9 events). Non-Hodgkin χ²=5.5 p=0.06 NS.</li>
 <li><strong>Conséquence pour le calculateur</strong> : la note "sur-prédiction Hodgkin" est INVERSE en V230.4 (sous-prédiction). On a choisi de garder un cutoff unique <strong>15 %</strong> chez Hodgkin (binaire Faible/Élevé) qui compense partiellement la sous-prédiction (= alerte à partir de r12 prédit 15 % ≈ 7-8 % observé après correction théorique slope=2.14).</li>
-<li>Aucune recalibration shrinkage automatique appliquée (V15.405 testé puis retiré) car l'IC95% est trop large pour fiabiliser un facteur de calibration unique avec seulement 9 events.</li>
+<li>Recalibration Bayesian conservative appliquée (V15.407) : <code>cal_factor[HODGKIN] = 1.25</code> (= borne inférieure de l'IC95% bootstrap [1.25-4.47]). Le calculateur applique <code>LP_calib = (LP_raw − LP_offset) × cal_factor[histo]</code> avant le calcul de r(t). Justification : la borne inf de l'IC est la correction MINIMALE supportée par les données (95% des resamples bootstrap donnent slope ≥ 1.25). Plus conservative qu'un shrinkage Bayesian classique avec prior subjectif. Effet : Hodgkin LP élevé r12 augmente modestement (≈ +3 pt sur exemples typiques), Hodgkin LP bas r12 quasi-inchangé. NH non corrigé (slope 1.13 IC inclut 1).</li>
 </ul>
 </div>
 
