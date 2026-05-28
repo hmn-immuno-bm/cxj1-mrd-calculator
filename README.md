@@ -1,11 +1,11 @@
 # MRD ctDNA Calculator — Adult Lymphomas (CXJ1)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version V230.5b](https://img.shields.io/badge/version-V230.5b-blue.svg)](https://github.com/hmn-immuno-bm/cxj1-mrd-calculator/releases)
+[![Version V232](https://img.shields.io/badge/version-V232-16a34a.svg)](https://github.com/hmn-immuno-bm/cxj1-mrd-calculator/releases)
 [![DOI (Zenodo)](https://img.shields.io/badge/DOI-pending%20(Zenodo)-lightgrey.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
-[![Cite this software](https://img.shields.io/badge/cite-CITATION.cff-blueviolet.svg)](./CITATION.cff)
+[![Cite](https://img.shields.io/badge/cite-CITATION.cff-blueviolet.svg)](./CITATION.cff)
 
-Web calculator implementing **Cox proportional hazards models** for prediction of **Event-Free Survival (EFS = relapse OR progression)** at 12 and 24 months after the mid-treatment timepoint (CXJ1), using circulating tumor DNA (ctDNA) minimal residual disease (MRD) markers in adult B-cell lymphomas and classical Hodgkin.
+Web calculator implementing a **Cox proportional hazards model** for prediction of **Event-Free Survival (EFS = relapse OR progression)** at 12 and 24 months after the mid-treatment timepoint (CXJ1), using **circulating tumor DNA (ctDNA) minimal residual disease** in adult B-cell lymphomas and classical Hodgkin.
 
 🔬 **Live calculator** : <https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/>
 📚 **Methodology** : <https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/methodology.html>
@@ -13,123 +13,137 @@ Web calculator implementing **Cox proportional hazards models** for prediction o
 📜 **TRIPOD+AI checklist** : [TRIPOD_AI_checklist.md](./TRIPOD_AI_checklist.md)
 📑 **Citation file** : [CITATION.cff](./CITATION.cff)
 
-## Overview
+---
 
-The calculator predicts post-CXJ1 EFS risk from four covariates measured around the CXJ1 timepoint (typically end of cycle 2 or 3 of first-line chemo-immunotherapy):
+## 1. What the calculator does
 
-1. **Kinetic score** — Gaussian log-likelihood distance between observed and predicted ctDNA decay ratios under "good responder" vs "bad responder" mono-exponential trajectories (fitted per histology × responder strata).
-2. **Baseline tumor burden** — log(1 + ctDNA at diagnosis) where ctDNA = VAF × cfDNA in hEq mode, or log(1 + VAF at diagnosis) in VAF mode.
-3. **Driver gene signal (v5A_gated) — HISTOLOGY-SPECIFIC PANEL since V230.5b (May 2026)** — residual NGS signal on the appropriate driver panel at CXJ1, gated by a pipeline-specific quality filter. The panel is selected automatically based on the patient's histology:
-   - **Hodgkin classique** : 16 genes — `BTG2, BZRAP1, CD83, CIITA, CXCR4, DTX1, IRF8, ITPKB, LTB, PAX5, RHOH, S1PR2, SOCS1, STAT6, TP53, ZFP36L1`. Axis CXCR4 + JAK-STAT (Reed-Sternberg signature) + B-cell signaling. V230.5b swap : LTB added, ZCCHC7-GRHPR removed.
-   - **Non-Hodgkin (DLBCL, FL, MZL, MCL…)** : 16 genes — `BCL2, BIRC3, BTG1, BZRAP1, CIITA, DTX1, FOXO1, HIST1H1E, KLF2, LTB, MYC, PAX5, PIM1, POU2AF1, S1PR2, TMSB4X`. Axis B-cell signaling + chromatin + anti-apoptosis (DLBCL signature). Unchanged vs V230.4.
-   - **Overlap**: 6 shared genes (`BZRAP1, CIITA, DTX1, LTB, PAX5, S1PR2`) — 10 distinct genes per histology.
-   - **Methodology** : exhaustive backward elimination from whitelist of non-rotten genes (Ig V(D)J genes excluded ; HR<1 or NS univariate genes blacklisted). V230.5b refines the gene counting (`per-GENE`, not per-variant), the cross-timepoint fusion (PRIO C2J1, clinical convention), and the quality-gate denominator (Ig excluded from `n_total_pos`). Reveals that the legacy D11 panel (BCL2, BCL6, …) was an NH-biased signature, with several D11 genes (BCL2, BCL6, BIRC3) actually anti-prognostic in Hodgkin.
-4. **Interim FDG-PET** — Deauville score (linear, 1-5) at end of cycle 2, with **ΔSUVmax% fallback** if Deauville unavailable.
+From a mid-treatment plasma sample (C2J1 or C3J1) and standard clinical data, it predicts the probability of relapse or progression at 12 and 24 months. The model combines, in a single linear predictor:
 
-**Endpoint**: EFS (Event-Free Survival = relapse OR progression). Non-lymphoma deaths are censored (3 patients : 2 COVID, 1 hemorrhagic ulcer under transfusion contraindication). Justification in methodology §XI.10.
+1. **A time-dependent ctDNA decay score** (`F15_strat`) — log of the observed CXJ1/diag ctDNA ratio, corrected for elapsed time with a histology-specific apparent half-life.
+2. **Baseline tumor burden** — log of the ctDNA load at diagnosis (or VAF if cfDNA quantification unavailable).
+3. **Driver gene signal at CXJ1** (`v5A_gated`) — residual NGS signal on a histology-specific 16-gene driver panel, gated by a pipeline-specific quality filter.
+4. **Interim FDG-PET** — continuous Deauville (1–5) at end of cycle 2, with ΔSUVmax% fallback if Deauville unavailable.
 
-## 6 model variants (auto-selected from inputs)
+A patient routing layer switches automatically between **6 variants** depending on which inputs the site has available (with/without TEP × with/without Qubit cfDNA × Deauville-or-Delta-or-absent).
 
-The calculator switches automatically between 6 variants based on data availability:
+**Endpoint** : EFS (relapse OR progression). Non-lymphoma deaths (3 patients: 2 COVID, 1 hemorrhagic ulcer on Jehovah's Witness) are censored. Detail in methodology §XII.10.
 
-| Variant | Quantification | TEP | N stacked (events) | **C V230.5b (stacked)** | Notes |
+---
+
+## 2. The model — V232 (May 2026)
+
+### 2.1 F15_strat (time-dependent ctDNA decay)
+
+```
+F15_strat = log(ratio_eff) + (ln(2) / t½_histo) × delai_real
+
+ratio_eff = ratio_obs           if MRD+ (quality gate passes)
+          = rc_floor             if MRD−  (polish v56 active)
+ratio_obs = ctDNA_CXJ1 / ctDNA_diag    (hEq mode)
+          = VAF_CXJ1   / VAF_diag      (VAF mode, no cfDNA quantification)
+
+t½_HODGKIN    = 14 days      (justified by Tobit MLE, p < 10⁻⁹⁹)
+t½_NotHodgkin = 28 days      (median KM time-to-MRD-neg 29d vs 42d)
+delai_real    = days between C1J1 and CXJ1 sampling
+rc_floor      = patient-specific detection threshold (1/depth for IDES, 3/PCU for PV)
+```
+
+**Property** : if a patient follows exactly an exponential decay with half-life `t½_histo`, then `F15_strat = log(ratio_initial)` — invariant in time. Slower-than-expected decay → `F15_strat` rises (bad responder). The fitted Cox coefficient `β_F15 = +0.156` confirms the expected sign (higher F15 → higher hazard).
+
+**Portability**: by construction, this formula is robust to changes in sampling timing (J7 vs J21) and to changes in sequencing depth (the `rc_floor` is exposed as an optional input in the calculator UI). No re-fit needed for external cohorts with different protocols, only re-validation of the calibration.
+
+### 2.2 Linear predictor and risk
+
+```
+LP_raw = β_F15 · F15_strat
+       + β_burden · log_burden
+       + β_v5A_pipe · v5A_gated
+       + β_TEP · TEP_var          (M2 variants only)
+LP     = LP_raw − LP_offset[histo]      ← centering on cohort mean, by stratum
+S(t)   = S₀[pipe×histo](t)^exp(LP)
+r(t)   = 1 − S(t)
+```
+
+The `LP_offset` and the baseline survival `S₀(t)` are **stratified by `pipeline × histology`** (4 strata per variant). This absorbs the differential baseline hazard between Hodgkin and DLBCL on each pipeline without spending degrees of freedom on extra covariates.
+
+### 2.3 Partial pooling B′
+
+`β_F15`, `β_burden`, `β_TEP` are **shared** between IDES and PV (LR test against fully separated model : `p > 0.97`). `β_v5A` is **pipeline-specific** because of the very different scales (raw reads for IDES, UMIs for PV ; LR test rejects pooling `p < 0.01`). This gives a single set of "biological" coefficients estimated jointly on the stacked cohort, while preserving the technical specificity of each pipeline. Patients sequenced on both pipelines (92 patients, doubled rows) are handled by a `cluster_col = patient_id` robust sandwich estimator.
+
+### 2.4 Production coefficients (M2_hEq Deauv ⭐)
+
+Shared (identical for IDES and PV pipelines):
+- `β_F15_strat` = **+0.156** (p = 3.9×10⁻³)
+- `β_log_burden_hEq` = **+0.231** (p = 5.5×10⁻³)
+- `β_Deauville_num` = **+0.336** (p = 1.7×10⁻³) — HR per unit Deauville = 1.40; HR Deauville 5 vs 1 = 3.83
+
+Pipeline-specific:
+- `β_v5A` IDES = **+0.599** (p = 1.6×10⁻⁷), PV = **+0.682** (p = 4.5×10⁻⁶)
+- `LP_offset` HODGKIN: IDES +2.26 / PV +2.07; DLBCL: IDES +3.14 / PV +3.04
+- `S₀(12)` HODGKIN: 0.932 (both pipelines, IDES.HODGKIN fallback fix); DLBCL: IDES 0.878 / PV 0.866
+
+---
+
+## 3. The 6 variants — auto-routing by data availability
+
+| Variant | Quantif. | TEP | N stacked (events) | C-index corr. ¹ | Notes |
 |---|---|---|---|---|---|
-| **M2_hEq Deauv** ⭐ | hEq (VAF × cfDNA) | Deauville 1-5 | 230 (42) | **0.853** | C_IDES 0.839 / C_PV 0.890 |
-| M2_hEq Delta | hEq (VAF × cfDNA) | ΔSUVmax% (fallback) | 200 (40) | — | inherits V230.5b panels + counting |
-| M1_hEq | hEq (VAF × cfDNA) | — absent | 273 (53) | — | inherits V230.5b panels + counting |
-| M2_VAF Deauv | VAF % only | Deauville 1-5 | 230 (42) | — | inherits V230.5b panels + counting |
-| M2_VAF Delta | VAF % only | ΔSUVmax% (fallback) | 200 (40) | — | inherits V230.5b panels + counting |
-| M1_VAF | VAF % only | — absent | 273 (53) | — | inherits V230.5b panels + counting |
+| **M2_hEq Deauv** ⭐ | hEq (VAF×cfDNA) | Deauville 1–5 | 230 (42) | **0.852** | optimum: cascade ✓/✓ ALL_SIG ✓ |
+| M1_hEq | hEq (VAF×cfDNA) | — | 273 (53) | 0.815 | fallback no PET |
+| M2_VAF Deauv | VAF % | Deauville 1–5 | 230 (42) | 0.843 | fallback no Qubit cfDNA |
+| M2_hEq Delta | hEq (VAF×cfDNA) | ΔSUVmax% | 200 (40) | 0.827 | fallback no Deauville (uses SUVmax shift) |
+| M2_VAF Delta | VAF % | ΔSUVmax% | 200 (40) | 0.809 | dual fallback |
+| M1_VAF | VAF % | — | 273 (53) | 0.793 | minimal model |
 
-⭐ = optimal configuration when all data is available. **V230.5b update (May 2026)** : 3 methodological v5A corrections + panel H swap (LTB ↔ ZCCHC7-GRHPR). **Calibration slope Hodgkin dramatically improved** : +2.14 [1.25;4.47] (V230.4) → **+1.19 [0.73;2.06]** (V230.5b), IC95% now includes 1.0 ✓. C-index essentially preserved (C_all 0.853 vs 0.853, C_IDES −0.005, C_PV identical). Bootstrap optimism-corrected C-index for V230.4 (B=500, Harrell) remains a valid reference for the inherited variants (median optimism +0.007, max +0.013).
+¹ Bootstrap optimism-corrected B=500 (cluster bootstrap by patient), on the stacked IDES+PV cohort.
 
-**Measured impact of missing data** (Δ C-index, M2_hEq Deauv ⭐ vs alternatives):
+⭐ = optimal configuration when all data is available.
 
-- Missing cfDNA Qubit (hEq → VAF): IDES −0.023 / PV −0.071 in M2 ; IDES −0.032 / PV −0.046 in M1.
-- Missing Deauville (M2 → M1): IDES −0.032 / PV −0.034 in hEq ; IDES −0.041 / PV −0.009 in VAF.
-- Substituting Deauville by ΔSUVmax% (M2_Deauv → M2_Delta): equivalent (Δ < 0.02 in all variants); cohort shrinks by 13% (loss of patients with Deauville but no SUVmax baseline).
+---
 
-**Clinical baseline comparison** (TEP-only Cox, on union of patients with TEP available, N=183, 34 events):
+## 4. Performance — variant M2_hEq Deauv ⭐ (V232 May 2026)
 
-| Model | Covariates | C-index (corr.) |
+Stacked IDES+PV cohort, N=230, 42 events.
+
+| Metric | Apparent | Optimism-corrected (B=500) |
 |---|---|---|
-| TEP only (clinical baseline) | 1 (TEP2_pos binary) | **0.65** |
-| M1_hEq (MRD only, no TEP) | 3 (score, burden, v5A) | **0.81 / 0.85** |
-| M2_hEq Deauv ⭐ (MRD + TEP) | 4 (score, burden, v5A, Deauville) | **0.84 / 0.87** |
+| C-index global | 0.862 | **0.852** |
+| Slope Hodgkin (target 1.0) | +1.43 | **+1.21 [+0.53 ; +1.86]** ✓ |
+| Slope Non-Hodgkin (target 1.0) | +1.20 | **+1.14 [+0.98 ; +1.48]** ✓ |
+| Optimism (Harrell) | +0.009 | (negligible — strong generalization) |
 
-**ctDNA MRD is the dominant prognostic signal**: adding MRD to TEP improves C-index by **+0.20**, while adding TEP to MRD improves it only by **+0.03 to +0.04**. Interim PET retains incremental value when combined with MRD but cannot replace it.
+**Cascade validation** : both slopes' 95% CI contain 1.0 AND lower bounds > 0 → calibration validated on both histology subgroups simultaneously. All 5 covariates significant (`ALL_SIG ✓`).
 
-## Pipelines
+**Independence from clinical scores** (V232 inherits the V230.1 result, architecture-stable) : on the 6 variants, **IPI** (DLBCL) and **Hasenclever** (Hodgkin) are absorbed by the model's LP (all `p > 0.09` in DLBCL, `p > 0.56` in Hodgkin). Conversely, LP adds significant prognostic information beyond the clinical scores (DLBCL `p_LP+ < 0.001` on 6/6 variants; Hodgkin `p_LP+ ≤ 0.012` on 6/6).
+
+---
+
+## 5. Pipelines
 
 - **IDES** — MOABI hybrid-capture panel sequencing with Watch List approach; quality gate = Monte-Carlo p-value ≤ 1/100001 (10⁵ permutations).
 - **PV** — Phased-variant UMI-based sequencing; quality gate = ≥ 3 positive doublets AND ≥ 3 total UMIs at CXJ1.
 
-The PV cohort is **strictly nested in the IDES cohort** (PV ⊂ IDES, 92/138 in M2, 109/164 in M1) — when both pipelines are available, PV is treated as an internal sensitivity analysis on a subset filtered by stricter PV-side QC.
+The PV cohort is **strictly nested in the IDES cohort** (PV ⊂ IDES, 92/138 in M2, 109/164 in M1). When both pipelines are available, PV is treated as an internal sensitivity analysis on a subset filtered by stricter PV-side QC. The two pipelines reach essentially the same C-index on the overlap (`Δ ≈ 0`), but PV is better calibrated (slope 1.09 vs 1.43 on V230.5b overlap data — V232 update pending).
 
-## Model specification
+---
 
-For each variant, the Cox model is fitted with **partial pooling B′** stratified by `(pipeline × histology)` since V230.2 (4 baselines h0 per variant: IDES×Hodgkin, IDES×Non-Hodgkin, PV×Hodgkin, PV×Non-Hodgkin; `cluster=NOM`, L2 penalizer = 0.05):
-
-- `β_score`, `β_burden`, `β_TEP` are **shared** between IDES and PV (LR test against fully separated model : p > 0.97).
-- `β_v5A` is **pipeline-specific** (Reads_alt scale for IDES vs UMI scale for PV — LR test rejects pooling p < 0.01).
-- Baseline hazard `S₀(t)` is **stratified by pipeline**.
-
-Validation of B′ on the V230.1 stacked cohort (IDES+PV, N=230 in M2_hEq Deauv): AIC = 305.79, lowest among all 16 possible pooling combinations (cf. methodology §VIII).
-
-### Linear predictor and risk
-
-```
-LP_raw = β_score · score_kin + β_burden · log_burden + β_v5A · v5A_gated  [+ β_TEP · TEP_var]
-LP     = LP_raw − LP_offset            ← centering on cohort mean
-S(t)   = S₀(t)^exp(LP)
-r(t)   = 1 − S(t)
-```
-
-The **LP_offset** is the cohort-mean `β · X̄` stored per variant × pipeline in the data file. This centering matches `lifelines.predict_survival_function` (which evaluates baseline at the mean of training covariates, not at zero).
-
-### Production coefficients (M2_hEq Deauv ⭐)
-
-Shared (identical for IDES and PV):
-- β_score_kin = **+0.374**
-- β_log_burden_hEq = **+0.264**
-- β_Deauville_num = **+0.365** (HR per unit = 1.44 ; HR Deauville 5 vs 1 = 4.31)
-
-Pipeline-specific:
-- β_v5A_gated IDES = **+0.597**, PV = **+1.500**
-- LP_offset IDES = **+3.920**, PV = **+4.094**
-- S₀(12) IDES = 0.890, PV = 0.924
-
-## Mono-exponential trajectories (4 parameters per mode × pipeline)
-
-ctDNA decay rates fitted by histology × responder status (good = no EFS event @ 12 mo ; bad = EFS event @ 12 mo). Fitted by `differential_evolution` on log-ratio observed vs predicted.
-
-**hEq mode** (ratio ctDNA absolute = VAF × cfDNA):
-
-| Pipeline | Histology | λ_good (j⁻¹) | t½_good | λ_bad (j⁻¹) | t½_bad |
-|---|---|---|---|---|---|
-| IDES | Hodgkin | 0.646 | 1.1 d | 0.371 | 1.9 d |
-| IDES | DLBCL | 0.369 | 1.9 d | 0.211 | 3.3 d |
-| PV | Hodgkin | 0.415 | 1.7 d | 0.364 *(fallback DLBCL/good)* | 1.9 d |
-| PV | DLBCL | 0.364 | 1.9 d | 0.237 | 2.9 d |
-
-Histology is binarized: **Hodgkin classical** uses the Hodgkin trajectory; all other lymphomas (DLBCL, HGBL, PMBL, Burkitt, transformed indolent, NLPHL, EBV+, etc.) use the DLBCL trajectory.
-
-**Fallback for Hodgkin/bad PV → DLBCL/good** (V229.1 decision) : the PV cohort has 0 calibration patients in the Hodgkin × bad-responder cell (7 Hodgkin classical patients with EFS=1, all with VAF_diag undetectable in PV). The chosen fallback is `λ_bad_Hodgkin_PV = λ_good_DLBCL_PV` (≈ 0.36 j⁻¹), consistent with IDES where empirically `λ_bad_Hodgkin ≈ λ_good_DLBCL ≈ 0.37`.
-
-## Clinical risk stratification (Tern 15/75, V230.1)
+## 6. Clinical risk stratification (Tern)
 
 | Zone | r12 range | Suggested action |
 |---|---|---|
-| 🟢 **Low** | r12 ≤ 15% | Standard surveillance |
-| 🟡 **Intermediate** | 15% < r12 ≤ 75% | Closer surveillance (additional PET, regular MRD) |
-| 🔴 **High** | r12 > 75% | Mandatory MDT discussion (consolidation, CAR-T, trial) |
+| 🟢 **Low** | r12 ≤ cutoff_LO | Standard surveillance |
+| 🟡 **Intermediate** | between LO and HI | Closer surveillance (additional PET, regular MRD) |
+| 🔴 **High** | r12 > cutoff_HI | Mandatory MDT discussion (consolidation, CAR-T, trial) |
 
-Thresholds **15/75** selected by exhaustive scan with **round-number candidates only** (multiples of 5%) on the V230.1 EFS cohort (V15.332). 15/75 is the **only round threshold** that simultaneously :
-- Maintains the correct ordering of the 3 KM curves at **BOTH 12 months AND 24 months** (Green > Orange > Red) across all 12 KMs (6 variants × 2 pipelines),
-- Provides a Faible-Modéré gap of **18 percentage points at 12 months** and **32 percentage points at 24 months**,
-- Keeps the High zone universally marked (EFS@24 = 0 % in every variant ; N_E ≥ 3-7 per cohort).
+Cutoffs are **histology-adapted in the live calculator UI** :
+- **Non-Hodgkin** : tricolor Tern 5 % / 45 % (3 zones)
+- **Hodgkin classical** : binary cutoff 15 % (no high-risk zone — PPV plateaus at ~25-50 % even at high r12 with 9 events only)
 
-## Local calibration (adaptive KNN)
+Justification : the V230.x history (V230.2 slope 0.70 → V230.4 slope 2.14 → V230.5b slope 1.19 → V232 slope 1.21) shows that the Hodgkin calibration has been a moving target. The conservative binary 15 % cutoff is maintained until external validation, despite V232's now-validated bootstrap slope IC95% containing 1.0.
+
+---
+
+## 7. Local calibration (adaptive KNN)
 
 Alongside the Cox prediction, the calculator displays a **non-parametric KM estimate** computed on the patient's LP-neighbors:
 
@@ -137,106 +151,64 @@ Alongside the Cox prediction, the calculator displays a **non-parametric KM esti
 2. If fewer than 8, expand to the 8 nearest (sparse-tail safety)
 3. If more than 40, truncate to the 40 nearest
 
-Validated empirically (V208 leave-one-out): ACE_tail divided by ~10× vs a fixed K=30. Empty/sparse neighborhoods are flagged with a visual warning so the clinician knows the Cox model is extrapolating.
+Empty/sparse neighborhoods are flagged with a visual warning so the clinician knows the Cox model is extrapolating. The KM 95% Greenwood log-log confidence interval is reported numerically below the survival plot.
 
-The KM 95% Greenwood log-log confidence interval is reported numerically below the survival plot.
+---
 
-## PV vs IDES on overlap cohort N=92
+## 8. Privacy
 
-When comparing both pipelines on the **same 92 patients** (M2_hEq Deauv overlap, PV ⊂ IDES strict), the C-index is essentially identical (IDES 0.893 vs PV 0.890, Δ = −0.002). The per-variant C-index gap (0.844 vs 0.890) reported in the variants table comes mostly from a **cohort-selection effect** (PV excludes 46 IDES-positive patients without PV-detectable variants — typically harder-to-predict cases), not from a discriminatory edge of the PV pipeline.
+All computations run **client-side** in the browser. No patient data is transmitted to any server. The model coefficients are loaded at startup and remain local.
 
-PV's real advantages on the same cohort :
+---
 
-| Metric (overlap N=92) | IDES | PV | Δ |
-|---|---|---|---|
-| Calibration slope (target = 1.0) | 1.43 | **1.09** | −0.34 |
-| Brier R² @ 12mo (higher = better) | 0.47 | **0.57** | +0.10 |
-| Continuous NRI (PV vs IDES) | — | +0.97 | ⭐ |
-| IDI | — | +0.025 | + |
-| HR per 1 SD of LP | 3.98 | 5.39 | +1.41 |
-| **PPV zone Élevé (r12 ≥ 75%)** | 67 % | **100 %** | +33 pt |
-| **Specificity zone Élevé** | 92 % | **100 %** | +8 pt |
+## 9. Version history (concise)
 
-→ PV is more parsimonious (9 vs 17 patients in the High zone) but each flag is certified by an EFS event. See methodology §VI.bis.
+- **V232 (May 28, 2026 — current)** ⭐ — `score_kin` (4 fitted mono-exp trajectories per pipeline) replaced by `F15_strat` (analytical formula, 2 biological constants). Same 5 covariates, same partial pooling B′, same strata pipe×histo, same v5A panels (V230.5b). **Time-dependent by construction**, portable to external cohorts with different timing or depth without re-fit. C-index optimism-corrected = 0.852 (equivalent to V230.5b at 0.852 — no discrimination cost). Cascade slope_H/slope_NH ✓/✓ validated bootstrap B=500.
+- **V230.5b (May 2026 — backup)** — v5A per-GENE counting + C2-priority bi-tp fusion + Ig exclusion + Panel H swap (LTB ↔ ZCCHC7-GRHPR). Slope Hodgkin 2.14 → 1.19. Backup files: `_calculator_data_v2_V230_5b_backup.json`, `index_V230_5b_backup.html`.
+- Earlier versions (V229.3, V230.1-V230.4) — see methodology §XII for full chronology of methodological iterations.
 
-## Validation (V230.5b, May 2026)
+---
 
-**V230.5b** — 3 methodological corrections on v5A computation (per-GENE counting instead of per-variant, cross-timepoint fusion PRIO C2J1, Ig genes excluded from `n_total_pos` denominator) + panel H swap (LTB ↔ ZCCHC7-GRHPR). Calibration slope Hodgkin : **+2.14 [1.25;4.47] (V230.4) → +1.19 [0.73;2.06] (V230.5b)**, IC95% now includes 1.0. Discrimination essentially preserved (C_all 0.853 unchanged, C_IDES −0.005, C_PV identical). All previous V230.x architectural choices conserved (partial pooling B′, strata pipeline × histo, mono-exponential trajectories per histology × responder, etc.).
-
-**V230.2** (archived) — minimal architectural update over V230.1, preserving all coefficients and adding only :
-1. **Enlarged v5A panel** : D11 (11 genes) → D11 + STAT6 + SOCS1 (13 genes, +2 Hodgkin-specific JAK-STAT drivers)
-2. **Strata h0 by `(pipeline × histo)`** : 4 baselines per variant instead of 2
-
-Performance vs V230.1 (cohort M2_hEq Deauv stacked N=230, 42 events):
-- ΔAIC = −42.6 (large fit gain from histo-stratified baseline)
-- ΔC_all ≈ 0 (neutral discrimination)
-- VPP zone Élevé Hodgkin (r12 ≥ 10%) : **16% → 29%** (clinical gain)
-- All coefficients remain significant (β_score p=0.046, β_burden p=0.017, β_v5A_IDES p<0.001, β_v5A_PV p<0.001, β_Deauv p=0.006)
-
-
-
-- **Bootstrap optimism-corrected C-index** (Harrell B=500): M2_hEq Deauv IDES ⭐ apparent 0.845 → corrected **0.835** (optimism = +0.010, IC95% percentile [0.76 – 0.92]) ; PV apparent 0.893 → corrected **0.873** (optimism = +0.020, IC95% [0.80 – 0.97]). Max optimism across 12 fits = +0.027, median +0.015.
-- **Linearity**: martingale residual lowess amplitude = 0.13 (< 0.3 threshold); Grambsch-Therneau PH test p > 0.18 for all covariates; LR test for adding RCS splines on log_burden p = 0.80 NS.
-- **β_log_burden stability**: 95% percentile CI [0.10, 0.47], 100% of bootstraps positive.
-- **Partial pooling B′ validation**: LR test of sharing β_score + β_burden + β_TEP between IDES and PV: χ² ≈ 0, df = 3, p = 1.00 ✓. Sharing v5A rejected (LR p=0.041).
-- **Predictive contribution per covariate** (LR test, M2_hEq Deauv): log_burden p = 0.002 ; v5A_gated p < 0.001 ; Deauville_num p < 0.001 ; score_kin p ≈ 0.005.
-- **Independence vs IPI / Hasenclever** (V230.1, V15.296): on the 6 variants, IPI and Hasenclever are **absorbed by LP V230.1** (all p_score+ > 0.09 in DLBCL, > 0.56 in Hodgkin). Reciprocally, LP V230.1 adds significant information beyond clinical scores (DLBCL p_LP+ < 0.001 on 6/6 variants; Hodgkin p_LP+ ≤ 0.012 on 6/6).
-
-## V230.1 patches (technical reintegration of 2 patients)
-
-V230.1 = V230 + 2 patients re-integrated after audit (V15.289-291):
-
-- **Patient A** (DLBCL bad responder): inconsistent MOABI WL prefix between C2J1 and C3J1 (different 3-letter prefixes due to a compound surname). The default parser only matched one prefix and silently lost the other timepoint file. Patch: an internal alias module documents the prefix mapping (NAS files untouched). Audit confirmed this was the only such case among 191 WL_NGS files.
-- **Patient B** (Hodgkin bad responder): C1J1 date error in the clinical database (a copy-paste typo placed the C3J1+1d date in the C1J1 cell ; the true C1J1 was confirmed by clinical re-review). With the corrected date, `delai_real(C2J1) = +21 d` (instead of negative) and the patient correctly enters the M1 IDES cohort. Patch: an internal clinical-patches module applies the correction in memory (NAS clinical file untouched).
-
-**Impact**: +2 M1 IDES (162→164), +1 M1 PV (108→109), +2 M2 IDES (136→138), +1 M2 PV (91→92). ΔC-index < 0.005 ; model coefficients changed by < 2%. The architecture is unchanged from V230 — only the cohort is enriched by 2 real-world cases.
-
-## Confidence intervals (Wilson)
-
-The calculator displays **95% Wilson confidence intervals** on observed NPV/PPV for the patient's risk group, addressing calibration uncertainty at extreme risk values (where N < 10 in development cohort).
-
-## Privacy
-
-All computations run client-side in the browser. No patient data is transmitted to any server. The model coefficients are loaded at startup and remain local.
-
-## Citation
+## 10. Citation
 
 If you use this calculator, methodology, or any derived artifact (code, JSON parameters, panel definitions), please cite it via the [CITATION.cff](./CITATION.cff) file (GitHub displays a "Cite this repository" button in the right sidebar that exports BibTeX / APA / etc.).
 
-**Bibtex (placeholder — replace DOI once Zenodo archive is set up)** :
+**BibTeX** (placeholder — replace DOI once Zenodo archive is set up):
 
 ```bibtex
-@software{cxj1_mrd_calculator_v230_5b,
+@software{cxj1_mrd_calculator_v232,
   author       = {Caulier, Alexis and {hmn-immuno-bm team}},
-  title        = {{MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V230.5b)}},
+  title        = {{MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V232)}},
   year         = 2026,
   publisher    = {Zenodo},
-  version      = {V230.5b},
+  version      = {V232},
   doi          = {10.5281/zenodo.XXXXXXX},
   url          = {https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/},
   note         = {Methodology: https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/methodology.html}
 }
 ```
 
-**Plain-text** :
+**Plain text**:
 
-> Caulier A, hmn-immuno-bm team. MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V230.5b): Cox proportional hazards models for ctDNA MRD in adult B-cell and Hodgkin lymphomas after the mid-treatment timepoint. Partial pooling across IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines, mono-exponential decay trajectories per histology × responder strata, integrated baseline tumor burden, and histology-specific v5A driver panels (16 H + 16 NH genes, per-gene counting). Endpoint EFS (relapse OR progression). Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), AP-HP, Créteil, France ; 2026. Available from: https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/. DOI: 10.5281/zenodo.XXXXXXX.
+> Caulier A, hmn-immuno-bm team. *MRD ctDNA Calculator — Adult Lymphomas (CXJ1, V232)*: Cox proportional hazards model for ctDNA MRD in adult B-cell and Hodgkin lymphomas after the mid-treatment timepoint. Time-dependent decay score `F15_strat` with histology-stratified apparent half-life (14d Hodgkin, 28d Non-Hodgkin), histology-specific v5A driver panels (16 H + 16 NH genes, per-gene counting), partial pooling B′ across IDES (MOABI hybrid-capture) and PV (phased-variant UMI) pipelines, strata baseline by `(pipeline × histology)`. Endpoint EFS (relapse OR progression). Laboratoire d'immunologie biologique GHU Mondor — secteur biologie moléculaire (hmn-immuno-bm), AP-HP, Créteil, France; 2026. Available from: https://hmn-immuno-bm.github.io/cxj1-mrd-calculator/. DOI: 10.5281/zenodo.XXXXXXX.
 
-## Data availability (FAIR)
+---
 
-This project follows the **FAIR principles** (Findable, Accessible, Interoperable, Reusable):
+## 11. Data availability (FAIR)
 
-- **Findable** : DOI (Zenodo, pending), GitHub repository indexed by Google Scholar / OpenAlex / ORCID claims, semantic title and abstract.
-- **Accessible** : code MIT-licensed, web calculator publicly hosted (HTTPS), CITATION.cff machine-readable, methodology HTML5 standards-compliant.
-- **Interoperable** : model parameters in JSON (`_calculator_data_v2.json`, `_calculator_data_v2_VAF_variants.json`) with documented schema in methodology §XII.1 and §XII.20.
-- **Reusable** : MIT license, full Python pipeline (135+ scripts `_v15_*.py`) under [alessiocg/cxj1-mrd-lymphoma-pipeline](https://github.com/alessiocg/cxj1-mrd-lymphoma-pipeline), TRIPOD+AI checklist provided, version-tagged releases on GitHub.
+This project follows the **FAIR principles**:
 
-**Patient-level data**: not shareable due to GDPR (single-center retrospective cohort of identifiable lymphoma patients). **Aggregated, de-identified cohort arrays** (predicted r12, observed T/E, predicted LP) embedded in the production JSONs enable external reproduction of all reported C-index, calibration, NRI/IDI, and DCA computations. **External validation kits** (anonymized cohort arrays + reference scripts) available upon reasonable request to hmn-immuno-bm.
+- **Findable** — DOI (Zenodo, pending), GitHub repository indexed by Google Scholar / OpenAlex.
+- **Accessible** — code MIT-licensed, web calculator publicly hosted (HTTPS), CITATION.cff machine-readable, methodology HTML5-compliant.
+- **Interoperable** — model parameters in JSON (`_calculator_data_v2.json`, `_calculator_data_v2_VAF_variants.json`) with documented schema in methodology §IX and §XII.27.
+- **Reusable** — MIT license; full Python pipeline (180+ scripts `_v15_*.py`) under [alessiocg/cxj1-mrd-lymphoma-pipeline](https://github.com/alessiocg/cxj1-mrd-lymphoma-pipeline); TRIPOD+AI checklist provided; version-tagged releases on GitHub.
 
-## License
+**Patient-level data**: not shareable due to GDPR (single-center retrospective cohort of identifiable lymphoma patients). **Aggregated, de-identified cohort arrays** (predicted r12, observed T/E, predicted LP, isHodgkin) are embedded in the production JSONs (`cohort_arrays` field) and enable external reproduction of all reported C-index, calibration, NRI/IDI, and DCA computations. **External validation kits** (anonymized cohort arrays + reference scripts) available upon reasonable request to hmn-immuno-bm.
 
-MIT
+---
 
-## Disclaimer
+## 12. License & disclaimer
 
-The calculator is a **research prototype**. It is not validated for individual clinical care. Any therapeutic decision must rely on the independent evaluation of a qualified hematologist. Calibration at extreme risk values (r12 > 60% or ctDNA_diag < 500 hEq/mL) is limited by development cohort size. **External validation on an independent cohort is in progress.**
+MIT.
+
+The calculator is a **research prototype**. It is not validated for individual clinical care. Any therapeutic decision must rely on the independent evaluation of a qualified hematologist. Calibration at extreme risk values (`r12 > 60%` or `ctDNA_diag < 500 hEq/mL`) is limited by development cohort size. **External validation on an independent cohort is in progress.**
