@@ -191,6 +191,26 @@ svg { width: 100%; height: 100%; overflow: visible; }
         <div class="tip">Quali = 1 si (nbr ≥ 3) ET (Σ UMI ≥ 3), sinon 0.</div>
       </div>
 
+      <!-- V232 : floor patient-spé optionnel (sinon cohort-mean utilisé) -->
+      <div style="margin-top:10px;">
+        <details style="font-size:13px;">
+          <summary style="cursor:pointer; color:#475569; font-weight:600; padding:6px 0;">⚙️ Paramètres techniques (V232 — avancé, optionnel)</summary>
+          <div style="margin-top:8px; padding:10px 12px; background:#f8fafc; border-left:3px solid #94a3b8; border-radius:4px; font-size:12px; color:#475569; line-height:1.5;">
+            Le floor de détection technique <code>rc_floor</code> sert à représenter le signal résiduel d'un patient MRD− (sous le seuil de détection). Par défaut le calculateur utilise la <strong>médiane de la cohorte V232</strong> (IDES : 1/2691 ≈ 3.7×10⁻⁴ ; PV : 3/78617 ≈ 3.8×10⁻⁵). Renseigner la <strong>vraie profondeur du patient</strong> rend le floor patient-spécifique — recommandé surtout pour les patients MRD− avec profondeur très différente de la cohorte (ex: relecture haute profondeur). Impact ΔLP ≈ 0.05 pour un Δdepth ×2.
+          </div>
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <label>Profondeur moyenne IDES (lectures)</label>
+              <input type="number" id="ides_depth" min="0" step="100" placeholder="défaut médiane V232: 2691">
+            </div>
+            <div>
+              <label>Position Common UMI PV au CXJ1</label>
+              <input type="number" id="pv_pcu" min="0" step="1000" placeholder="défaut médiane V232: 78617">
+            </div>
+          </div>
+        </details>
+      </div>
+
       <h3>5. Signal drivers au CXJ1 (D11)</h3>
       <div class="info" id="panel_display_card" style="line-height:1.5;">
         <div id="panel_active_label" style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px;">Panel actif V230.4 (histo-spécifique) :</div>
@@ -907,7 +927,12 @@ if (typeof window !== 'undefined') {
 
 // V232 — computeScore (signature legacy) : retourne F15_strat dans .score_kin
 // F15_strat = log(ratio_eff) + (ln(2)/t½_histo) × delai_real
-// ratio_eff = ratio_obs si MRD+ ; rc_floor (cohort-mean) si MRD- (polish v56)
+// ratio_eff = ratio_obs si MRD+ ; rc_floor si MRD- (polish v56)
+//
+// V232+ : rc_floor = patient-spé si user a renseigné depth (IDES) ou PCU (PV) dans
+// la section "Paramètres techniques avancés", sinon = cohort-mean V232.
+//   rc_floor_IDES_patient = 1 / depth_user
+//   rc_floor_PV_patient   = 3 / pcu_user
 function computeScore(vd_frac, vc_frac, dt_days, pipe, histo_label, cfdna_diag, cfdna_cxj1) {
   if (vd_frac <= 0 || dt_days <= 0)
     return { score_kin: NaN, F15_strat: NaN, log_burden: NaN, ctDNA_diag: NaN, ctDNA_cxj1: NaN, ratio_eff: NaN, mode: '' };
@@ -918,7 +943,28 @@ function computeScore(vd_frac, vc_frac, dt_days, pipe, histo_label, cfdna_diag, 
                        : (vc_frac * 100) * (cfdna_cxj1 || 0);
   if (denom <= 0)
     return { score_kin: NaN, F15_strat: NaN, log_burden: 0, ctDNA_diag: 0, ctDNA_cxj1: 0, ratio_eff: NaN, mode: useVAF?'VAF':'hEq' };
-  const rc_floor = (pipe === 'IDES') ? RC_FLOOR_IDES : RC_FLOOR_PV;
+  // V232+ : floor patient-spé si renseigné
+  let rc_floor;
+  let rc_source = 'cohort-mean';
+  if (pipe === 'IDES') {
+    const depth_user_el = document.getElementById('ides_depth');
+    const depth_user = depth_user_el ? parseFloat(depth_user_el.value) : NaN;
+    if (!isNaN(depth_user) && depth_user > 0) {
+      rc_floor = 1.0 / depth_user;
+      rc_source = 'patient-spé (depth=' + depth_user + ')';
+    } else {
+      rc_floor = RC_FLOOR_IDES;
+    }
+  } else {
+    const pcu_user_el = document.getElementById('pv_pcu');
+    const pcu_user = pcu_user_el ? parseFloat(pcu_user_el.value) : NaN;
+    if (!isNaN(pcu_user) && pcu_user > 0) {
+      rc_floor = 3.0 / pcu_user;
+      rc_source = 'patient-spé (PCU=' + pcu_user + ')';
+    } else {
+      rc_floor = RC_FLOOR_PV;
+    }
+  }
   const ratio_obs = num > 0 ? num / denom : NaN;
   let ratio_eff = (isNaN(ratio_obs) || ratio_obs < rc_floor) ? rc_floor : ratio_obs;
   if (ratio_eff < EPS_LOG) ratio_eff = EPS_LOG;
@@ -931,6 +977,7 @@ function computeScore(vd_frac, vc_frac, dt_days, pipe, histo_label, cfdna_diag, 
            log_burden: log_burden,
            ctDNA_diag: denom, ctDNA_cxj1: num,
            ratio_obs: ratio_obs, ratio_eff: ratio_eff, rc_floor: rc_floor,
+           rc_floor_source: rc_source,
            mode: useVAF?'VAF':'hEq' };
 }
 

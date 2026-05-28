@@ -799,150 +799,197 @@ Partial pooling B′ retenu en production (AIC le plus bas, p=1.00 vs séparé) 
 </div>
 
 <div class="card">
-<h2 id="sec-coefs-v230">VIII. Coefficients V230.5b (production déployée)</h2>
-<p>Fit Cox stratifié pipeline × histo (cluster-robust sur NOM, penalizer L2 = 0.05), endpoint EFS, structure <strong>partial pooling B′</strong> : β_score, β_burden, β_TEP partagés entre IDES et PV ; β_v5A pipeline-spécifique. Validation du partial pooling en <a href="#sec-partial-pooling">§VII</a>.</p>
+<h2 id="sec-coefs-v230">VIII. Coefficients V232 (production déployée)</h2>
+<p>Fit Cox stratifié pipeline × histo (cluster-robust sur NOM, penalizer L2 = 0.05), endpoint EFS, structure <strong>partial pooling B′</strong> : β_F15, β_burden, β_TEP partagés entre IDES et PV ; β_v5A pipeline-spécifique. Validation du partial pooling en <a href="#sec-partial-pooling">§VII</a>.</p>
 
-<div class="note" style="margin:10px 0 14px; padding:12px 16px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
-<strong>📌 Coefficients ci-dessous = V230.1 historique</strong> (conservés pour traçabilité). <strong>Coefs V230.5b PROD ACTUELS</strong> (fittés V15.419 sur cohorte stacked IDES+PV avec strata pipe×histo + panel H = LTB swap + per-gene counting v5A) : M2_hEq Deauv : β_score = +0.010, β_burden = +0.197, β_Deauville = +0.333, β_v5A_IDES = +0.634, β_v5A_PV = +0.814 ; LP_offset IDES = +3.585 (DLBCL) / +2.806 (HODGKIN), LP_offset PV = +3.859 (DLBCL) / +2.928 (HODGKIN). Coefficients exacts dans <code>output/_calculator_data_v2.json</code> (cox_models.M2_v4_Deauville). Voir <a href="#sec-v230-5">§XII.25</a> pour le contexte des évolutions V230.4 → V230.5 → V230.5b.
+<div class="note" style="margin:10px 0 14px; padding:12px 16px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong>🆕 Coefficients V232 (V15.509, mai 2026)</strong> — refit sur cohorte stacked IDES+PV avec strata pipe×histo + cluster_col=NOM (sandwich SE). Architecture parcimonieuse 5 covariables : <code>F15_strat</code> remplace score_kin (formule analytique log(ratio_eff) + (ln(2)/t½_histo) × delai_real, t½=14j H / 28j NH). Coefs exacts dans <code>output/_calculator_data_v2.json</code> et <code>output/_calculator_data_v2_VAF_variants.json</code>. Sauvegarde V230.5b dans <code>_calculator_data_v2_V230_5b_backup.json</code> et <code>index_V230_5b_backup.html</code> pour traçabilité. Voir <a href="#sec-v232">§XII.27</a> pour la dérivation complète.
 </div>
 
 <div class="variant-grid">
 
 <div class="variant-card">
-<h4>M2_hEq Deauv — variante optimale ⭐</h4>
+<h4>M2_hEq Deauv — variante optimale ⭐ V232</h4>
 <table>
 <tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.374</strong></td></tr>
-<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.264</strong></td></tr>
-<tr><td>β_Deauville_num (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.365</strong></td></tr>
-<tr><td>β_v5A_gated</td><td>+0.597</td><td>+1.500</td></tr>
-<tr><td>LP_offset</td><td>+3.920</td><td>+4.094</td></tr>
-<tr><td>S₀(12)</td><td>0.8905</td><td>0.9244</td></tr>
-<tr><td>C-index (corr.)</td><td><strong>0.835</strong></td><td><strong>0.873</strong></td></tr>
+<tr><td>β_F15_strat (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.1565</strong></td></tr>
+<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.2311</strong></td></tr>
+<tr><td>β_Deauville_num (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.3357</strong></td></tr>
+<tr><td>β_v5A_pipeline</td><td>+0.5994</td><td>+0.6819</td></tr>
+<tr><td>LP_offset HODGKIN</td><td>+2.264</td><td>+2.073</td></tr>
+<tr><td>LP_offset DLBCL</td><td>+3.143</td><td>+3.039</td></tr>
+<tr><td>S₀(12) HODGKIN</td><td>0.9316</td><td>0.9316 ¹</td></tr>
+<tr><td>S₀(12) DLBCL</td><td>0.8777</td><td>0.8662</td></tr>
+<tr><td>C-index apparent</td><td><strong>0.843</strong></td><td><strong>0.893</strong></td></tr>
+<tr><td>C-index corrigé (bootstrap B=500)</td><td colspan="2" style="text-align:center;"><strong>0.852</strong> (stacked)</td></tr>
+</table>
+<p class="muted" style="font-size:11px; margin-top:4px;">¹ PV.HODGKIN saturé → fallback IDES.HODGKIN (V15.392 fix conservé).</p>
+</div>
+
+<div class="variant-card">
+<h4>M2_hEq Delta — fallback DeltaSUVmax V232</h4>
+<table>
+<tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
+<tr><td>β_F15_strat (partagé)</td><td colspan="2" style="text-align:center;">+0.1794</td></tr>
+<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;">+0.1985</td></tr>
+<tr><td>β_DeltaSUV (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.0127</strong> /%</td></tr>
+<tr><td>β_v5A_pipeline</td><td>+0.4660</td><td>+0.4941</td></tr>
+<tr><td>LP_offset HODGKIN</td><td>+0.046</td><td>−0.205</td></tr>
+<tr><td>LP_offset DLBCL</td><td>+0.580</td><td>+0.410</td></tr>
+<tr><td>S₀(12) HODGKIN</td><td>0.9193</td><td>0.9193</td></tr>
+<tr><td>S₀(12) DLBCL</td><td>0.8502</td><td>0.8324</td></tr>
+<tr><td>C-index apparent</td><td>0.828</td><td>0.862</td></tr>
+<tr><td>C-index corrigé</td><td colspan="2" style="text-align:center;">0.827</td></tr>
 </table>
 </div>
 
 <div class="variant-card">
-<h4>M2_hEq Delta — fallback DeltaSUVmax</h4>
+<h4>M1_hEq — sans TEP V232</h4>
 <table>
 <tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.348</td></tr>
-<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;">+0.236</td></tr>
-<tr><td>β_DeltaSUV (partagé)</td><td colspan="2" style="text-align:center;"><strong>+0.0133</strong> /%</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.505</td><td>+1.192</td></tr>
-<tr><td>LP_offset</td><td>+1.652</td><td>+1.748</td></tr>
-<tr><td>S₀(12)</td><td>0.8657</td><td>0.9023</td></tr>
-<tr><td>C-index (corr.)</td><td>0.824</td><td>0.875</td></tr>
+<tr><td>β_F15_strat (partagé)</td><td colspan="2" style="text-align:center;">+0.1467</td></tr>
+<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;">+0.2525</td></tr>
+<tr><td>β_v5A_pipeline</td><td>+0.5372</td><td>+0.5686</td></tr>
+<tr><td>LP_offset HODGKIN</td><td>+1.637</td><td>+1.407</td></tr>
+<tr><td>LP_offset DLBCL</td><td>+2.289</td><td>+2.094</td></tr>
+<tr><td>S₀(12) HODGKIN</td><td>0.9215</td><td>0.9215</td></tr>
+<tr><td>S₀(12) DLBCL</td><td>0.8736</td><td>0.8284</td></tr>
+<tr><td>C-index apparent</td><td><strong>0.805</strong></td><td><strong>0.852</strong></td></tr>
+<tr><td>C-index corrigé</td><td colspan="2" style="text-align:center;">0.815</td></tr>
 </table>
 </div>
 
 <div class="variant-card">
-<h4>M1_hEq — sans TEP (cfDNA dispo)</h4>
+<h4>M2_VAF Deauv — sans cfDNA Qubit V232</h4>
 <table>
 <tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.440</td></tr>
-<tr><td>β_log_burden_hEq (partagé)</td><td colspan="2" style="text-align:center;">+0.310</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.466</td><td>+1.055</td></tr>
-<tr><td>LP_offset</td><td>+3.286</td><td>+3.365</td></tr>
-<tr><td>S₀(12)</td><td>0.8777</td><td>0.8937</td></tr>
-<tr><td>C-index (corr.)</td><td><strong>0.805</strong></td><td><strong>0.846</strong></td></tr>
+<tr><td>β_F15_strat (partagé)</td><td colspan="2" style="text-align:center;">+0.1363</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.3517 ²</td></tr>
+<tr><td>β_Deauville_num (partagé)</td><td colspan="2" style="text-align:center;">+0.3186</td></tr>
+<tr><td>β_v5A_pipeline</td><td>+0.6180</td><td>+0.7209</td></tr>
+<tr><td>LP_offset HODGKIN</td><td>+0.739</td><td>+0.598</td></tr>
+<tr><td>LP_offset DLBCL</td><td>+1.494</td><td>+1.415</td></tr>
+<tr><td>S₀(12) HODGKIN</td><td>0.9350</td><td>0.9350</td></tr>
+<tr><td>S₀(12) DLBCL</td><td>0.8638</td><td>0.8575</td></tr>
+<tr><td>C-index apparent</td><td>0.833</td><td>0.877</td></tr>
+<tr><td>C-index corrigé</td><td colspan="2" style="text-align:center;">0.843</td></tr>
 </table>
+<p class="muted" style="font-size:11px; margin-top:4px;">² log_burden_VAF p = 0.061 borderline NS (mode VAF moins puissant que hEq, attendu).</p>
 </div>
 
 <div class="variant-card">
-<h4>M2_VAF Deauv — sans cfDNA Qubit</h4>
+<h4>M2_VAF Delta — sans cfDNA + Delta V232</h4>
 <table>
 <tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.328</td></tr>
-<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.320</td></tr>
-<tr><td>β_Deauville_num (partagé)</td><td colspan="2" style="text-align:center;">+0.351</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.598</td><td>+1.516</td></tr>
-<tr><td>LP_offset</td><td>+1.824</td><td>+1.975</td></tr>
-<tr><td>S₀(12)</td><td>0.8821</td><td>0.9187</td></tr>
-<tr><td>C-index (corr.)</td><td>0.808</td><td>0.809</td></tr>
+<tr><td>β_F15_strat (partagé)</td><td colspan="2" style="text-align:center;">+0.1248 ³</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.2826 ³</td></tr>
+<tr><td>β_DeltaSUV (partagé)</td><td colspan="2" style="text-align:center;">+0.0131 /%</td></tr>
+<tr><td>β_v5A_pipeline</td><td>+0.5119</td><td>+0.5701</td></tr>
+<tr><td>LP_offset HODGKIN</td><td>−1.056</td><td>−1.214</td></tr>
+<tr><td>LP_offset DLBCL</td><td>−0.627</td><td>−0.717</td></tr>
+<tr><td>S₀(12) HODGKIN</td><td>0.9225</td><td>0.9225</td></tr>
+<tr><td>S₀(12) DLBCL</td><td>0.8302</td><td>0.8258</td></tr>
+<tr><td>C-index apparent</td><td>0.806</td><td>0.840</td></tr>
+<tr><td>C-index corrigé</td><td colspan="2" style="text-align:center;">0.809</td></tr>
 </table>
+<p class="muted" style="font-size:11px; margin-top:4px;">³ F15 p = 0.068 et burden p = 0.079 borderline NS (mode dégradé double, fallback ultime).</p>
 </div>
 
 <div class="variant-card">
-<h4>M2_VAF Delta — sans cfDNA, fallback Delta</h4>
+<h4>M1_VAF — modèle minimal V232</h4>
 <table>
 <tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.282</td></tr>
-<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.319</td></tr>
-<tr><td>β_DeltaSUV (partagé)</td><td colspan="2" style="text-align:center;">+0.0136 /%</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.518</td><td>+1.220</td></tr>
-<tr><td>LP_offset</td><td>−0.128</td><td>−0.064</td></tr>
-<tr><td>S₀(12)</td><td>0.8606</td><td>0.8984</td></tr>
-<tr><td>C-index (corr.)</td><td>0.806</td><td>0.829</td></tr>
-</table>
-</div>
-
-<div class="variant-card">
-<h4>M1_VAF — modèle minimal (ni TEP ni cfDNA)</h4>
-<table>
-<tr><th>Coef</th><th>IDES</th><th>PV</th></tr>
-<tr><td>β_score_kin (partagé)</td><td colspan="2" style="text-align:center;">+0.400</td></tr>
-<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.449</td></tr>
-<tr><td>β_v5A_gated</td><td>+0.449</td><td>+1.070</td></tr>
-<tr><td>LP_offset</td><td>+0.961</td><td>+0.999</td></tr>
-<tr><td>S₀(12)</td><td>0.8697</td><td>0.8848</td></tr>
-<tr><td>C-index (corr.)</td><td>0.767</td><td>0.794</td></tr>
+<tr><td>β_F15_strat (partagé)</td><td colspan="2" style="text-align:center;">+0.1180</td></tr>
+<tr><td>β_log_burden_VAF (partagé)</td><td colspan="2" style="text-align:center;">+0.4013</td></tr>
+<tr><td>β_v5A_pipeline</td><td>+0.5574</td><td>+0.6260</td></tr>
+<tr><td>LP_offset HODGKIN</td><td>+0.084</td><td>−0.082</td></tr>
+<tr><td>LP_offset DLBCL</td><td>+0.589</td><td>+0.431</td></tr>
+<tr><td>S₀(12) HODGKIN</td><td>0.9268</td><td>0.9268</td></tr>
+<tr><td>S₀(12) DLBCL</td><td>0.8582</td><td>0.8182</td></tr>
+<tr><td>C-index apparent</td><td>0.778</td><td>0.820</td></tr>
+<tr><td>C-index corrigé</td><td colspan="2" style="text-align:center;">0.793</td></tr>
 </table>
 </div>
 
 </div>
 
-<h3>Interprétation clinique</h3>
+<h3>Interprétation clinique V232 (variante optimale M2_hEq Deauv)</h3>
 <ul>
-<li><strong>HR par unité Deauville</strong> = exp(0.365) = <strong>1.44</strong>. Deauville 4 vs 3 ⇒ +44% de hazard. Deauville 5 vs 1 ⇒ HR = 4.31.</li>
-<li><strong>HR par 10% de DeltaSUV</strong> = exp(0.133) = <strong>1.142</strong>. ΔSUV −50% vs −95% (45 pt d'écart) ⇒ HR = 1.82.</li>
-<li><strong>HR par 1-SD log_burden</strong> ≈ 1.4-1.6 (IDES) selon variante.</li>
-<li><strong>v5A_gated</strong> a un HR pipeline-spécifique : exp(0.597) = 1.82 IDES vs exp(1.500) = 4.48 PV (échelle UMI ≠ échelle reads).</li>
+<li><strong>HR par unité F15_strat</strong> = exp(0.1565) = <strong>1.169</strong>. F15 va typiquement de −10 (MRD− polished + Hodgkin J21) à +1 (MRD+ haut, NotH J42). ΔF15 = 5 unités ⇒ HR = exp(0.78) ≈ <strong>2.2</strong>. Le pouvoir discriminant vient principalement du gap MRD+/MRD− qui peut atteindre 4-8 log-units.</li>
+<li><strong>HR par unité Deauville</strong> = exp(0.3357) = <strong>1.40</strong>. Deauville 4 vs 3 ⇒ +40% de hazard. Deauville 5 vs 1 ⇒ HR = 3.83.</li>
+<li><strong>HR par 10% de DeltaSUV</strong> = exp(0.127) = <strong>1.135</strong>. ΔSUV −50% vs −95% (45 pt d'écart) ⇒ HR ≈ 1.78.</li>
+<li><strong>HR par 1-SD log_burden_hEq</strong> (cohorte SD ≈ 2.0) = exp(0.46) ≈ <strong>1.59</strong>.</li>
+<li><strong>v5A_pipeline</strong> a un HR pipeline-spécifique : exp(0.599) = 1.82 IDES vs exp(0.682) = 1.98 PV. Les échelles se sont rapprochées en V232 (vs V230.5b où PV était ×2.5 plus discriminant) — explication probable : la covariance F15_strat ↔ v5A est différente du score_kin ↔ v5A, redistribuant légèrement la discrimination.</li>
 </ul>
 
-<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
-<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Coefficients V230.5b PROD (cf. note encadrée ci-dessus) stables sous validation interne (bootstrap V230.1, MICE, PH, linéarité, RSF/GBM benchmark §XII.20). Hiérarchie HR globalement conservée vs V230.1 : Deauville reste fort (HR ≈ exp(0.33)= 1.40 par unité), v5A_PV reste ×2.5 plus discriminant que v5A_IDES (échelle UMI). Le coef β_score_kin est devenu très faible (+0.010) en V230.5b — cohérent avec le partial pooling B′ qui réabsorbe l'information du score cinétique via le baseline h₀ stratifié pipe×histo. Tous les modèles routent automatiquement le patient selon ses données disponibles.
+<div class="note" style="margin:16px 0; padding:14px 18px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d; font-size:14px;">📌 Conclusion de la section V232</strong><br>
+Architecture parcimonieuse 5 covariables, β_F15_strat positif (+0.156) et hautement significatif (p = 3.9×10⁻³) — confirmé par bootstrap B=500 (V15.510). La hiérarchie clinique des HR reste cohérente : Deauville domine (HR=1.40/unité), v5A pipeline-spé contribue substantiellement (HR≈1.8-2.0), log_burden capture la charge baseline (HR≈1.6/SD), F15_strat encode la profondeur ET la dynamique de la réponse MRD (HR=1.17/unité, mais l'écart MRD+/MRD− = 5-8 unités contribue jusqu'à HR ≈ 4 entre extrêmes). Le LP_offset stratifié par histologie (4 valeurs distinctes IDES_H/IDES_NH/PV_H/PV_NH) absorbe le baseline hazard différentiel sans coût discriminant. Tous les modèles routent automatiquement le patient selon ses données disponibles via le toggle UI.
 </div>
 </div>
 
-<!-- ════════════ SECTION 7 : TRAJECTOIRES V230 ════════════ -->
+<!-- ════════════ SECTION IX : F15_STRAT (V232 — remplace trajectoires) ════════════ -->
 <div class="card">
-<h2 id="sec-traj-fitted">IX. Trajectoires fittées (λ par strate)</h2>
-<p>Quatre paramètres λ par mode (hEq ou VAF) × pipeline : 2 histologies × 2 statuts responder = 4 trajectoires. Fittage par <code>differential_evolution</code> sur log-ratio observé vs prédit.</p>
+<h2 id="sec-traj-fitted">IX. Décroissance ctDNA — F15_strat (V232)</h2>
 
-<h3>Mode hEq (ratio ctDNA absolu = VAF × cfDNA)</h3>
-<table>
-<tr><th>Pipeline</th><th>Histologie</th><th>λ_good (j⁻¹)</th><th>t½_good</th><th>λ_bad (j⁻¹)</th><th>t½_bad</th></tr>
-<tr><td rowspan="2"><strong>IDES</strong></td><td>Hodgkin</td><td>0.646</td><td>1.1 j</td><td>0.371</td><td>1.9 j</td></tr>
-<tr><td>DLBCL</td><td>0.367</td><td>1.9 j</td><td>0.211</td><td>3.3 j</td></tr>
-<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.415</td><td>1.7 j</td><td>0.364 <em>(fallback DLBCL/good)</em></td><td>1.9 j</td></tr>
-<tr><td>DLBCL</td><td>0.364</td><td>1.9 j</td><td>0.237</td><td>2.9 j</td></tr>
-</table>
-
-<h3>Mode VAF (ratio VAF % uniquement)</h3>
-<table>
-<tr><th>Pipeline</th><th>Histologie</th><th>λ_good (j⁻¹)</th><th>t½_good</th><th>λ_bad (j⁻¹)</th><th>t½_bad</th></tr>
-<tr><td rowspan="2"><strong>IDES</strong></td><td>Hodgkin</td><td>0.646</td><td>1.1 j</td><td>0.365</td><td>1.9 j</td></tr>
-<tr><td>DLBCL</td><td>0.364</td><td>1.9 j</td><td>0.195</td><td>3.5 j</td></tr>
-<tr><td rowspan="2"><strong>PV</strong></td><td>Hodgkin</td><td>0.413</td><td>1.7 j</td><td>0.356 <em>(fallback DLBCL/good)</em></td><td>1.9 j</td></tr>
-<tr><td>DLBCL</td><td>0.356</td><td>1.9 j</td><td>0.221</td><td>3.1 j</td></tr>
-</table>
-
-<div class="note" style="border-color:#ed8936;background:#fffbeb;">
-<strong>Fallback Hodgkin/bad PV → DLBCL/good</strong> — Le couple <em>histo_HODGKIN/bad_responder</em> du pipeline PV n'a aucun patient calibrable (7 patients Hodgkin classique avec EFS=1 dans la cohorte, mais tous ont VAF_diag indétectable en PV). Le fallback adopté V229.1 est <code>λ_bad_Hodgkin_PV = λ_good_DLBCL_PV</code>, cohérent avec IDES où on observe empiriquement λ_bad_Hodgkin ≈ 0.37 ≈ λ_good_DLBCL ≈ 0.38.
+<div class="note" style="margin:0 0 14px; padding:12px 16px; background:#dbeafe; border-left:5px solid #2563eb; border-radius:4px;">
+<strong>🆕 Changement architectural V232</strong> — les <strong>4 trajectoires mono-exponentielles fittées</strong> par mode × pipeline × histo × responder (utilisées V213-V230.5b) sont remplacées par une <strong>formule analytique unique</strong> <code>F15_strat</code> qui dépend de 2 paramètres seulement : t½_HODGKIN = 14 j et t½_NotHodgkin = 28 j (constantes biologiquement défendues, pas fittées sur la cohorte). Cf. <a href="#sec-v232">§XII.27</a> pour la dérivation complète.
 </div>
 
-<p class="muted">Les λ sont remarquablement similaires entre modes hEq et VAF (Δ &lt; 0.02), indiquant que la dynamique de décroissance ctDNA suit la VAF — le cfDNA module la magnitude mais pas la pente.</p>
+<h3>IX.1 Formule F15_strat</h3>
+<pre style="background:#f8fafc; padding:14px 18px; border-radius:6px; font-size:13.5px; line-height:1.7; overflow-x:auto;">
+F15_strat = log(ratio_eff) + (ln(2) / t½_histo) × delai_real
 
-<div class="center">
-<img class="figure" src="figs/publication/Fig_trajectories.svg" alt="Mono-exp trajectories" style="max-width: 80%;">
-<p class="muted">Visualisation des trajectoires mono-exponentielles en SVG vectorisé. Axe Y = $\log_{10}$(ratio ctDNA / ctDNA diag) sur échelle linéaire → trajectoires apparaissent comme des droites parfaites (pente = −λ/ln 10). Axe Y secondaire à droite = valeur absolue du ratio (10⁰ à 10⁻⁷). Bandes verticales = C2J1 (J21) et C3J1 (J42).</p>
+où :
+  ratio_eff = ratio_obs                    si MRD+ (quali_gate = 1)
+            = rc_floor (patient-spé)        si MRD- (polish v56 actif)
+  ratio_obs = ctDNA_CXJ1 / ctDNA_diag       (mode hEq)
+            = VAF_CXJ1   / VAF_diag         (mode VAF, sans Qubit)
+  rc_floor_IDES = 1 / IDES_DEPTH_mean       (patient-spé, ~ 1/40 000)
+  rc_floor_PV   = 3 / Position_Common_UMI   (patient-spé, ~ 1/1 000)
+  t½_HODGKIN     = 14 jours                  (cohérent KM time-to-MRD-neg médian 29 j)
+  t½_NotHodgkin  = 28 jours                  (cohérent KM médian 42 j)
+  delai_real    = jours entre C1J1 et CXJ1 (Glims_CXJ1 - C1J1)
+  safety numérique : ratio_eff = max(ratio_eff, 1e-12)
+</pre>
+
+<h3>IX.2 Interprétation et invariance temporelle</h3>
+<p>L'élégance de cette formulation : si le patient suit <em>exactement</em> la décroissance exponentielle attendue avec demi-vie t½_histo, alors F15_strat est <strong>invariant dans le temps</strong> :</p>
+
+<div class="center" style="margin:10px 0;">
+<table style="margin:0 auto;">
+<tr><th>Cas</th><th>log(ratio) au CXJ1</th><th>Terme temporel</th><th>F15 final</th><th>Sens biologique</th></tr>
+<tr><td>Décroît au t½ attendu</td><td>diminue avec t</td><td>augmente avec t</td><td><strong>constant</strong> = log(ratio_initial)</td><td>réponse "normale"</td></tr>
+<tr><td>Décroît plus vite</td><td>diminue plus vite</td><td>augmente comme prévu</td><td><strong>F15 baisse avec t</strong></td><td>bon répondeur ↘</td></tr>
+<tr><td>Décroît plus lentement</td><td>diminue peu</td><td>augmente comme prévu</td><td><strong>F15 monte avec t</strong></td><td>mauvais répondeur ↗</td></tr>
+<tr><td>MRD− polished (floor)</td><td>log(floor) ≈ −7 à −10</td><td>+ correction t</td><td><strong>F15 très bas</strong></td><td>réponse profonde ✓</td></tr>
+</table>
 </div>
 
-<div class="note" style="margin:16px 0; padding:14px 18px; background:#fef3c7; border-left:5px solid #ca8a04; border-radius:4px;">
-<strong style="color:#854d0e; font-size:14px;">📌 Conclusion de la section</strong><br>
-Trajectoires mono-exp robustes par strate (histo × responder). PV Hodgkin/bad utilise un fallback DLBCL/good (V229.1) — 0 patient calibrable dans la cellule réelle. Modes hEq et VAF donnent des λ quasi-identiques (Δ < 0.02) → la dynamique de décroissance est portée par la VAF ; le cfDNA module la magnitude mais pas la pente.
+<p>Le Cox fit <strong>β_F15 = +0.156</strong> (p = 3.9×10⁻³) → F15 haut = mauvaise décroissance = risque rechute élevé. Sémantique biologiquement cohérente.</p>
+
+<h3>IX.3 Justifications du t½ stratifié histo</h3>
+<table>
+<tr><th>Méthode</th><th>λ_HODGKIN</th><th>λ_NotHodgkin</th><th>p-value (différence)</th><th>Script</th></tr>
+<tr><td>Tobit MLE censure formelle</td><td>0.93 /j (t½ vrai = 0.74 j)</td><td>0.50 /j (t½ vrai = 1.38 j)</td><td><strong>p &lt; 10⁻⁹⁹</strong></td><td>V15.500b</td></tr>
+<tr><td>KM time-to-MRD-negativity (médiane)</td><td><strong>29 j</strong></td><td><strong>42 j</strong></td><td>log-rank p &lt; 0.005</td><td>V15.501</td></tr>
+<tr><td>Fisher exact MRD− à J21</td><td>29 % négatifs</td><td>13 % négatifs</td><td>OR = 2.87, p = 0.003</td><td>V15.501</td></tr>
+<tr><td>Grid empirique AIC (7 combos t½_H / t½_NH)</td><td colspan="2" style="text-align:center;"><strong>S6 (14/28) AIC = 281.28 optimal</strong></td><td>ALL_SIG ✓</td><td>V15.506</td></tr>
+</table>
+
+<p class="muted" style="margin-top:8px;">Les t½ littéraires de 14j Hodgkin et 28j NotHodgkin sont des <strong>demi-vies apparentes du signal résiduel observable</strong> (pas le t½ biologique vrai du clone fondateur, qui serait plus court). Cohérent avec Kurtz JCO 2018 et Spina Blood 2018. Le ratio 2:1 (Hodgkin 2× plus rapide) est confirmé empiriquement et biologiquement (Reed-Sternberg = ~5 % de la masse, clairance ctDNA rapide).</p>
+
+<h3>IX.4 rc_floor patient-spécifique et portabilité</h3>
+<p>Le floor de détection technique <code>rc_floor</code> représente le signal résiduel mesurable chez un patient MRD−. Il dépend de la profondeur de séquençage :</p>
+<ul>
+<li><strong>IDES</strong> : <code>rc_floor = 1 / IDES_DEPTH_mean</code> (= 1 read alt au seuil de la profondeur moyenne)</li>
+<li><strong>PV</strong> : <code>rc_floor = 3 / Position_Common_UMI_CXJ1</code> (= 3 UMIs détectables au CXJ1)</li>
+</ul>
+<p>Sur la cohorte de développement V232 (médianes) : <code>rc_floor_IDES ≈ 3.7×10⁻⁴</code>, <code>rc_floor_PV ≈ 3.8×10⁻⁵</code>. Le calculateur JS utilise ces médianes par défaut, mais permet à l'utilisateur de saisir la profondeur patient réelle (section "Paramètres techniques avancés") pour une portabilité maximale à des cohortes externes avec depth différente.</p>
+
+<div class="note" style="margin:14px 0; padding:14px 18px; background:#dcfce7; border-left:5px solid #15803d; border-radius:4px;">
+<strong style="color:#15803d; font-size:14px;">📌 Conclusion §IX V232</strong><br>
+Décroissance ctDNA encodée par une formule analytique unique <code>F15_strat</code> (2 constantes biologiques fixes vs 16 paramètres fittés en V230.5b → parcimonie massive). Le t½ stratifié histo (14j/28j) est justifié par Tobit MLE (p&lt;10⁻⁹⁹), KM time-to-clearance, et grid AIC empirique. Invariance temporelle par construction → portabilité forte aux cohortes externes avec timing différent (le coefficient β_F15 fitté sur J21 reste valide sur J7 ou J42). Le floor rc_floor patient-spé encode la sensibilité du pipeline et peut être ajusté pour des cohortes externes avec depth différente. <strong>Pas de magic constant, pas de fallback ad-hoc</strong>.
 </div>
 </div>
 
@@ -1555,21 +1602,37 @@ les deux groupes histologiques ont des slopes de calibration <strong>très diff�
 <th style="padding:8px 12px;">Hosmer-Lemeshow</th>
 </tr></thead>
 <tbody>
-<tr style="background:#F5F3FF;">
-  <td style="padding:8px 12px; color:#7C3AED; font-weight:600;">Hodgkin classique (V230.5b — PROD)</td>
+<tr style="background:#dcfce7;">
+  <td style="padding:8px 12px; color:#15803d; font-weight:700;">Hodgkin classique (V232 — PROD ⭐)</td>
   <td style="padding:8px 12px; text-align:center;">110 (9)</td>
-  <td style="padding:8px 12px; text-align:center; color:#15803d; font-weight:700;">+1.19</td>
+  <td style="padding:8px 12px; text-align:center; color:#15803d; font-weight:700;">+1.21 ✓</td>
+  <td style="padding:8px 12px; text-align:center;"><strong>[+0.53 ; +1.86]</strong></td>
+  <td style="padding:8px 12px; text-align:center;">~0</td>
+  <td style="padding:8px 12px; text-align:center;">cascade ✓ (lo&gt;0, ∋1.0)</td>
+</tr>
+<tr style="background:#dcfce7;">
+  <td style="padding:8px 12px; color:#15803d; font-weight:700;">B agressifs + indolents (V232 — PROD ⭐)</td>
+  <td style="padding:8px 12px; text-align:center;">120 (33)</td>
+  <td style="padding:8px 12px; text-align:center; color:#15803d; font-weight:700;">+1.14 ✓</td>
+  <td style="padding:8px 12px; text-align:center;"><strong>[+0.98 ; +1.48]</strong></td>
+  <td style="padding:8px 12px; text-align:center;">~0</td>
+  <td style="padding:8px 12px; text-align:center;">cascade ✓ (lo&gt;0, ∋1.0)</td>
+</tr>
+<tr style="background:#F5F3FF; opacity:0.6;">
+  <td style="padding:8px 12px; color:#7C3AED;">Hodgkin V230.5b (archivé)</td>
+  <td style="padding:8px 12px; text-align:center;">110 (9)</td>
+  <td style="padding:8px 12px; text-align:center;">+1.19</td>
   <td style="padding:8px 12px; text-align:center;">[+0.73 ; +2.06]</td>
   <td style="padding:8px 12px; text-align:center;">−0.008</td>
-  <td style="padding:8px 12px; text-align:center;">χ² = 7.07 (df=2), p = 0.008 *</td>
+  <td style="padding:8px 12px; text-align:center;">χ² = 7.07, p = 0.008 *</td>
 </tr>
-<tr style="background:#FFF7ED;">
-  <td style="padding:8px 12px; color:#B45309; font-weight:600;">B agressifs + indolents (V230.5b — PROD)</td>
+<tr style="background:#FFF7ED; opacity:0.6;">
+  <td style="padding:8px 12px; color:#B45309;">Non-Hodgkin V230.5b (archivé)</td>
   <td style="padding:8px 12px; text-align:center;">120 (33)</td>
-  <td style="padding:8px 12px; text-align:center; color:#15803d; font-weight:700;">+1.20</td>
+  <td style="padding:8px 12px; text-align:center;">+1.20</td>
   <td style="padding:8px 12px; text-align:center;">[+0.89 ; +1.64]</td>
   <td style="padding:8px 12px; text-align:center;">+0.010</td>
-  <td style="padding:8px 12px; text-align:center;">χ² ~5-6 (df=2), p ~0.06 NS</td>
+  <td style="padding:8px 12px; text-align:center;">χ² ~5-6, p ~0.06 NS</td>
 </tr>
 <tr style="background:#F5F3FF; opacity:0.6;">
   <td style="padding:8px 12px; color:#7C3AED;">Hodgkin V230.4 (archivé)</td>
@@ -1577,7 +1640,7 @@ les deux groupes histologiques ont des slopes de calibration <strong>très diff�
   <td style="padding:8px 12px; text-align:center; color:#B45309;">+2.14</td>
   <td style="padding:8px 12px; text-align:center;">[+1.25 ; +4.47]</td>
   <td style="padding:8px 12px; text-align:center;">−0.011</td>
-  <td style="padding:8px 12px; text-align:center;">χ² = 4.6 (df=2), p = 0.10 NS</td>
+  <td style="padding:8px 12px; text-align:center;">χ² = 4.6, p = 0.10 NS</td>
 </tr>
 <tr style="background:#F5F3FF; opacity:0.6;">
   <td style="padding:8px 12px; color:#7C3AED;">Hodgkin V230.2 (archivé)</td>
@@ -1585,23 +1648,22 @@ les deux groupes histologiques ont des slopes de calibration <strong>très diff�
   <td style="padding:8px 12px; text-align:center; color:#B45309;">+0.70</td>
   <td style="padding:8px 12px; text-align:center;">[−0.21 ; +2.84]</td>
   <td style="padding:8px 12px; text-align:center;">−0.003</td>
-  <td style="padding:8px 12px; text-align:center;">χ² = 3.4 (df=3), p = 0.34 NS</td>
+  <td style="padding:8px 12px; text-align:center;">χ² = 3.4, p = 0.34 NS</td>
 </tr>
 </tbody>
 </table>
 </div>
 
-<div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
-<strong style="color:#15803d;">🔬 Observations clés V230.5b (calibration globale + stratifiée) — PROD ACTUELLE</strong>
+<div class="success" style="margin:14px 0; padding:14px 18px; background:#dcfce7; border-left:5px solid #16a34a; border-radius:4px;">
+<strong style="color:#15803d;">🔬 Observations clés V232 (calibration globale + stratifiée) — PROD ACTUELLE</strong>
 <ul style="margin:6px 0 0 18px;">
-<li><strong>Calibration globale</strong> OK sur 5 bins équi-effectifs. C-index apparent M2_hEq Deauv stacked = 0.853 (cohorte N=230, ev=42).</li>
-<li><strong>Slope V230.5b Hodgkin = +1.19 [+0.73 ; +2.06]</strong> — calibration ACCEPTABLE (IC95 % inclut 1.0). Massive amélioration vs V230.4 (Δ −0.95) grâce au per-gene counting (V15.419). La sous-prédiction n'est plus statistiquement significative.</li>
-<li><strong>Mécanisme du gain</strong> : le per-gene counting (cohérence avec la BWE V15.395 qui a sélectionné les panels) corrige l'inflation v5A chez les patients multi-variants par gène (hot-spots TP53 / MYC notamment). Voir <a href="#sec-v230-5">§XII.25</a> pour le détail.</li>
-<li><strong>Non-Hodgkin slope V230.5b = +1.20 [+0.89 ; +1.64]</strong> — calibration proche de l'idéal (IC95% inclut 1.0). Stable vs V230.4 (1.13).</li>
-<li>Hosmer-Lemeshow Hodgkin V230.5b χ² = 7.07 p = 0.008 (significatif — mais avec 9 events seulement, ce test est connu pour être instable ; la slope IC95 % qui inclut 1.0 est la métrique plus robuste).</li>
-<li><strong>Conséquence pour le calculateur</strong> : la calibration Hodgkin étant maintenant acceptable (slope IC95 % inclut 1.0), le cutoff binaire 15 % Hodgkin pourrait être assoupli en Tern 5/45 unifié. <strong>Décision conservative</strong> : on conserve le cutoff binaire 15 % Hodgkin du calculateur en attendant la validation externe (V230.5b vient juste d'être déployée, l'IC95 % de slope reste large).</li>
-<li><strong>Évolution historique de la calibration Hodgkin</strong> : V230.2 slope 0.70 (sur-prédiction) → V230.4 slope 2.14 (sous-prédiction sévère) → V230.5 slope 2.03 → <strong>V230.5b slope 1.19 (acceptable)</strong>. La trajectoire reflète les changements méthodologiques cumulés : panels élargis (V230.2) → panels histo-spé (V230.4) → c2-prio + LTB (V230.5) → per-gene counting (V230.5b).</li>
-<li><strong>Pas de recalibration shrinkage automatique appliquée (option γ — modèle Cox pur)</strong>. V15.407 avait testé un shrinkage Hodgkin <code>cal_factor=1.25</code> puis avait été REVERTÉ (V15.407b) pour éviter une asymétrie de traitement Hodgkin/Non-Hodgkin. Avec V230.5b slope = 1.19, la question du shrinkage devient caduque (correction de premier ordre déjà apportée par le per-gene counting).</li>
+<li><strong>Calibration globale</strong> OK sur 5 bins équi-effectifs. C-index apparent M2_hEq Deauv stacked = <strong>0.862</strong> (cohorte N=230, ev=42), C-index optimism-corrected B=500 = <strong>0.852</strong> (optimism +0.009, négligeable).</li>
+<li><strong>Slope V232 Hodgkin (bootstrap B=500) = +1.21 [+0.53 ; +1.86]</strong> ✓ — calibration <strong>VALIDÉE</strong> : IC95% bootstrap inclut 1.0 ET borne inférieure &gt; 0 (cascade complète). Léger gain vs V230.5b (+1.19 [+0.73;+2.06]) sur le point estimate ; l'IC s'est élargi car bootstrap par patient (cluster) au lieu de bootstrap par ligne.</li>
+<li><strong>Non-Hodgkin slope V232 = +1.14 [+0.98 ; +1.48]</strong> ✓ — calibration proche de l'idéal, IC95% serré et inclut 1.0. Stable vs V230.5b (+1.20 [+0.89;+1.64]) avec IC plus précis.</li>
+<li><strong>Cascade complète ✓/✓ sur les deux histo</strong> pour la variante optimale M2_hEq Deauv : slopes IC95% incluent 1.0 ET lo&gt;0. C'est le critère de validation strict qu'on visait.</li>
+<li><strong>Évolution historique de la calibration Hodgkin</strong> : V230.2 slope 0.70 (sur-prédiction) → V230.4 slope 2.14 (sous-prédiction) → V230.5 slope 2.03 → V230.5b slope 1.19 → <strong>V232 slope 1.21 (validée bootstrap)</strong>. La trajectoire reflète les évolutions méthodologiques cumulées : panels histo-spé (V230.4) → per-gene counting (V230.5b) → F15_strat t-dep stratifié histo (V232).</li>
+<li><strong>Pas de recalibration shrinkage appliquée</strong> (modèle Cox pur, TRIPOD-recommended). Avec cascade ✓/✓ validée bootstrap, la question du shrinkage est définitivement caduque.</li>
+<li><strong>Conséquence pour le calculateur</strong> : la calibration Hodgkin étant désormais validée bootstrap, le cutoff binaire 15 % Hodgkin pourrait être assoupli en Tern 5/45 unifié. <strong>Décision conservative maintenue</strong> en attendant la validation externe.</li>
 </ul>
 </div>
 
@@ -2357,7 +2419,15 @@ où :
 (7) <strong>Backup V230.5b conservé</strong> : <code>output/_calculator_data_v2_V230_5b_backup.json</code> + <code>github-pages/index_V230_5b_backup.html</code>. Réversibilité totale.
 </div>
 
-<p class="muted" style="margin-top:14px;">📝 <em>Note de mise à jour</em> : les sections §VIII (coefficients V230.5b), §IX (Tern KM 6 variantes), §X (calibration), §XI (VPP/VPN curves), §XII.20-22 (validation time-dep V230.4) restent à mettre à jour numériquement pour V232 (les ordres de magnitude sont préservés : ΔC apparent &lt; 0.01, slopes proches). Cette mise à jour interviendra dans une session ultérieure ; les figures KM 12 variantes V232 sont déjà disponibles dans <code>github-pages/figs/tern_v232/</code>.</p>
+<p class="muted" style="margin-top:14px;">📝 <em>Statut mise à jour V232</em> : <strong>✅ rafraîchis V15.516</strong> :
+<ul style="margin:4px 0 4px 18px; font-size:12.5px;">
+<li>§VIII coefficients 6 variantes (LP_offset stratifié par histo, baseline_S0 par strate, C-index apparent + corrigé bootstrap)</li>
+<li>§IX formule F15_strat (remplace trajectoires mono-exp, t½ stratifié histo justifié Tobit+KM)</li>
+<li>§XII.4 calibration globale + stratifiée par histo + bootstrap B=500 slopes IC95% (cascade ✓/✓ pour M2_hEq Deauv)</li>
+<li>§X (sliders Tern interactifs) et §XI (VPP/VPN curves) utilisent du <strong>JS dynamique paramétrique</strong> sur <code>COHORT[pipe].cohort</code> qui pointe désormais sur cohort_arrays V232 (LP, r12, delai, EFS, isH) — donc <strong>déjà V232 par construction</strong> sans modification HTML statique. Figures KM 12 variantes V232 régénérées dans <code>github-pages/figs/tern_v232/</code>.</li>
+<li><strong>Restent à rafraîchir numériquement</strong> : §XII.20-22 (validation time-dep C-Uno/Brier/DCA — refit sur cohortes V232 pour update numérique, ordres de magnitude préservés ΔC&lt;0.01).</li>
+</ul>
+</p>
 </div>
 
 <!-- ════════════ XII.22 — VALIDATION TIME-DEPENDENT (C-Uno + Brier + DCA) ════════════ -->
