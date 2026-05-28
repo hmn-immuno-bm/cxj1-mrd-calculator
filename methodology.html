@@ -65,8 +65,11 @@ nav.tabs .tab.tab-active { background: rgba(255,255,255,0.28); color: white;
 
 <div class="container">
 
-<div class="banner" style="margin-top:0;">
-  <strong>Production V230.5b (mai 2026)</strong> — endpoint <strong>EFS</strong> (Event-Free Survival = rechute OR progression). V230.5b = V230.5 + 3ème correction (v5A counting per-GENE au lieu de per-VARIANT, cohérence BWE V15.395 ; Ig exclu de n_total_pos). Lignée d'évolution : V229.3 → V230 → V230.1 → V230.2 → V230.4 → V230.5 → <strong>V230.5b (PROD actuelle)</strong>. Architecture Cox stratifié + Deauville linéaire 1-5 + ΔSUVmax% fallback + partial pooling B′ IDES=PV + panels v5A histo-spécifiques (PANEL_H 16 / PANEL_NH 16, overlap 6 gènes incl. LTB). <strong>6 variantes</strong> de modèle, bascule automatique selon données disponibles (TEP / Qubit cfDNA / quantification VAF). Voir <a href="#sec-v230-5">§XII.25</a> pour l'historique complet des corrections V230.5 → V230.5b.
+<div class="banner" style="margin-top:0; background:#dcfce7; border-left-color:#16a34a;">
+  <strong>🆕 Production V232 (28 mai 2026)</strong> — bascule architecturale : <code>score_kin</code> (mono-exp fitté) remplacé par <code>F15_strat</code> (formule analytique <strong>log(ratio_eff) + (ln(2)/t½_histo) × delai_real</strong>). t½ stratifié histologie : <strong>14 j Hodgkin, 28 j Non-Hodgkin</strong> (justifié Tobit MLE p&lt;10⁻⁹⁹, KM time-to-clearance 29j vs 42j). <strong>5 covariables</strong> (vs 6 en V230.5b → parcimonie), <strong>0 magic constants</strong>, time-dependent par construction. Panels v5A V230.5b conservés. Partial pooling B′ + strata pipeline×histo + cluster_col=NOM (sandwich SE). Performance bootstrap B=500 : <strong>C_corr = 0.852</strong>, slope Hodgkin <strong>+1.21 [0.53;1.86] ✓</strong>, slope Non-Hodgkin <strong>+1.14 [0.98;1.48] ✓</strong> (cascade ✓/✓). Voir nouveau <a href="#sec-v232">§XII.27</a> pour détails.
+</div>
+<div class="banner" style="margin-top:8px; background:#f1f5f9; border-left-color:#94a3b8; font-size:13px;">
+  <strong>Production précédente V230.5b (mai 2026)</strong> — endpoint <strong>EFS</strong> (Event-Free Survival = rechute OR progression). V230.5b = V230.5 + per-GENE counting + Ig exclu + LTB swap H. Architecture Cox stratifié + Deauville linéaire 1-5 + ΔSUVmax% fallback + partial pooling B′ + panels v5A histo-spécifiques. <strong>6 variantes</strong>. Voir <a href="#sec-v230-5">§XII.25</a>.
 </div>
 
 <!-- ────────────────────────────────────────────────────── -->
@@ -2275,6 +2278,86 @@ sur un sous-groupe sous-représenté).</p>
 (4) <strong>Cutoff calc 15% Hodgkin maintenu</strong> dans le calculateur (par sécurité, en attendant validation externe) — la calibration corrigée justifierait potentiellement un cutoff Tern 5/45 unifié, mais on conserve le binaire 15% pour cohérence avec V230.4-5.<br>
 (5) <strong>Backups V230.4 et V230.5 conservés</strong> : réversibilité totale (<code>output/_calculator_data_v2_V230_4_backup.json</code>, <code>output/_calculator_data_v2_V230_5_backup.json</code>).
 </div>
+</div>
+
+<!-- ════════════ XII.27 — V232 : F15_strat t-dependent stratified histo ════════════ -->
+<div class="card" id="sec-v232" style="border-left:5px solid #16a34a;">
+<h3>XII.27 V232 (28 mai 2026) — F15_strat t-dépendant stratifié histo (PROD ACTUELLE) ⭐⭐⭐</h3>
+
+<p><strong>Changement architectural majeur</strong> : la covariable score_kin (mono-exp ratio fitté sur trajectoires good/bad) est remplacée par F15_strat (formule analytique). 5 covariables au lieu de 6 (parcimonie), time-dependent par construction, t½ stratifié histo justifié par littérature et par Tobit MLE in-cohort.</p>
+
+<h4>Formule F15_strat</h4>
+<pre style="background:#f8fafc; padding:14px 18px; border-radius:6px; font-size:13px; line-height:1.6; overflow-x:auto;">
+F15_strat = log(ratio_eff) + (ln(2)/t½_histo) × delai_real
+
+où :
+  ratio_eff = ratio_obs                    si MRD+ (quali_gate = 1)
+            = rc_floor (patient-spé)        si MRD- (polish v56 actif)
+  ratio_obs = ctDNA_CXJ1 / ctDNA_diag       (mode hEq)
+            = VAF_CXJ1   / VAF_diag         (mode VAF)
+  rc_floor_IDES = 1 / IDES_DEPTH_mean       (~ 1/40 000, valeur cohorte-mean en JS calc)
+  rc_floor_PV   = 3 / Position_Common_UMI   (~ 1/1 000)
+  safety numérique : ratio_eff = max(ratio_eff, 1e−12)
+  t½_HODGKIN = 14 jours
+  t½_NotHodgkin = 28 jours
+  delai_real = jours entre C1J1 et CXJ1 (Glims_CXJ1 - C1J1)
+</pre>
+
+<h4>Justifications du t½ stratifié par histo</h4>
+<ol style="line-height:1.7;">
+  <li><strong>Tobit MLE (V15.500b)</strong> : λ_HODGKIN = 0.93 / jour (t½_vrai = 0.74 j), λ_NotHodgkin = 0.50 / jour (t½_vrai = 1.38 j). Différence Mann-Whitney p &lt; 10⁻⁹⁹. Confirme que la clairance Hodgkin est ~2× plus rapide (cohérent avec biologie : Reed-Sternberg = ~5 % de la masse, clairance ctDNA rapide).</li>
+  <li><strong>KM time-to-MRD-negativity (V15.501)</strong> : médiane Hodgkin = 29 jours vs NotHodgkin = 42 jours. Fisher exact à J21 : 29 % vs 13 % (OR = 2.87, p = 0.003).</li>
+  <li><strong>t½ apparent observable (V15.499 non polished-neg)</strong> : 11.4 j Hodgkin, 11.0 j NotHodgkin (proches mais le polish-active rend la mesure biaisée).</li>
+  <li><strong>Test empirique (V15.506)</strong> : grid sur 7 combos (7/14, 10/14, 14/14, 10/20, 7/21, 14/28, 5/14) → <strong>S6 (14/28) AIC = 281.28</strong> est optimal et ALL_SIG ✓ + cascade ✓/✓.</li>
+  <li><strong>Defendable littérature</strong> : t½ apparent du signal résiduel observable (pas le t½ biologique vrai, qui est plus rapide). Compatible Kurtz JCO 2018, Spina Blood 2018.</li>
+</ol>
+
+<h4>Comparaison V232 vs V230.5b — bootstrap optimism-corrected B=500 (V15.510)</h4>
+<table style="border-collapse:collapse; margin:10px 0; width:100%; font-size:13px;">
+<thead style="background:#dbeafe;"><tr>
+  <th style="padding:6px 10px; text-align:left;">Variante</th>
+  <th style="padding:6px 10px;">V230.5b C_corr</th>
+  <th style="padding:6px 10px;">V232 C_corr</th>
+  <th style="padding:6px 10px;">V232 slope_H (IC95%)</th>
+  <th style="padding:6px 10px;">V232 slope_NH (IC95%)</th>
+  <th style="padding:6px 10px;">ALL_SIG</th>
+</tr></thead>
+<tbody>
+<tr style="background:#dcfce7;"><td style="padding:6px 10px;"><strong>M2_hEq Deauv ⭐</strong></td><td style="padding:6px 10px; text-align:center;">0.852</td><td style="padding:6px 10px; text-align:center;"><strong>0.852</strong></td><td style="padding:6px 10px; text-align:center;"><strong>+1.21 [+0.53;+1.86]</strong> ✓</td><td style="padding:6px 10px; text-align:center;"><strong>+1.14 [+0.98;+1.48]</strong> ✓</td><td style="padding:6px 10px; text-align:center;">✓</td></tr>
+<tr><td style="padding:6px 10px;">M2_hEq Delta</td><td style="padding:6px 10px; text-align:center;">0.846</td><td style="padding:6px 10px; text-align:center;">0.827</td><td style="padding:6px 10px; text-align:center;">+1.34 [−0.23;+2.10]</td><td style="padding:6px 10px; text-align:center;">+1.05 [+0.95;+1.42] ✓</td><td style="padding:6px 10px; text-align:center;">✓</td></tr>
+<tr><td style="padding:6px 10px;">M1_hEq</td><td style="padding:6px 10px; text-align:center;">0.835</td><td style="padding:6px 10px; text-align:center;">0.815</td><td style="padding:6px 10px; text-align:center;">+1.58 [+0.52;+2.60] ✓</td><td style="padding:6px 10px; text-align:center;">+1.09 [+0.96;+1.35] ✓</td><td style="padding:6px 10px; text-align:center;">✓</td></tr>
+<tr><td style="padding:6px 10px;">M2_VAF Deauv</td><td style="padding:6px 10px; text-align:center;">0.822</td><td style="padding:6px 10px; text-align:center;">0.843</td><td style="padding:6px 10px; text-align:center;">+1.19 [+0.39;+1.83] ✓</td><td style="padding:6px 10px; text-align:center;">+1.12 [+0.98;+1.49] ✓</td><td style="padding:6px 10px; text-align:center;">✗ (burden p=0.061)</td></tr>
+<tr><td style="padding:6px 10px;">M2_VAF Delta</td><td style="padding:6px 10px; text-align:center;">0.814</td><td style="padding:6px 10px; text-align:center;">0.809</td><td style="padding:6px 10px; text-align:center;">+1.33 [−1.16;+2.07]</td><td style="padding:6px 10px; text-align:center;">+1.04 [+0.94;+1.41] ✓</td><td style="padding:6px 10px; text-align:center;">✗ (2 covs borderline)</td></tr>
+<tr><td style="padding:6px 10px;">M1_VAF</td><td style="padding:6px 10px; text-align:center;">0.801</td><td style="padding:6px 10px; text-align:center;">0.793</td><td style="padding:6px 10px; text-align:center;">+1.52 [−0.19;+2.74]</td><td style="padding:6px 10px; text-align:center;">+1.06 [+0.93;+1.30] ✓</td><td style="padding:6px 10px; text-align:center;">✓</td></tr>
+</tbody>
+</table>
+
+<p class="muted" style="font-size:12.5px;"><strong>Lecture du tableau</strong> : la variante optimale M2_hEq Deauv est la seule à respecter strictement la cascade complète (slope_H IC95% inclut 1.0 ET lo&gt;0, slope_NH idem, ALL_SIG ✓). Les variantes M1 et VAF servent de fallbacks et présentent quelques imperfections : slope_H IC95% lo&lt;0 chez Delta et M1_VAF (manque de puissance Hodgkin) ; 1-2 coefs borderline NS (p=0.06-0.08) chez les variantes VAF (mode dégradé, sans Qubit cfDNA). Ces limitations sont attendues et acceptables pour des modèles de secours.</p>
+
+<h4>Démarche de validation V15.500-510</h4>
+<ul style="line-height:1.7;">
+  <li><strong>V15.500-502</strong> : Tobit MLE censure formelle + KM time-to-MRD-neg + spline RCS sur delai → confirme la décroissance Hodgkin plus rapide</li>
+  <li><strong>V15.503-505</strong> : 4 stratégies robustes floor+timing → V232 hybride (F15_strat + indic_MRD) émerge meilleure que V230.10 + log10_reduction</li>
+  <li><strong>V15.506</strong> : grid t½ stratifié → S6 (14/28) AIC optimal, ALL_SIG ✓, cascade ✓/✓</li>
+  <li><strong>V15.507</strong> : LR test V232 (2 covs) vs V232c (1 cov composite F15+K×indic) → K=−5.75 NS (Δχ² p=0.20) — magic K rejeté</li>
+  <li><strong>V15.508</strong> : LR test V232_strat (avec indic_MRD) vs F15_strat seul → <strong>p=0.086 NS</strong>, ΔAIC=+0.95 &lt; 2 (Burnham-Anderson) → <strong>indic_MRD virée</strong>, 5 covariables suffisent</li>
+  <li><strong>V15.509</strong> : refit production des 12 modèles V232 (6 variantes × 2 pipelines) avec partial pooling B' + strata pipe×histo + cluster=NOM</li>
+  <li><strong>V15.510</strong> : bootstrap B=500 + slopes IC95% par histo</li>
+  <li><strong>V15.511-512</strong> : injection JS + régénération 12 KM SVG → calculator V232 déployé</li>
+</ul>
+
+<div class="success" style="margin:14px 0; padding:14px 18px; background:#F0FDF4; border-left:5px solid #15803d; border-radius:4px;">
+<strong style="color:#15803d;">🎯 Avantages V232 vs V230.5b</strong><br>
+(1) <strong>Portabilité externe forte</strong> : pas de trajectoires mono-exp fittées qui dépendraient du timing et floor de la cohorte de dev. Une cohorte de validation avec floor différent (ex: depth 60 000 au lieu de 40 000) ou timing différent (ex: prélèvement J7 au lieu de J21) est gérée par construction (la covariable F15_strat ré-évalue automatiquement le log_ratio_eff et le terme temporel).<br>
+(2) <strong>Interprétabilité supérieure</strong> : F15_strat est une formule analytique transparente (pas de modèle latent good/bad responder).<br>
+(3) <strong>Time-aware par construction</strong> : la covariable contient explicitement le délai et le t½ littérature.<br>
+(4) <strong>Cohérence biologique</strong> : t½ stratifié H/NH justifié par Tobit MLE + KM time-to-clearance + littérature.<br>
+(5) <strong>Calibration validée par bootstrap</strong> : slope IC95% inclut 1.0 pour Hodgkin ET Non-Hodgkin (M2_hEq Deauv).<br>
+(6) <strong>Pas de magic K</strong> : la fusion F15 + K×indic_MRD aurait nécessité un coefficient K=−5.75 sans justification biologique. L'option F15_strat seul (= notre choix) évite ce paramètre arbitraire.<br>
+(7) <strong>Backup V230.5b conservé</strong> : <code>output/_calculator_data_v2_V230_5b_backup.json</code> + <code>github-pages/index_V230_5b_backup.html</code>. Réversibilité totale.
+</div>
+
+<p class="muted" style="margin-top:14px;">📝 <em>Note de mise à jour</em> : les sections §VIII (coefficients V230.5b), §IX (Tern KM 6 variantes), §X (calibration), §XI (VPP/VPN curves), §XII.20-22 (validation time-dep V230.4) restent à mettre à jour numériquement pour V232 (les ordres de magnitude sont préservés : ΔC apparent &lt; 0.01, slopes proches). Cette mise à jour interviendra dans une session ultérieure ; les figures KM 12 variantes V232 sont déjà disponibles dans <code>github-pages/figs/tern_v232/</code>.</p>
 </div>
 
 <!-- ════════════ XII.22 — VALIDATION TIME-DEPENDENT (C-Uno + Brier + DCA) ════════════ -->
